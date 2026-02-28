@@ -21,12 +21,12 @@ export const SITE = {
   },
   writings: [
     {
-      slug: "neutral-ai-model",
-      title: "Neutral AI Model",
+      slug: "neutral-ai",
+      title: "Neutral AI",
       oneLiner:
         "A discussion into Anthropic\u2019s $67.3B funding history and whether the \u2018left-wing company\u2019 narrative holds up.",
       date: "2026-02-28",
-      url: "/blockmeet/writings/neutral-ai-model.html",
+      url: "/blockmeet/writings/neutral-ai.html",
     },
   ] as Writing[],
 };
