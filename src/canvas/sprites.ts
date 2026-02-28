@@ -235,7 +235,7 @@ export function drawDragon(
   scale: number,
   facing: number,
   flapPhase: number,
-  night: boolean,
+  _night: boolean,
   time: number
 ) {
   const p = Math.floor(3 * scale);
@@ -250,7 +250,6 @@ export function drawDragon(
   const wingL = "#a03030";
   const horn = "#f5c542";
   const eye = "#ff4444";
-  const wOff = Math.sin(flapPhase) * p * 5;
 
   // tail
   for (let i = 0; i < 6; i++) {
@@ -1022,10 +1021,9 @@ export function drawShop(
   const w = s * 14;
   const h = s * 12;
   const baseY = groundY - h;
-  const wallColors = ["#c4956a", "#8b9dc3", "#c9a0dc"];
-  const roofColors = ["#e94560", "#4ecca3", "#f5c542"];
-  const signColors = ["#f5c542", "#e94560", "#4ecca3"];
-  const vi = variant % 3;
+  const wallColors = ["#c4956a", "#8b9dc3", "#c9a0dc", "#d4c4a8"];
+  const roofColors = ["#e94560", "#4ecca3", "#f5c542", "#6a3d8a"];
+  const vi = variant % wallColors.length;
 
   ctx.fillStyle = "rgba(0,0,0,0.15)";
   ctx.fillRect(x + 3, groundY - 2, w, 4);
@@ -1082,7 +1080,7 @@ export function drawShop(
   ctx.fillRect(signX + s, signY - s * 1.5, 2, s * 1.5);
   ctx.fillRect(signX + signW - s - 2, signY - s * 1.5, 2, s * 1.5);
 
-  const labels = ["BAKERY", "POTIONS", "TOOLS"];
+  const labels = ["BAKERY", "POTIONS", "TOOLS", "ATHENAEUM"];
   const fontSize = Math.max(8, Math.floor(s * 1.6));
   ctx.fillStyle = "#ffffff";
   ctx.font = `${fontSize}px "Press Start 2P", monospace`;

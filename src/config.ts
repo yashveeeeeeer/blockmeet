@@ -1,3 +1,11 @@
+export interface Writing {
+  slug: string;
+  title: string;
+  oneLiner: string;
+  date: string;
+  url: string;
+}
+
 export const SITE = {
   repoBase: "/blockmeet/",
   title: "BLOCKMeet",
@@ -11,4 +19,14 @@ export const SITE = {
     twitter: "https://x.com/yashv_r",
     linkedin: "https://www.linkedin.com/in/yashveersinghh/",
   },
+  writings: [
+    {
+      slug: "neutral-ai-model",
+      title: "Neutral AI Model",
+      oneLiner:
+        "A discussion into Anthropic\u2019s $67.3B funding history and whether the \u2018left-wing company\u2019 narrative holds up.",
+      date: "2026-02-28",
+      url: "/blockmeet/writings/neutral-ai-model.html",
+    },
+  ] as Writing[],
 };

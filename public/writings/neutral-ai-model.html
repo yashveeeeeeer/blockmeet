@@ -1,0 +1,1794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neutral AI Model</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,300;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ─── TOKENS ─── */
+:root {
+  --bg:       #faf8f3;
+  --surface:  #f3f0e8;
+  --ink:      #18140e;
+  --ink2:     #4a4238;
+  --ink3:     #8a7e6e;
+  --rule:     #ddd5c0;
+  --rule2:    #c8bda8;
+  --red:      #9e2020;
+  --red-soft: #f5eded;
+  --blue:     #1c3461;
+  --blue-soft:#edf0f7;
+  --gold:     #b87820;
+  --gold-soft:#fdf6e8;
+  --green:    #1e4d28;
+  --green-soft:#edf5ef;
+  --white:    #ffffff;
+  --max:      860px;
+  --wide:     1100px;
+}
+
+/* ─── RESET ─── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 18px;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+}
+
+img { max-width: 100%; display: block; }
+
+/* ─── UTILITY ─── */
+.mono {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink3);
+}
+.rule { border: none; border-top: 1px solid var(--rule); margin: 0; }
+/* ─── LINKS (sources) ─── */
+/* ─── MICRO-INTERACTIONS (modern retro) ─── */
+
+/* Ink underline draw for section titles */
+.sec-title{
+  display: inline-block;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 2px;
+  background-repeat: no-repeat;
+  background-position: 0 97%;
+  transition: background-size 1.6s ease;
+}
+.section.in .sec-title{ background-size: 100% 2px; }
+@media (prefers-reduced-motion: reduce){
+  .sec-title{ transition:none; }
+}
+
+/* Reading progress */
+#readbar{
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0%;
+  background: var(--ink);
+  z-index: 220;
+  opacity: 0.85;
+}
+
+/* Section focus when navigated */
+.section:target{
+  background: linear-gradient(90deg, rgba(243,240,232,0.9) 0%, rgba(250,248,243,0) 42%);
+  border-left: 3px solid var(--rule2);
+  padding-left: 44px;
+}
+@media (max-width: 820px){
+  .section:target{ padding-left: 24px; }
+}
+
+/* Retro highlighter swipe */
+mark{
+  background: none;
+  color: inherit;
+  padding: 0 0.18em;
+  border-radius: 3px;
+  background-image: linear-gradient(rgba(184,120,32,0.22), rgba(184,120,32,0.22));
+  background-size: 0% 100%;
+  background-repeat: no-repeat;
+  background-position: 0 70%;
+  transition: background-size .6s ease, filter .2s ease;
+}
+.section.in mark{ background-size: 100% 100%; }
+mark:hover{ filter: saturate(1.1); }
+
+/* Tooltip notes */
+.tip{
+  position: relative;
+  cursor: help;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: var(--rule2);
+  text-underline-offset: 3px;
+}
+.tip::after{
+  content: attr(data-tip);
+  position: absolute;
+  left: 0;
+  top: 1.35em;
+  min-width: 220px;
+  max-width: 320px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  color: var(--ink2);
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  line-height: 1.55;
+  text-transform: none;
+  box-shadow: 0 10px 22px rgba(24,20,14,0.08);
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+  z-index: 120;
+}
+.tip:hover::after{
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Paragraph hover (subtle) */
+.prose p{
+  border-left: 2px solid transparent;
+  padding-left: 10px;
+  margin-left: -10px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.prose p:hover{
+  border-left-color: var(--rule2);
+  background: rgba(243,240,232,0.55);
+}
+
+/* Copy buttons (appear on hover) */
+.hero-stat{ position: relative; }
+.copybtn{
+  position: absolute;
+  top: 14px;
+  right: 0;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  color: var(--ink2);
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: opacity 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+  cursor: pointer;
+}
+.hero-stat:hover .copybtn{
+  opacity: 1;
+  transform: translateY(0);
+}
+.copybtn:hover{
+  border-color: var(--ink3);
+}
+.copytoast{
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  background: var(--ink);
+  color: var(--bg);
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 240;
+}
+.copytoast.show{
+  opacity: 0.92;
+  transform: translateY(0);
+}
+
+/* Overlay fixes (gauge + donations) */
+.gauge-title{ margin-bottom: 72px; } /* room for label */
+.don-track{ min-width: 0; }
+@media (max-width: 820px){
+  .don-row { flex-wrap: wrap; gap: 10px; }
+  .don-name { width: 100%; }
+  .don-track { width: 100%; }
+  .don-val { width: auto; margin-left: auto; }
+}
+.stat-cell-src a,
+.tl-source a,
+.c-sources a,
+.note a{
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--rule2);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+.stat-cell-src a:hover,
+.tl-source a:hover,
+.c-sources a:hover,
+.note a:hover{
+  text-decoration-color: var(--ink);
+}
+strong { font-weight: 600; }
+
+/* ─── HERO ─── */
+
+
+
+.hero {
+  padding: 56px 48px 72px;
+  border-bottom: 1px solid var(--rule);
+  max-width: var(--wide);
+  margin: 0 auto;
+}
+h1.hero-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(44px, 6vw, 78px);
+  font-weight: 900;
+  line-height: 1.0;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin-bottom: 18px;
+  max-width: 760px;
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+}
+h1.hero-title em {
+  font-style: italic;
+  color: var(--red);
+}
+.hero-body {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 64px;
+  align-items: start;
+}
+.hero-deck {
+  font-size: 20px;
+  line-height: 1.9;
+  color: var(--ink2);
+  max-width: 640px;
+  font-weight: 320;
+}
+
+.hero-deck::before{
+  content: '';
+  display: block;
+  width: 52px;
+  height: 2px;
+  background: var(--rule2);
+  margin: 0 0 18px;
+  opacity: 0.95;
+}
+.hero-deck strong { font-weight: 600; color: var(--ink); }
+.hero-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 200px;
+  border-left: 1px solid var(--rule);
+  padding-left: 40px;
+}
+.hero-stat {
+  padding: 20px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.hero-stat:last-child { border-bottom: none; }
+.hero-stat-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 42px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+.hero-stat-num.red { color: var(--red); }
+.hero-stat-num.gold { color: var(--gold); }
+.hero-stat-num.blue { color: var(--blue); }
+.hero-stat-desc {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-top: 5px;
+  line-height: 1.6;
+}
+
+/* ─── NAV ─── */
+.sitenav{
+  background: rgba(243,240,232,0.92);
+  backdrop-filter: blur(6px);
+  padding: 0 48px;
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid var(--rule2);
+}
+.sitenav::-webkit-scrollbar{ display:none; }
+.sitenav a{
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  text-decoration: none;
+  padding: 14px 4px;
+  white-space: nowrap;
+  transition: color 0.2s ease;
+  flex-shrink: 0;
+}
+.sitenav a:hover{ color: var(--ink); }
+.sitenav a.active{ color: var(--ink); }
+.sitenav a.active::after{
+  content: '';
+  display: block;
+  height: 2px;
+  background: var(--ink);
+  margin-top: 8px;
+  opacity: 0.75;
+}
+
+/* ─── SECTION SHELL ─── */
+.section {
+  padding: 80px 48px;
+  border-bottom: 1px solid var(--rule);
+  max-width: var(--wide);
+  margin: 0 auto;
+}
+
+/* ─── SECTION HEADER ─── */
+.sec-header {
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+  margin-bottom: 56px;
+}
+.sec-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 96px;
+  font-weight: 900;
+  line-height: 0.85;
+  color: var(--rule);
+  letter-spacing: -0.04em;
+  flex-shrink: 0;
+  user-select: none;
+}
+.sec-titles { flex: 1; }
+.sec-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-bottom: 8px;
+}
+h2.sec-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(26px, 3vw, 38px);
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+h2.sec-title em {
+  font-style: italic;
+  color: var(--red);
+}
+
+/* ─── PROSE ─── */
+.prose {
+  font-size: 17px;
+  line-height: 1.82;
+  color: var(--ink2);
+  max-width: 640px;
+}
+.prose p { margin-bottom: 20px; }
+.prose p:last-child { margin-bottom: 0; }
+.prose strong { color: var(--ink); font-weight: 600; }
+.prose em { font-style: italic; }
+
+/* Drop cap */
+.prose.dropcap > p:first-child::first-letter {
+  font-family: 'Playfair Display', serif;
+  font-size: 72px;
+  font-weight: 900;
+  float: left;
+  line-height: 0.75;
+  padding: 8px 12px 0 0;
+  color: var(--red);
+}
+
+/* ─── CALLOUT ─── */
+.callout {
+  border-left: 3px solid var(--gold);
+  background: var(--gold-soft);
+  padding: 20px 24px;
+  margin: 28px 0;
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--ink);
+  font-style: italic;
+}
+.callout cite {
+  display: block;
+  margin-top: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-style: normal;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink3);
+}
+
+/* ─── NOTE BOX ─── */
+.note {
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  padding: 18px 22px;
+  margin: 24px 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--ink3);
+}
+.note strong { color: var(--ink2); font-weight: 600; }
+.note .note-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-bottom: 6px;
+  display: block;
+}
+
+/* ─── STAT ROW ─── */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  margin: 40px 0;
+}
+.stat-cell {
+  background: var(--white);
+  padding: 28px 24px;
+}
+.stat-cell-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 40px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+.stat-cell-num.red { color: var(--red); }
+.stat-cell-num.blue { color: var(--blue); }
+.stat-cell-num.gold { color: var(--gold); }
+.stat-cell-num.green { color: var(--green); }
+.stat-cell-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-top: 8px;
+  line-height: 1.6;
+}
+.stat-cell-src {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  color: var(--rule2);
+  margin-top: 6px;
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* ─── ERA GRID ─── */
+.era-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  margin: 40px 0;
+}
+.era-card {
+  background: var(--white);
+  padding: 28px 22px 24px;
+}
+.era-marker {
+  width: 100%;
+  height: 3px;
+  margin-bottom: 18px;
+}
+.era-card.ea .era-marker { background: var(--red); }
+.era-card.wave .era-marker { background: var(--gold); }
+.era-card.amz .era-marker { background: var(--blue); }
+.era-card.global .era-marker { background: var(--green); }
+.era-period {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-bottom: 6px;
+}
+.era-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 14px;
+}
+.era-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 34px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  margin-bottom: 12px;
+}
+.era-card.ea .era-num { color: var(--red); }
+.era-card.wave .era-num { color: var(--gold); }
+.era-card.amz .era-num { color: var(--blue); }
+.era-card.global .era-num { color: var(--green); }
+.era-text {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--ink3);
+}
+
+/* ─── SPECTRUM BARS ─── */
+.spectrum-block { margin: 48px 0; }
+.spectrum-row { margin-bottom: 32px; }
+.spectrum-row-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+.spectrum-row-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.spectrum-row-amount {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: var(--ink3);
+}
+.spectrum-bar {
+  height: 32px;
+  display: flex;
+  overflow: hidden;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+}
+.sp {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  overflow: hidden;
+  white-space: nowrap;
+  color: rgba(255,255,255,0.88);
+}
+.sp-left    { background: #9e2020; }
+.sp-ll      { background: #c84040; }
+.sp-neutral { background: #4a6080; }
+.sp-right   { background: #1c3461; }
+.sp-global  { background: #1e4d28; }
+.sp-unk     { background: #a89878; color: rgba(255,255,255,0.5); }
+
+.spectrum-note {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--ink3);
+  margin-top: 10px;
+  padding-left: 12px;
+  border-left: 2px solid var(--rule);
+}
+
+/* ─── INVESTOR TABLE ─── */
+.inv-table-wrap { overflow-x: auto; margin: 40px 0; }
+.inv-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.inv-table th {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  padding: 10px 16px;
+  border-bottom: 2px solid var(--ink);
+  text-align: left;
+  white-space: nowrap;
+  background: var(--white);
+}
+.inv-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: top;
+  line-height: 1.55;
+  color: var(--ink2);
+}
+.inv-table td strong { color: var(--ink); font-weight: 600; }
+.inv-table tr:hover td { background: var(--surface); }
+.badge {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  padding: 3px 9px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+.badge-l  { color: var(--red);   border-color: var(--red);   background: var(--red-soft); }
+.badge-r  { color: var(--blue);  border-color: var(--blue);  background: var(--blue-soft); }
+.badge-n  { color: #4a6080;      border-color: #4a6080;      background: #f2f5f8; }
+.badge-g  { color: var(--green); border-color: var(--green); background: var(--green-soft); }
+
+/* ─── CAPITAL BREAKDOWN ─── */
+.capital-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: start;
+  margin: 40px 0;
+}
+.cap-chart { }
+.cap-chart-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-bottom: 20px;
+}
+.cap-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+.cap-row-label {
+  font-size: 13px;
+  color: var(--ink2);
+  width: 170px;
+  flex-shrink: 0;
+}
+.cap-track {
+  flex: 1;
+  height: 10px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  overflow: hidden;
+}
+.cap-fill { height: 100%; }
+.cap-fill.sov   { background: var(--green); }
+.cap-fill.neu   { background: var(--blue);  }
+.cap-fill.right { background: #2a4a8b;      }
+.cap-fill.left  { background: var(--red);   }
+.cap-fill.unk   { background: var(--rule2); }
+.cap-pct {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
+  font-weight: 700;
+  width: 38px;
+  text-align: right;
+  flex-shrink: 0;
+  color: var(--ink2);
+}
+
+.cap-big {
+  text-align: center;
+  padding: 36px 28px;
+  background: var(--ink);
+  color: var(--bg);
+}
+.cap-big-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 80px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--red);
+  display: block;
+}
+.cap-big-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #8a8070;
+  margin-top: 12px;
+  line-height: 1.7;
+  display: block;
+}
+.cap-big-sub {
+  font-size: 14px;
+  color: #8a8070;
+  margin-top: 16px;
+  line-height: 1.7;
+  font-style: italic;
+}
+
+/* ─── DONATION BARS ─── */
+.don-block { margin: 40px 0; }
+.don-label-row {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-bottom: 20px;
+}
+.don-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 13px;
+}
+.don-name {
+  font-size: 13px;
+  color: var(--ink2);
+  width: 210px;
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+.don-track {
+  flex: 1;
+  height: 22px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  overflow: hidden;
+  position: relative;
+  min-width: 0;
+}
+.don-fill {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding-left: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 10px;
+  transition: width 1.4s cubic-bezier(0.16,1,0.3,1);
+}
+.don-d   { background: var(--red);   color: rgba(255,255,255,0.85); }
+.don-r   { background: var(--blue);  color: rgba(255,255,255,0.85); }
+.don-neu { background: #6a7862;      color: rgba(255,255,255,0.75); }
+.don-val {
+  font-family: 'Playfair Display', serif;
+  font-size: 15px;
+  font-weight: 700;
+  width: 88px;
+  text-align: right;
+  flex-shrink: 0;
+}
+.don-val.r { color: var(--red); }
+.don-val.b { color: var(--blue); }
+.don-val.m { color: var(--ink3); }
+
+/* Donation bars: always-readable labels (dark on empty, light on filled) */
+.don-track{
+  position: relative;
+  --fill: 0%;
+}
+.don-track::after,
+.don-track::before{
+  content: attr(data-label);
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+.don-track::after{
+  color: var(--ink3);
+}
+.don-track::before{
+  color: rgba(255,255,255,0.9);
+  clip-path: inset(0 calc(100% - var(--fill)) 0 0);
+}
+
+/* Hide original fill text (label now rendered by track pseudo-elements) */
+.don-fill{
+  color: transparent !important;
+}
+
+/* ─── TIMELINE ─── */
+.timeline { margin: 40px 0; }
+.tl-entry {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 32px;
+  padding: 28px 0;
+  border-top: 1px solid var(--rule);
+  align-items: start;
+  transition: background 0.2s;
+}
+.tl-entry:hover { background: var(--surface); margin: 0 -16px; padding-left: 16px; padding-right: 16px; }
+.tl-left { }
+.tl-date {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+.tl-entry.left .tl-date   { color: var(--red); }
+.tl-entry.right .tl-date  { color: var(--blue); }
+.tl-entry.neutral .tl-date{ color: var(--green); }
+.tl-chip {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  padding: 2px 8px;
+  border: 1px solid;
+  text-transform: uppercase;
+}
+.tl-entry.left .tl-chip   { color: var(--red);   border-color: var(--red);   background: var(--red-soft); }
+.tl-entry.right .tl-chip  { color: var(--blue);  border-color: var(--blue);  background: var(--blue-soft); }
+.tl-entry.neutral .tl-chip{ color: var(--green); border-color: var(--green); background: var(--green-soft); }
+.tl-body { }
+.tl-headline {
+  font-family: 'Playfair Display', serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+.tl-text {
+  font-size: 14px;
+  line-height: 1.72;
+  color: var(--ink3);
+}
+.tl-source {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--rule2);
+  margin-top: 8px;
+}
+
+/* ─── GAUGE ─── */
+.gauge-block {
+  background: var(--white);
+  border: 1px solid var(--rule);
+  padding: 36px 40px;
+  margin: 40px 0;
+}
+.gauge-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-bottom: 28px;
+}
+.gauge-bar {
+  height: 14px;
+  background: linear-gradient(90deg,
+    #9e2020 0%, #c84040 18%,
+    #c8840a 35%, #8a9060 48%,
+    #4a6080 62%, #1c3461 80%,
+    #1e4d28 100%);
+  border: 1px solid var(--rule);
+  position: relative;
+  min-width: 0;
+  margin: 0 0 6px;
+}
+.gauge-needle {
+  position: absolute;
+  top: -8px;
+  bottom: -8px;
+  width: 2px;
+  background: var(--ink);
+  transform: translateX(-50%);
+  transition: left 2.2s cubic-bezier(0.34,1.3,0.64,1);
+}
+.gauge-needle::before {
+  content: '▼';
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: var(--ink);
+  line-height: 1;
+}
+.gauge-needle::after {
+  content: attr(data-label);
+  position: absolute;
+  top: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  background: var(--ink);
+  color: var(--bg);
+  padding: 2px 7px;
+}
+.gauge-ends {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-top: 28px;
+}
+.gauge-note {
+  font-size: 14px;
+  line-height: 1.72;
+  color: var(--ink3);
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--rule);
+}
+.gauge-note strong { color: var(--ink2); font-weight: 600; }
+
+/* ─── VERDICT ─── */
+.verdict-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  margin: 40px 0;
+}
+.verdict-card {
+  background: var(--white);
+  padding: 32px 26px;
+}
+.verdict-card .vc-verdict {
+  font-family: 'Playfair Display', serif;
+  font-size: 34px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  margin-bottom: 14px;
+  line-height: 1;
+}
+.verdict-card.vt .vc-verdict { color: var(--red); }
+.verdict-card.vm .vc-verdict { color: var(--gold); }
+.verdict-card.vf .vc-verdict { color: var(--green); }
+.vc-pct {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-bottom: 12px;
+  display: block;
+}
+.vc-text {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--ink3);
+}
+
+/* ─── FINAL CONCLUSION ─── */
+.conclusion {
+  background: var(--ink);
+  color: var(--bg);
+  padding: 56px 64px;
+  margin: 40px 0;
+}
+.conclusion .c-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #6a6050;
+  margin-bottom: 20px;
+}
+.conclusion .c-headline {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(24px, 3vw, 36px);
+  font-weight: 900;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: #f0e8d0;
+  margin-bottom: 28px;
+  max-width: 640px;
+}
+.conclusion .c-body {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #9a9080;
+  max-width: 640px;
+}
+.conclusion .c-body p { margin-bottom: 16px; }
+.conclusion .c-body p:last-child { margin-bottom: 0; }
+.conclusion .c-body strong { color: #c8b890; font-weight: 600; }
+.conclusion .c-sources {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #2a2218;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: #4a4038;
+  text-transform: uppercase;
+}
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 820px) {
+  .masthead, .hero, .section { padding-left: 24px; padding-right: 24px; }
+  footer { padding-left: 24px; padding-right: 24px; }
+  .hero-body { grid-template-columns: 1fr; }
+  .hero-stats { border-left: none; padding-left: 0; border-top: 1px solid var(--rule); padding-top: 32px; flex-direction: row; flex-wrap: wrap; }
+  .hero-stat { border-bottom: none; border-right: 1px solid var(--rule); padding: 0 20px 0 0; }
+  .era-grid { grid-template-columns: 1fr 1fr; }
+  .verdict-grid { grid-template-columns: 1fr; }
+  .capital-split { grid-template-columns: 1fr; }
+  .sec-num { font-size: 60px; }
+  .tl-entry { grid-template-columns: 1fr; gap: 10px; }
+  .conclusion { padding: 36px 24px; }
+  .sitenav { padding: 0 24px; }
+}
+@media (max-width: 520px) {
+  .era-grid { grid-template-columns: 1fr; }
+
+/* Donation rows: stack cleanly to avoid overlap */
+.don-row { flex-wrap: wrap; gap: 10px; }
+.don-name { width: 100%; }
+.don-track { width: 100%; }
+.don-val { width: auto; margin-left: auto; }
+
+}
+
+/* ─── FADE IN ─── */
+.fade { opacity: 0; transform: translateY(18px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.fade.in { opacity: 1; transform: none; }
+
+/* ─── SAFETY OVERRIDE: prevent gauge label overlap ─── */
+.gauge-title{ margin-bottom: 72px !important; }
+.gauge-needle::before{ top: -14px !important; }
+.gauge-needle::after{ top: -28px !important; }
+
+</style>
+</head>
+<body>
+
+<div id="readbar" aria-hidden="true"></div>
+<div class="copytoast" id="copytoast" role="status" aria-live="polite">Copied</div>
+
+
+<!-- HERO -->
+<div class="hero fade">
+  <h1 class="hero-title">Neutral AI Model</h1>
+  <div class="hero-body">
+    <div class="hero-deck">
+      A discussion into Anthropic&#39;s <strong><mark>$67.3 billion</mark></strong> funding history. It asks who actually paid for it, what their politics are, and whether the viral "<mark>Anthropic is a left-wing company</mark>" narrative holds up against the numbers.
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-num red" data-count="8" data-format="percent" data-prefix="~" data-suffix="%">~8%</div><button class="copybtn" data-copy="~8%" aria-label="Copy ~8%">⧉</button>
+        <div class="hero-stat-desc">of total capital from<br>left-leaning investors<br>(by dollar weight)</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num gold" data-count="94" data-format="percent" data-prefix="" data-suffix="%">94%</div><button class="copybtn" data-copy="94%" aria-label="Copy 94%">⧉</button>
+        <div class="hero-stat-desc">Claude neutrality score<br>Fortune, Nov 2025</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num blue" data-count="30000000000" data-format="money" data-prefix="$" data-suffix="">$30B</div>
+        <div class="hero-stat-desc">Series G led by<br>Founders Fund<br>(Peter Thiel)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="sitenav">
+  <a href="#s1" class="active">The Claim</a>
+  <a href="#s2">The Money</a>
+  <a href="#s3">Investor Map</a>
+  <a href="#s4">Donations</a>
+  <a href="#s5">Timeline</a>
+  <a href="#s6">Verdict</a>
+</nav>
+
+<!-- ═══ SECTION 1 ═══ -->
+<section class="section fade" id="s1">
+  <div class="sec-header">
+    <div class="sec-num">01</div>
+    <div class="sec-titles">
+      <div class="sec-label">Context</div>
+      <h2 class="sec-title">The Claim: <em>What's Being Said</em></h2>
+    </div>
+  </div>
+
+  <div class="prose dropcap" style="margin-bottom:32px;">
+    <p>A narrative has hardened across tech and political circles: Anthropic, the AI safety company behind Claude, is a <strong>left-wing organization</strong>, funded by Democrat megadonors and hostile to conservative governance. Donald Trump publicly called its leadership <strong>"left-wing nut jobs."</strong> Tech policy czar David Sacks accused Anthropic of backing <strong>"the Left's vision of AI regulation."</strong> Elon Musk claimed it <strong>"hates Western civilization."</strong></p>
+    <p>The claim has genuine historical roots. Anthropic's 2021 founding was embedded in the <span class="tip" data-tip="Often abbreviated EA. A philanthropy + ethics movement focused on measurable impact; not a political party.">Effective Altruism</span> community, which leaned heavily progressive and Democratic. Several early investors were among the largest individual Democratic donors in America. The CEO endorsed Kamala Harris.</p>
+    <div class="callout">
+      The narrative is not baseless. But it is frozen in 2021. Applied to the company as it exists today, with $67.3B raised from 90 investors spanning Peter Thiel's Founders Fund, Singapore's <span class="tip" data-tip="State-owned investment funds. Typically return-driven and not aligned with U.S. partisan politics.">sovereign wealth</span>, and Abu Dhabi's MGX, it is factually inaccurate.</div>
+    <p>This investigation maps every dollar to its source, examines verified FEC donation records, and tests the claim against Anthropic's own documented neutrality benchmarks. Six sections. Follow the money.</p>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-cell">
+      <div class="stat-cell-num red" data-count="214000" data-format="money" data-prefix="$" data-suffix="">$214K</div>
+      <div class="stat-cell-label">CEO Amodei's personal donations to Democrats</div>
+      <div class="stat-cell-src"><a href="https://www.fec.gov/" target="_blank" rel="noopener">FEC</a> records, <a href="https://www.washingtonexaminer.com/" target="_blank" rel="noopener">Washington Examiner</a> Sep 2025</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-cell-num red" data-count="174000000" data-format="money" data-prefix="$" data-suffix="">$174M</div>
+      <div class="stat-cell-label">Total Dem donations, all Anthropic-linked individuals</div>
+      <div class="stat-cell-src"><a href="https://denvergazette.com/" target="_blank" rel="noopener">Denver Gazette</a>, <a href="https://www.opensecrets.org/" target="_blank" rel="noopener">OpenSecrets</a></div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-cell-num gold" data-count="94" data-format="percent" data-prefix="" data-suffix="%">94%</div>
+      <div class="stat-cell-label">Claude's political even-handedness benchmark score</div>
+      <div class="stat-cell-src"><a href="https://fortune.com/" target="_blank" rel="noopener">Fortune Magazine</a>, November 2025</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-cell-num green" data-count="200000000" data-format="money" data-prefix="$" data-suffix="">$200M</div>
+      <div class="stat-cell-label">Pentagon contract won under the Trump admin</div>
+      <div class="stat-cell-src"><a href="https://www.cnbc.com/" target="_blank" rel="noopener">CNBC</a>, July 2025</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-cell-num blue" data-count="90" data-format="number" data-prefix="" data-suffix="">90</div>
+      <div class="stat-cell-label">Total investors across 15+ countries</div>
+      <div class="stat-cell-src"><a href="https://tracxn.com/" target="_blank" rel="noopener">Tracxn</a> / <a href="https://www.crunchbase.com/" target="_blank" rel="noopener">Crunchbase</a>, 2026</div>
+    </div>
+  </div>
+
+  <div class="note">
+    <span class="note-label">Why This Matters</span>
+    Claude is used by millions daily for information, research, and decision-making. If the model is ideologically captured, that is a serious problem worth documenting. If the narrative is outdated, acting on it damages the only major AI lab that explicitly <em>measures and publishes</em> political neutrality scores. Both outcomes have real-world consequences.
+  </div>
+</section>
+
+<!-- ═══ SECTION 2 ═══ -->
+<section class="section fade" id="s2">
+  <div class="sec-header">
+    <div class="sec-num">02</div>
+    <div class="sec-titles">
+      <div class="sec-label">Capital Structure</div>
+      <h2 class="sec-title">The Money: <em><mark>$67.3B Across Four Eras</mark></em></h2>
+    </div>
+  </div>
+
+  <div class="prose" style="margin-bottom:40px;">
+    <p>The most direct test of the "Anthropic is left" claim is to map every dollar raised to the political affiliations of who provided it. Anthropic's funding history falls into four clearly distinct eras. The political character of each era is dramatically different, and the trend moves sharply away from left-leaning capital as the company scales.</p>
+  </div>
+
+  <div class="era-grid">
+    <div class="era-card ea">
+      <div class="era-marker"></div>
+      <div class="era-period">2021 — 2022</div>
+      <div class="era-name">EA Origins</div>
+      <div class="era-num">$704M</div>
+      <div class="era-text">Series A &amp; B. Funded almost entirely by the Effective Altruism network: Jaan Tallinn, Dustin Moskovitz, Eric Schmidt, and Sam Bankman-Fried. Overwhelmingly Democrat-aligned. The authentic origin of the "left" narrative, and it was accurate at this point.</div>
+    </div>
+    <div class="era-card wave">
+      <div class="era-marker"></div>
+      <div class="era-period">2023</div>
+      <div class="era-name">First Institutions</div>
+      <div class="era-num">$550M+</div>
+      <div class="era-text">Series C. Google and Alphabet (left-leaning) enter alongside neutral VCs: Spark Capital, Menlo Ventures, Zoom, SK Telecom. Political character diversifies. The left-lean begins diluting.</div>
+    </div>
+    <div class="era-card amz">
+      <div class="era-marker"></div>
+      <div class="era-period">2023 — 2025</div>
+      <div class="era-name">Amazon Era</div>
+      <div class="era-num">$12.5B</div>
+      <div class="era-text">Series D, E, and Debt. Amazon's $8.75B anchors this period. Gulf sovereign capital from Dubai and Riyadh enters. Wall Street banks (JPMorgan, Goldman, Morgan Stanley) join. None are left-wing actors.</div>
+    </div>
+    <div class="era-card global">
+      <div class="era-marker"></div>
+      <div class="era-period">2025 — 2026</div>
+      <div class="era-name">Global Pivot</div>
+      <div class="era-num">$53B</div>
+      <div class="era-text">Series F &amp; G. GIC Singapore, QIA Qatar, MGX Abu Dhabi, <strong>Founders Fund (Peter Thiel)</strong>, Sequoia, BlackRock, Nvidia. This is 78% of all capital ever raised, and it is globally neutral to center-right.</div>
+    </div>
+  </div>
+
+  <div class="spectrum-block">
+    <div class="label" style="margin-bottom:24px;">Political lean of capital, by era</div>
+
+    <div class="spectrum-row">
+      <div class="spectrum-row-head">
+        <div class="spectrum-row-name">Era 1 · 2021–22 · EA Origins</div>
+        <div class="spectrum-row-amount">$704M · 1% of total capital</div>
+      </div>
+      <div class="spectrum-bar">
+        <div class="sp sp-left"   style="width:88%;">Left-EA (88%)</div>
+        <div class="sp sp-unk"    style="width:12%;">?</div>
+      </div>
+      <div class="spectrum-note">Almost entirely EA-network donors, overwhelmingly progressive Democratic. This is where the narrative starts, and it was accurate in 2021–22.</div>
+    </div>
+
+    <div class="spectrum-row">
+      <div class="spectrum-row-head">
+        <div class="spectrum-row-name">Era 2 · 2023 · First Institutions</div>
+        <div class="spectrum-row-amount">$550M+</div>
+      </div>
+      <div class="spectrum-bar">
+        <div class="sp sp-ll"      style="width:38%;">Left-Lean Tech</div>
+        <div class="sp sp-neutral" style="width:40%;">Neutral Venture</div>
+        <div class="sp sp-unk"     style="width:22%;">Unknown</div>
+      </div>
+      <div class="spectrum-note">Google and Alphabet enter (left-leaning corporate culture) alongside neutral VCs. Dilution accelerates.</div>
+    </div>
+
+    <div class="spectrum-row">
+      <div class="spectrum-row-head">
+        <div class="spectrum-row-name">Era 3 · 2023–25 · Amazon / Gulf / Banks</div>
+        <div class="spectrum-row-amount">$12.5B · 19% of total</div>
+      </div>
+      <div class="spectrum-bar">
+        <div class="sp sp-neutral" style="width:72%;">Neutral Corporate</div>
+        <div class="sp sp-global"  style="width:16%;">Gulf Sovereign</div>
+        <div class="sp sp-ll"      style="width:12%;">Left-Lean</div>
+      </div>
+      <div class="spectrum-note">Amazon, Wall Street banks, Saudi and Dubai sovereign capital. The left-leaning share of cumulative capital falls below 15%.</div>
+    </div>
+
+    <div class="spectrum-row">
+      <div class="spectrum-row-head">
+        <div class="spectrum-row-name">Era 4 · 2025–26 · The Global Pivot</div>
+        <div class="spectrum-row-amount">$53B · 79% of total, this is where the narrative breaks</div>
+      </div>
+      <div class="spectrum-bar">
+        <div class="sp sp-global"  style="width:42%;">Sovereign Wealth</div>
+        <div class="sp sp-neutral" style="width:30%;">Neutral Institutional</div>
+        <div class="sp sp-right"   style="width:18%;">Right-Lean</div>
+        <div class="sp sp-ll"      style="width:10%;">Left</div>
+      </div>
+      <div class="spectrum-note">Singapore GIC, Qatar QIA, Abu Dhabi MGX, <strong>Founders Fund (Peter Thiel)</strong>, Sequoia, BlackRock, Nvidia. By dollar weight: globally neutral to center-right. The "left-funded" claim is factually inaccurate for this era.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SECTION 3 ═══ -->
+<section class="section fade" id="s3">
+  <div class="sec-header">
+    <div class="sec-num">03</div>
+    <div class="sec-titles">
+      <div class="sec-label">Investor Map</div>
+      <h2 class="sec-title">Who Funds Anthropic: <em>Categorized</em></h2>
+    </div>
+  </div>
+
+  <div class="prose" style="margin-bottom:32px;">
+    <p>Political categorizations based on FEC donation records, public endorsements, and documented investor behavior. Categories: <span class="badge badge-l">Left-Lean</span> known Democratic affiliations &nbsp; <span class="badge badge-r">Right-Lean</span> known Republican/conservative &nbsp; <span class="badge badge-n">Neutral</span> no dominant partisan identity &nbsp; <span class="badge badge-g">Sovereign</span> non-US, no US partisan history.</p>
+  </div>
+
+  <div class="inv-table-wrap">
+    <table class="inv-table">
+      <thead>
+        <tr>
+          <th>Investor</th>
+          <th>Round</th>
+          <th>Lean</th>
+          <th>Evidence</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Founders Fund (Peter Thiel)</strong></td><td>Series G · 2026</td><td><span class="badge badge-r">Right-Lean</span></td><td>Backed JD Vance's Senate run, Trump-aligned PACs, Palantir. The defining right-wing VC in Silicon Valley.</td></tr>
+        <tr><td><strong>Sequoia Capital</strong></td><td>Series F · 2026</td><td><span class="badge badge-r">Right-Lean</span></td><td>Partners publicly broke with Democratic politics post-2022.</td></tr>
+        <tr><td><strong>GIC. Singapore</strong></td><td>Series F &amp; G (lead)</td><td><span class="badge badge-g">Sovereign</span></td><td>Singapore government sovereign wealth. Geopolitically neutral by mandate. Largest foreign LP in US tech.</td></tr>
+        <tr><td><strong>MGX. Abu Dhabi</strong></td><td>Series G · 2026</td><td><span class="badge badge-g">Sovereign</span></td><td>UAE AI sovereign fund. Also backed OpenAI. Non-aligned between US parties.</td></tr>
+        <tr><td><strong>Qatar Investment Authority</strong></td><td>Series F &amp; G</td><td><span class="badge badge-g">Sovereign</span></td><td>Invested in same Series G as Founders Fund, neither actor is "left."</td></tr>
+        <tr><td><strong>Amazon</strong></td><td>Series D/E</td><td><span class="badge badge-n">Neutral</span></td><td>Largest investor by dollar amount (~$8.75B). Corporate PAC donates to both parties.</td></tr>
+        <tr><td><strong>BlackRock &amp; Blackstone</strong></td><td>Series F · 2025</td><td><span class="badge badge-n">Neutral</span></td><td>World's largest asset managers. Institutionally apolitical.</td></tr>
+        <tr><td><strong>Nvidia</strong></td><td>Series G · 2026</td><td><span class="badge badge-n">Neutral</span></td><td>CEO Jensen Huang courts both parties equally.</td></tr>
+        <tr><td><strong>JPMorgan / Goldman / Morgan Stanley</strong></td><td>Debt · May 2025</td><td><span class="badge badge-n">Neutral</span></td><td>Wall Street banks. Work with all governments. No partisan identity.</td></tr>
+        <tr><td><strong>Google / Alphabet</strong></td><td>Series C &amp; E</td><td><span class="badge badge-l">Left-Lean</span></td><td>Corporate culture and employee donations lean heavily Democratic.</td></tr>
+        <tr><td><strong>Dustin Moskovitz</strong></td><td>Series A angel · 2021</td><td><span class="badge badge-l">Left-Lean</span></td><td>$38M+ to Harris PACs, largest individual Democratic donor of the 2024 cycle.</td></tr>
+        <tr><td><strong>Sam Bankman-Fried</strong></td><td>Series B lead · 2022</td><td><span class="badge badge-l">Left-Lean</span></td><td>Major Democrat donor. Convicted of fraud 2023. Anthropic returned funds entirely.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="capital-split">
+    <div class="cap-chart">
+      <div class="cap-chart-label">Capital by political lean, all $67.3B</div>
+      <div class="cap-row"><div class="cap-row-label">Sovereign / Global</div><div class="cap-track"><div class="cap-fill sov"   style="width:42%;"></div></div><div class="cap-pct">42%</div></div>
+      <div class="cap-row"><div class="cap-row-label">Neutral Institutional</div><div class="cap-track"><div class="cap-fill neu"   style="width:36%;"></div></div><div class="cap-pct">36%</div></div>
+      <div class="cap-row"><div class="cap-row-label">Right-Leaning</div><div class="cap-track"><div class="cap-fill right" style="width:10%;"></div></div><div class="cap-pct">10%</div></div>
+      <div class="cap-row"><div class="cap-row-label">Left-Leaning</div><div class="cap-track"><div class="cap-fill left"  style="width:8%;"></div></div><div class="cap-pct">8%</div></div>
+      <div class="cap-row"><div class="cap-row-label">Unknown</div><div class="cap-track"><div class="cap-fill unk"   style="width:4%;"></div></div><div class="cap-pct">4%</div></div>
+      <div style="margin-top:12px;font-size:12px;color:var(--ink3);line-height:1.6;">Left-leaning share concentrated in 2021–22 rounds (~$704M) vs $66.6B raised in 2023–2026.</div>
+    </div>
+    <div class="cap-big">
+      <span class="cap-big-num">~8%</span>
+      <span class="cap-big-label">of total capital<br>from left-leaning sources</span>
+      <div class="cap-big-sub">The other 92% came from sovereign wealth, neutral institutional investors, or right-leaning sources. By dollar weight, the "left-funded" claim describes only 8 cents of every dollar raised.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SECTION 4 ═══ -->
+<section class="section fade" id="s4">
+  <div class="sec-header">
+    <div class="sec-num">04</div>
+    <div class="sec-titles">
+      <div class="sec-label">Verified Records</div>
+      <h2 class="sec-title">The Donation Evidence: <em>FEC Data</em></h2>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start;">
+    <div>
+      <div class="don-block">
+        <div class="don-label-row">Political donations by Anthropic-linked individuals</div>
+        <div class="don-row"><div class="don-name">Dario Amodei (CEO)</div><div class="don-track"><div class="don-fill don-d" id="b1" style="width:3%;">$214K → Dems</div></div><div class="don-val r">$214K</div></div>
+        <div class="don-row"><div class="don-name">Dustin Moskovitz (Series A)</div><div class="don-track"><div class="don-fill don-d" id="b2" style="width:95%;">$38M+ → Harris PAC</div></div><div class="don-val r">$40M+</div></div>
+        <div class="don-row"><div class="don-name">Reed Hastings (Board)</div><div class="don-track"><div class="don-fill don-d" id="b3" style="width:52%;">$20M+ → Dems</div></div><div class="don-val r">$20M+</div></div>
+        <div class="don-row"><div class="don-name">Sam Bankman-Fried ✝</div><div class="don-track"><div class="don-fill don-d" id="b4" style="width:62%;">~$40M → Dems</div></div><div class="don-val r">~$40M</div></div>
+        <div class="don-row"><div class="don-name">Peter Thiel / Founders Fund</div><div class="don-track"><div class="don-fill don-r" id="b5" style="width:55%;">Trump / GOP</div></div><div class="don-val b">$M+ R</div></div>
+        <div class="don-row"><div class="don-name">Amazon / GIC / QIA / MGX</div><div class="don-track"><div class="don-fill don-neu" id="b6" style="width:50%;">No US partisan</div></div><div class="don-val m">Neutral</div></div>
+      </div>
+      <div style="font-size:12px;color:var(--ink3);line-height:1.6;margin-top:4px;">✝ SBF funds returned after fraud conviction. Sources: <a href="https://www.opensecrets.org/" target="_blank" rel="noopener">OpenSecrets</a>, <a href="https://www.fec.gov/" target="_blank" rel="noopener">FEC</a>.gov, Washington Examiner Sep 2025, Denver Gazette.</div>
+    </div>
+
+    <div class="prose">
+      <p>The donation data is where the "Anthropic is left" claim finds its <strong>strongest legitimate footing</strong>. Dario Amodei donated $214,000 to Democrats and publicly endorsed Kamala Harris. Dustin Moskovitz, an early angel investor, donated over $38 million to a Harris-aligned PAC, making him the <strong>single largest individual Democratic donor</strong> of the entire 2024 election cycle.</p>
+      <div class="callout">
+        These facts are real, documented, and form the genuine historical foundation of the perception. But they describe <em>leadership and early investors</em>, not the company's current $67.3 billion capital structure.</div>
+      <p>Personal political donations by founders do not automatically translate into model or policy bias. What matters for users is the documented behavior of the product itself. On that measure: Claude scores <strong>94% on political even-handedness benchmarks</strong>, outperforming every competitor including OpenAI, Google, and Meta, according to Fortune Magazine's November 2025 analysis.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SECTION 5 ═══ -->
+<section class="section fade" id="s5">
+  <div class="sec-header">
+    <div class="sec-num">05</div>
+    <div class="sec-titles">
+      <div class="sec-label">Chronological Record</div>
+      <h2 class="sec-title">The Political Timeline: <em>2021 to 2026</em></h2>
+    </div>
+  </div>
+
+  <div class="prose" style="margin-bottom:40px;">
+    <p>Key political events in Anthropic's history, coded by signal type. Read together they show how the narrative formed, where it's legitimate, and where it fails to account for the company's evolution.</p>
+  </div>
+
+  <div class="timeline">
+    <div class="tl-entry left">
+      <div class="tl-left"><div class="tl-date">May 2021</div><span class="tl-chip">Left Signal</span></div>
+      <div class="tl-body">
+        <div class="tl-headline">Founding, The EA Origins</div>
+        <div class="tl-text">Anthropic is founded from the EA network. First investors, Jaan Tallinn, Dustin Moskovitz, Eric Schmidt, are overwhelmingly progressive Democrats. This is the authentic origin of the "left" perception, and it was accurate.</div>
+        <div class="tl-source"><a href="https://techcrunch.com/" target="_blank" rel="noopener">TechCrunch</a>, <a href="https://forum.effectivealtruism.org/" target="_blank" rel="noopener">EA Forum</a>, <a href="https://tracxn.com/" target="_blank" rel="noopener">Tracxn</a></div>
+      </div>
+    </div>
+    <div class="tl-entry left">
+      <div class="tl-left"><div class="tl-date">April 2022</div><span class="tl-chip">Left Signal</span></div>
+      <div class="tl-body">
+        <div class="tl-headline">The SBF Problem</div>
+        <div class="tl-text">Series B led by Sam Bankman-Fried, then one of the largest Democratic donors in the US. FTX collapses November 2022; SBF convicted of fraud 2023. Anthropic returns funds and severs all ties.</div>
+        <div class="tl-source"><a href="https://www.wsj.com/" target="_blank" rel="noopener">Wall Street Journal</a>, <a href="https://www.fec.gov/" target="_blank" rel="noopener">FEC</a> records, court documents</div>
+      </div>
+    </div>
+    <div class="tl-entry neutral">
+      <div class="tl-left"><div class="tl-date">2023</div><span class="tl-chip">Diversifying</span></div>
+      <div class="tl-body">
+        <div class="tl-headline">Amazon, Gulf Capital, First Institutions</div>
+        <div class="tl-text">Series C and D bring Google, Amazon ($1.25B), Saudi MIS, and Dubai DAMAC. The cap table diversifies dramatically. Amazon's neutrality becomes the dominant influence by dollar weight.</div>
+        <div class="tl-source"><a href="https://tracxn.com/" target="_blank" rel="noopener">Tracxn</a>, <a href="https://www.reuters.com/" target="_blank" rel="noopener">Reuters</a>, <a href="https://www.crunchbase.com/" target="_blank" rel="noopener">Crunchbase</a></div>
+      </div>
+    </div>
+    <div class="tl-entry left">
+      <div class="tl-left"><div class="tl-date">2024 Election</div><span class="tl-chip">Left Signal</span></div>
+      <div class="tl-body">
+        <div class="tl-headline">Peak Political Exposure</div>
+        <div class="tl-text">CEO Amodei endorses Harris. Moskovitz donates $38M+ to a Harris PAC, largest individual Democratic donor of the 2024 cycle. Reed Hastings adds millions more. This is the high-water mark of Anthropic's left-wing political signaling, and the primary direct evidence behind the current narrative.</div>
+        <div class="tl-source"><a href="https://www.washingtonexaminer.com/" target="_blank" rel="noopener">Washington Examiner</a> Sep 2025, <a href="https://www.opensecrets.org/" target="_blank" rel="noopener">OpenSecrets</a> <a href="https://www.fec.gov/" target="_blank" rel="noopener">FEC</a> database</div>
+      </div>
+    </div>
+    <div class="tl-entry neutral">
+      <div class="tl-left"><div class="tl-date">Nov 2024</div><span class="tl-chip">Pivot</span></div>
+      <div class="tl-body">
+        <div class="tl-headline">Post-Election Pragmatism</div>
+        <div class="tl-text">Following Trump's victory, Amodei publishes a bipartisan policy piece. Anthropic quietly begins pursuing Trump administration contracts and meets with transition team members. Clear shift from ideology to pragmatism.</div>
+        <div class="tl-source">The Information, <a href="https://www.bloomberg.com/" target="_blank" rel="noopener">Bloomberg</a>, <a href="https://www.anthropic.com/news" target="_blank" rel="noopener">Anthropic blog</a></div>
+      </div>
+    </div>
+    <div class="tl-entry neutral">
+      <div class="tl-left"><div class="tl-date">Jul 2025</div><span class="tl-chip">Neutral</span></div>
+      <div class="tl-body">
+        <div class="tl-headline">$200M Pentagon Contract</div>
+        <div class="tl-text">The Trump administration awards Anthropic a $200M Pentagon defense contract. Claude is added to the GSA federal AI vendor list. A genuinely left-wing company hostile to Trump does not win a $200M defense contract from him.</div>
+        <div class="tl-source"><a href="https://www.cnbc.com/" target="_blank" rel="noopener">CNBC</a>, <a href="https://www.defenseone.com/" target="_blank" rel="noopener">DefenseOne</a>, July 2025</div>
+      </div>
+    </div>
+    <div class="tl-entry right">
+      <div class="tl-left"><div class="tl-date">Feb 12, 2026</div><span class="tl-chip">Right Signal</span></div>
+      <div class="tl-body">
+        <div class="tl-headline">Founders Fund Joins. Series G Closes</div>
+        <div class="tl-text">$30B Series G closes with Founders Fund (Peter Thiel's VC, backer of JD Vance's Senate run and Trump PACs) as a lead investor. If Anthropic were genuinely left-wing, this investment is very difficult to explain.</div>
+        <div class="tl-source"><a href="https://www.bloomberg.com/" target="_blank" rel="noopener">Bloomberg</a>, <a href="https://techcrunch.com/" target="_blank" rel="noopener">TechCrunch</a>, <a href="https://tracxn.com/" target="_blank" rel="noopener">Tracxn</a>, February 2026</div>
+      </div>
+    </div>
+    <div class="tl-entry left">
+      <div class="tl-left"><div class="tl-date">Feb 28, 2026</div><span class="tl-chip">Conflict</span></div>
+      <div class="tl-body">
+        <div class="tl-headline">The Pentagon Standoff</div>
+        <div class="tl-text">Anthropic refuses unlimited autonomous military use of Claude. Trump orders agencies to cease Anthropic product use. The conflict is real, but the position (limiting lethal autonomous AI) is shared by mainstream defense experts across the political spectrum. This is an AI safety disagreement, not evidence of ideological capture.</div>
+        <div class="tl-source"><a href="https://www.cnbc.com/" target="_blank" rel="noopener">CNBC</a>, <a href="https://www.theverge.com/" target="_blank" rel="noopener">The Verge</a>, <a href="https://www.defenseone.com/" target="_blank" rel="noopener">Defense One</a>, February 28, 2026</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SECTION 6 ═══ -->
+<section class="section fade" id="s6">
+  <div class="sec-header">
+    <div class="sec-num">06</div>
+    <div class="sec-titles">
+      <div class="sec-label">Final Analysis</div>
+      <h2 class="sec-title">The Verdict: <em>What the Data Says</em></h2>
+    </div>
+  </div>
+
+  <div class="gauge-block">
+    <div class="gauge-title"><span class="tip" data-tip="A weighted summary using your stated inputs (capital, leadership history, policy positions).">Composite Political Position</span>. Capital Weight 55% · Leadership History 25% · Policy Positions 20%</div>
+    <div class="gauge-bar">
+      <div class="gauge-needle" id="needle" data-label="Anthropic 2026" style="left:0%;"></div>
+    </div>
+    <div class="gauge-ends">
+      <span>Far Left</span>
+      <span>Center-Left</span>
+      <span>Centrist</span>
+      <span>Center-Right</span>
+      <span>Far Right</span>
+    </div>
+    <div class="gauge-note">
+      The needle settles at approximately <strong>35%, center-left</strong>. The current capital structure (78% neutral/sovereign/right) pulls toward center. Leadership donation history and founding origins pull left. The weighted composite: <strong>mildly center-left, and trending toward center every year since 2022</strong>. This is not "radical left-wing." It is the political position of a company that started in the EA community and has since become a globally funded institution.
+    </div>
+  </div>
+
+  <div class="verdict-grid">
+    <div class="verdict-card vt">
+      <div class="vc-verdict">True</div>
+      <span class="vc-pct">~25–30% of the narrative</span>
+      <div class="vc-text">Early founders and leadership have clear, documented left-Democrat ties. $174M+ in Democratic donations from Anthropic-linked individuals is verified FEC data. CEO's Harris endorsement is on record. For 2021–2022 specifically, the "left-wing" label fits.</div>
+    </div>
+    <div class="verdict-card vm">
+      <div class="vc-verdict">Mixed</div>
+      <span class="vc-pct">Context-dependent</span>
+      <div class="vc-text">Anthropic's policy positions on AI safety regulation and limits on military AI use align somewhat with progressive preferences, but are also mainstream international positions shared across the political spectrum in defense and governance communities.</div>
+    </div>
+    <div class="verdict-card vf">
+      <div class="vc-verdict">False</div>
+      <span class="vc-pct">~70–75% of the narrative</span>
+      <div class="vc-text">Applied to the company's current capital structure, the claim is factually inaccurate. 78%+ of all capital came from neutral sovereign wealth and institutional investors, plus Founders Fund (Peter Thiel). The narrative is a fossil of 2021 misapplied to 2026.</div>
+    </div>
+  </div>
+
+  <div class="conclusion">
+    <div class="c-label">Final Conclusion</div>
+    <div class="c-headline">The "Anthropic is left-wing" narrative is ~25% accurate. The rest is outdated.</div>
+    <div class="c-body">
+      <p>Anthropic's origins were genuinely left-leaning. Its founders came from the EA community, its early investors were progressive Democrats, and its CEO's personal political behavior has been consistently left-of-center. These facts are real and documentable, and they form the legitimate basis of the perception.</p>
+      <p>But the company has transformed dramatically since 2022. The $47B+ raised in 2025–2026 came from Singapore, Qatar, Abu Dhabi, Peter Thiel's fund, Sequoia, BlackRock, Fidelity, and Wall Street's largest banks. <strong>By dollar weight, only about 8% of Anthropic's total capital came from verifiably left-leaning sources.</strong> The other 92% did not.</p>
+      <p>On the product: Claude scores 94% on political neutrality benchmarks, higher than any competing model. Anthropic publishes its Constitutional AI framework. The company explicitly prohibits partisan political outputs from Claude. The only AI lab publicly accused of being "radical left" is, by its own measurable output, producing the most politically neutral large language model commercially available.</p>
+      <p>The current conflict with the Trump administration, Anthropic's refusal to authorize unlimited lethal autonomous weapons use of its AI, is not a left-wing position. It is an AI safety position shared by mainstream defense experts, NATO doctrine, and international governance bodies across the political spectrum. Framing it as evidence of ideological bias conflates safety ethics with partisan politics.</p>
+    </div>
+    <div class="c-sources">Sources: <a href="https://tracxn.com/" target="_blank" rel="noopener">Tracxn</a> · <a href="https://www.crunchbase.com/" target="_blank" rel="noopener">Crunchbase</a> · <a href="https://www.opensecrets.org/" target="_blank" rel="noopener">OpenSecrets</a> · <a href="https://www.fec.gov/" target="_blank" rel="noopener">FEC.gov</a> · <a href="https://www.washingtonexaminer.com/" target="_blank" rel="noopener">Washington Examiner</a> · <a href="https://fortune.com/" target="_blank" rel="noopener">Fortune Magazine</a> · <a href="https://www.cnbc.com/" target="_blank" rel="noopener">CNBC</a> · <a href="https://www.bloomberg.com/" target="_blank" rel="noopener">Bloomberg</a> · <a href="https://www.reuters.com/" target="_blank" rel="noopener">Reuters</a> · <a href="https://www.anthropic.com/news" target="_blank" rel="noopener">Anthropic Blog</a> · <a href="https://www.defenseone.com/" target="_blank" rel="noopener">Defense One</a></div>
+  </div>
+</section>
+
+<script>
+// Animate gauge needle
+window.addEventListener('load', function() {
+  setTimeout(function() {
+    var n = document.getElementById('needle');
+    if (n) n.style.left = '35%';
+  }, 400);
+});
+
+// Animate donation bars on scroll
+var barsAnimated = false;
+function tryAnimateBars() {
+  if (barsAnimated) return;
+  var el = document.getElementById('s4');
+  if (!el) return;
+  if (el.getBoundingClientRect().top < window.innerHeight * 0.88) {
+    barsAnimated = true;
+    ['b1','b2','b3','b4','b5','b6'].forEach(function(id) {
+      var b = document.getElementById(id);
+      if (!b) return;
+      var w = b.style.width;
+      b.style.width = '0%';
+      b.style.transition = 'none';
+      setTimeout(function() {
+        b.style.transition = 'width 1.4s cubic-bezier(.16,1,.3,1)';
+        b.style.width = w;
+      }, 80);
+    });
+  }
+}
+window.addEventListener('scroll', tryAnimateBars);
+tryAnimateBars();
+
+// Fade in sections on scroll
+var fades = document.querySelectorAll('.fade');
+function checkFades() {
+  fades.forEach(function(el) {
+    if (el.getBoundingClientRect().top < window.innerHeight * 0.92) {
+      el.classList.add('in');
+    }
+  });
+}
+window.addEventListener('scroll', checkFades);
+checkFades();
+
+// Active nav link
+var sections = document.querySelectorAll('section[id]');
+var navLinks = document.querySelectorAll('.sitenav a');
+window.addEventListener('scroll', function() {
+  var pos = window.scrollY + 120;
+  sections.forEach(function(sec) {
+    if (sec.offsetTop <= pos && sec.offsetTop + sec.offsetHeight > pos) {
+      navLinks.forEach(function(a) {
+        a.classList.toggle('active', a.getAttribute('href') === '#' + sec.id);
+      });
+    }
+  });
+});
+/* Reading progress bar */
+(function(){
+  var bar = document.getElementById('readbar');
+  function update(){
+    var doc = document.documentElement;
+    var scrollTop = doc.scrollTop || document.body.scrollTop;
+    var scrollHeight = (doc.scrollHeight || document.body.scrollHeight) - doc.clientHeight;
+    var p = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+    if (bar) bar.style.width = p.toFixed(2) + '%';
+  }
+  window.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update);
+  update();
+})();
+
+/* Copy buttons */
+(function(){
+  function toast(msg){
+    var t = document.getElementById('copytoast');
+    if (!t) return;
+    t.textContent = msg || 'Copied';
+    t.classList.add('show');
+    clearTimeout(window.__ct);
+    window.__ct = setTimeout(function(){ t.classList.remove('show'); }, 900);
+  }
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.copybtn');
+    if (!btn) return;
+    var val = btn.getAttribute('data-copy') || '';
+    if (!val) return;
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(val).then(function(){ toast('Copied: ' + val); })
+        .catch(function(){ toast('Copy failed'); });
+    } else {
+      // Fallback
+      var ta = document.createElement('textarea');
+      ta.value = val;
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); toast('Copied: ' + val); } catch (err){ toast('Copy failed'); }
+      document.body.removeChild(ta);
+    }
+  });
+})();
+/* Count-up numbers (consistent) */
+(function(){
+  var DURATION = 1400;  // consistent slow glide
+  var THRESHOLD = 0.6;
+
+  function fmtMoney(n, prefix, suffix){
+    prefix = prefix || '$';
+    suffix = suffix || '';
+    var abs = Math.abs(n);
+    if(abs >= 1e9) return prefix + (n/1e9).toFixed(1).replace(/\.0$/,'') + 'B' + suffix;
+    if(abs >= 1e6) return prefix + (n/1e6).toFixed(1).replace(/\.0$/,'') + 'M' + suffix;
+    if(abs >= 1e3) return prefix + Math.round(n/1e3) + 'K' + suffix;
+    return prefix + Math.round(n) + suffix;
+  }
+  function fmtNumber(n, prefix, suffix){
+    prefix = prefix || '';
+    suffix = suffix || '';
+    return prefix + Math.round(n).toString() + suffix;
+  }
+  function fmtPercent(n, prefix, suffix){
+    prefix = prefix || '';
+    suffix = suffix || '%';
+    return prefix + Math.round(n) + suffix;
+  }
+
+  function parseMetaFromText(text){
+    var t = (text || '').trim();
+    if(!/[0-9]/.test(t)) return null;
+
+    var m = t.match(/-?\d+(?:\.\d+)?/);
+    if(!m) return null;
+
+    var numStr = m[0];
+    var num = parseFloat(numStr);
+    var idx = t.indexOf(numStr);
+
+    var prefix = t.slice(0, idx).trim();
+    var suffixAll = t.slice(idx + numStr.length).trim();
+
+    var hasPlus = suffixAll.indexOf('+') !== -1;
+
+    // Percent
+    if(suffixAll.indexOf('%') !== -1){
+      return { mode: 'percent', value: num, prefix: prefix, suffix: '%' + (hasPlus ? '+' : '') };
+    }
+
+    // Magnitude
+    var mult = 1;
+    if(/[Bb]/.test(suffixAll)) mult = 1e9;
+    else if(/[Mm]/.test(suffixAll)) mult = 1e6;
+    else if(/[Kk]/.test(suffixAll)) mult = 1e3;
+
+    var value = num * mult;
+
+    // Money if has $ in prefix or magnitude letters present
+    var isMoney = (prefix.indexOf('$') !== -1) || /[BMKbm]/.test(suffixAll);
+
+    if(isMoney){
+      var moneyPrefix = prefix || '$';
+      return { mode: 'money', value: value, prefix: moneyPrefix, suffix: (hasPlus ? '+' : '') };
+    }
+    return { mode: 'number', value: value, prefix: prefix, suffix: (hasPlus ? '+' : '') };
+  }
+
+  function getMeta(el){
+    if(el.hasAttribute('data-count')){
+      var v = parseFloat(el.getAttribute('data-count') || '0');
+      var mode = el.getAttribute('data-format') || 'number';
+      var prefix = el.getAttribute('data-prefix') || '';
+      var suffix = el.getAttribute('data-suffix') || '';
+      return { mode: mode, value: v, prefix: prefix, suffix: suffix };
+    }
+    return parseMetaFromText(el.textContent);
+  }
+
+  function format(meta, n){
+    if(meta.mode === 'money') return fmtMoney(n, meta.prefix, meta.suffix);
+    if(meta.mode === 'percent') return fmtPercent(n, meta.prefix, meta.suffix || '%');
+    return fmtNumber(n, meta.prefix, meta.suffix);
+  }
+
+  function animate(el, meta){
+    var target = meta.value;
+    var start = performance.now();
+
+    function tick(t){
+      var p = Math.min(1, (t - start) / DURATION);
+      var eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = format(meta, target * eased);
+      if(p < 1) requestAnimationFrame(tick);
+      else el.textContent = format(meta, target);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  var selector = [
+    '[data-count]',
+    '.hero-stat-num',
+    '.stat-cell-num',
+    '.era-num',
+    '.cap-big-num',
+    '.cap-pct'
+  ].join(',');
+
+  var nodes = Array.prototype.slice.call(document.querySelectorAll(selector));
+  if(!nodes.length) return;
+
+  var items = [];
+  nodes.forEach(function(el){
+    var meta = getMeta(el);
+    if(!meta || isNaN(meta.value)) return;
+    items.push({ el: el, meta: meta });
+  });
+  if(!items.length) return;
+
+  function observe(){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(!e.isIntersecting) return;
+        for(var i=0;i<items.length;i++){
+          if(items[i].el === e.target){
+            animate(items[i].el, items[i].meta);
+            io.unobserve(items[i].el);
+            break;
+          }
+        }
+      });
+    }, { threshold: THRESHOLD });
+
+    items.forEach(function(it){ io.observe(it.el); });
+  }
+
+  if('IntersectionObserver' in window) observe();
+  else items.forEach(function(it){ animate(it.el, it.meta); });
+})();
+
+/* Donation label overlay: mirror label + fill width onto track */
+(function(){
+  var tracks = document.querySelectorAll('.don-track');
+  if(!tracks.length) return;
+  tracks.forEach(function(track){
+    var fill = track.querySelector('.don-fill');
+    if(!fill) return;
+    var label = (fill.textContent || '').trim();
+    if(label) track.setAttribute('data-label', label);
+    var w = (fill.style && fill.style.width) ? fill.style.width : '0%';
+    track.style.setProperty('--fill', w);
+  });
+})();
+</script>
+</body>
+</html>

@@ -34,29 +34,3 @@ export const PAL = {
   starDim: "#aaaacc",
   moonGlow: "#cceeff44",
 };
-
-export const BLOCK_COLORS = [
-  "#e94560",
-  "#4ecca3",
-  "#f5c542",
-  "#5b86e5",
-  "#ff6b35",
-  "#a855f7",
-  "#06b6d4",
-  "#84cc16",
-];
-
-export function lerpColor(a: string, b: string, t: number): string {
-  const ah = parseInt(a.replace("#", ""), 16);
-  const bh = parseInt(b.replace("#", ""), 16);
-  const ar = (ah >> 16) & 0xff,
-    ag = (ah >> 8) & 0xff,
-    ab = ah & 0xff;
-  const br = (bh >> 16) & 0xff,
-    bg = (bh >> 8) & 0xff,
-    bb = bh & 0xff;
-  const rr = Math.round(ar + (br - ar) * t);
-  const rg = Math.round(ag + (bg - ag) * t);
-  const rb = Math.round(ab + (bb - ab) * t);
-  return `#${((rr << 16) | (rg << 8) | rb).toString(16).padStart(6, "0")}`;
-}

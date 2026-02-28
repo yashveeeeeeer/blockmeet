@@ -1,4 +1,4 @@
-import { PAL, lerpColor } from "./palette";
+import { PAL } from "./palette";
 import {
   drawSun,
   drawMoon,
@@ -188,16 +188,16 @@ export interface WorldState {
   dogs: DogData[];
   horses: HorseRiderData[];
   streetLights: StreetLightData[];
+  groundSpeckles: { row: number; col: number; dx: number; dy: number }[];
   groundY: number;
   scrollY: number;
   nightMode: boolean;
   performanceMode: boolean;
   soundEnabled: boolean;
-  xp: number;
   animFrame: number;
   detach: (() => void) | null;
   musicPlayer: MusicPlayer | null;
-  onXpChange?: (xp: number) => void;
+  onShopClick?: (variant: number) => void;
 }
 
 // ── MP3 MUSIC PLAYER ─────────────────────────────────────────────
@@ -415,7 +415,7 @@ function createTrees(width: number): TreeData[] {
 
 function createShops(width: number): ShopData[] {
   const shops: ShopData[] = [];
-  const count = Math.min(3, Math.max(2, Math.floor(width / 500)));
+  const count = Math.min(4, Math.max(2, Math.floor(width / 400)));
   const spacing = width / (count + 1);
   for (let i = 0; i < count; i++) {
     const sc = 1.7 + Math.random() * 0.4;
@@ -459,7 +459,7 @@ function createNPCs(width: number, shops: ShopData[]): NPCData[] {
   return npcs;
 }
 
-function createDragon(width: number, height: number): DragonData {
+function createDragon(_width: number, height: number): DragonData {
   return {
     x: -200,
     y: height * 0.35,
@@ -473,7 +473,7 @@ function createDragon(width: number, height: number): DragonData {
   };
 }
 
-function createWitches(width: number, height: number): WitchData[] {
+function createWitches(_width: number, height: number): WitchData[] {
   const witches: WitchData[] = [];
   for (let i = 0; i < 2; i++) {
     const flyY = height * 0.15 + Math.random() * height * 0.18;
@@ -694,17 +694,13 @@ function drawSkyGradient(
   const mid = night ? PAL.nightSkyMid : PAL.skyMid;
   const bottom = night ? PAL.nightSkyBottom : PAL.skyBottom;
 
-  const steps = 20;
-  const stepH = (h * 0.7) / steps;
-  for (let i = 0; i < steps; i++) {
-    const t = i / steps;
-    const color =
-      t < 0.5
-        ? lerpColor(top, mid, t * 2)
-        : lerpColor(mid, bottom, (t - 0.5) * 2);
-    ctx.fillStyle = color;
-    ctx.fillRect(0, i * stepH, w, stepH + 1);
-  }
+  const skyH = h * 0.7;
+  const grad = ctx.createLinearGradient(0, 0, 0, skyH);
+  grad.addColorStop(0, top);
+  grad.addColorStop(0.5, mid);
+  grad.addColorStop(1, bottom);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, skyH + 1);
 }
 
 function drawMountains(
@@ -758,11 +754,30 @@ function drawMountains(
   }
 }
 
+function createGroundSpeckles(w: number): { row: number; col: number; dx: number; dy: number }[] {
+  const cols = Math.ceil(w / GRID_SIZE) + 1;
+  const speckles: { row: number; col: number; dx: number; dy: number }[] = [];
+  for (let row = 1; row < GROUND_ROW_COUNT; row++) {
+    for (let col = 0; col < cols; col++) {
+      if (Math.random() > 0.8) {
+        speckles.push({
+          row,
+          col,
+          dx: Math.floor(Math.random() * (GRID_SIZE - 4)),
+          dy: Math.floor(Math.random() * (GRID_SIZE - 4)),
+        });
+      }
+    }
+  }
+  return speckles;
+}
+
 function drawGround(
   ctx: CanvasRenderingContext2D,
   w: number,
   groundY: number,
-  time: number
+  time: number,
+  speckles: { row: number; col: number; dx: number; dy: number }[]
 ) {
   const cols = Math.ceil(w / GRID_SIZE) + 1;
   for (let row = 0; row < GROUND_ROW_COUNT; row++) {
@@ -776,16 +791,15 @@ function drawGround(
         ctx.fillRect(x, y, GRID_SIZE, GRID_SIZE);
         ctx.fillStyle = row < 2 ? PAL.dirtDark : PAL.stoneDark;
         ctx.fillRect(x, y + GRID_SIZE - 2, GRID_SIZE, 2);
-        if (Math.random() > 0.8) {
-          ctx.fillRect(
-            x + Math.floor(Math.random() * (GRID_SIZE - 4)),
-            y + Math.floor(Math.random() * (GRID_SIZE - 4)),
-            3,
-            3
-          );
-        }
       }
     }
+  }
+
+  for (const sp of speckles) {
+    const x = sp.col * GRID_SIZE;
+    const y = groundY + sp.row * GRID_SIZE;
+    ctx.fillStyle = sp.row < 2 ? PAL.dirtDark : PAL.stoneDark;
+    ctx.fillRect(x + sp.dx, y + sp.dy, 3, 3);
   }
 
   const waterY = groundY + GROUND_ROW_COUNT * GRID_SIZE;
@@ -903,7 +917,7 @@ function updateDragon(state: WorldState, dt: number, time: number) {
 }
 
 function getValidShops(shops: ShopData[]): ShopData[] {
-  return shops.filter((s) => s.variant % 3 !== 2);
+  return shops.filter((s) => s.variant !== 2 && s.variant !== 3);
 }
 
 function updateWitches(state: WorldState, dt: number, time: number) {
@@ -1152,26 +1166,51 @@ export function initWorld(canvas: HTMLCanvasElement): WorldState | null {
     dogs: createDogs(w, groundY, NPC_COUNT),
     horses: createHorses(w),
     streetLights: createStreetLights(w, shops),
+    groundSpeckles: createGroundSpeckles(w),
     groundY,
     scrollY: 0,
     nightMode: isNightTime(),
     performanceMode: false,
     soundEnabled: true,
-    xp: 0,
     animFrame: 0,
     detach: null,
     musicPlayer: null,
   };
 
-  const onPlace = () => {
-    if (state.soundEnabled && !state.musicPlayer) {
-      state.musicPlayer = new MusicPlayer();
-      state.musicPlayer.start();
+  const noop = () => {};
+  const detachInput = attachInputHandlers(canvas, state.input, noop, noop);
+
+  const startMusicOnGesture = () => {
+    if (state.soundEnabled) {
+      if (!state.musicPlayer) {
+        state.musicPlayer = new MusicPlayer();
+      }
+      if (!state.musicPlayer.playing) {
+        state.musicPlayer.start();
+      }
+    }
+    removeGestureListeners();
+  };
+
+  const GESTURE_EVENTS = [
+    "click", "keydown", "touchstart", "touchmove",
+    "scroll", "wheel", "mousemove", "pointerdown",
+  ] as const;
+
+  const removeGestureListeners = () => {
+    for (const evt of GESTURE_EVENTS) {
+      document.removeEventListener(evt, startMusicOnGesture);
     }
   };
-  const onRemove = () => {};
 
-  state.detach = attachInputHandlers(canvas, state.input, onPlace, onRemove);
+  for (const evt of GESTURE_EVENTS) {
+    document.addEventListener(evt, startMusicOnGesture, { once: true, passive: true });
+  }
+
+  state.detach = () => {
+    detachInput();
+    removeGestureListeners();
+  };
 
   return state;
 }
@@ -1201,6 +1240,7 @@ export function resizeWorld(state: WorldState) {
   state.dogs = createDogs(w, state.groundY, NPC_COUNT);
   state.horses = createHorses(w);
   state.streetLights = createStreetLights(w, state.shops);
+  state.groundSpeckles = createGroundSpeckles(w);
 }
 
 export function renderFrame(state: WorldState, time: number, dt: number) {
@@ -1267,10 +1307,26 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
     drawTreeByType(ctx, tree, groundY);
   }
 
-  drawGround(ctx, w, groundY, time);
+  drawGround(ctx, w, groundY, time, state.groundSpeckles);
 
   for (const shop of state.shops) {
     drawShop(ctx, shop.x, groundY, shop.variant, shop.scale);
+  }
+
+  if (state.input.clickFired && state.onShopClick) {
+    const cx = state.input.lastClickX;
+    const cy = state.input.lastClickY;
+    for (const shop of state.shops) {
+      const s = Math.floor(4 * shop.scale);
+      const shopW = s * 14;
+      const shopH = s * 12;
+      const baseY = groundY - shopH;
+      if (cx >= shop.x && cx <= shop.x + shopW && cy >= baseY && cy <= groundY) {
+        state.onShopClick(shop.variant);
+        break;
+      }
+    }
+    state.input.clickFired = false;
   }
 
   // street light poles
@@ -1339,14 +1395,7 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
     drawParticles(ctx, state.particles, time);
   }
 
-  if (state.soundEnabled) {
-    if (!state.musicPlayer) {
-      state.musicPlayer = new MusicPlayer();
-    }
-    if (!state.musicPlayer.playing) {
-      state.musicPlayer.start();
-    }
-  } else if (state.musicPlayer && state.musicPlayer.playing) {
+  if (!state.soundEnabled && state.musicPlayer?.playing) {
     state.musicPlayer.stop();
   }
 }
