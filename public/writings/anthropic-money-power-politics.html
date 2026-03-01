@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Neutral AI</title>
+<title>Anthropic: Money, Power, and Political Neutrality</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,300;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap');
@@ -1075,6 +1075,526 @@ h2.sec-title em {
   text-transform: uppercase;
 }
 
+/* ─── LEADERSHIP VISUALS ─── */
+.lead-tools{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  margin: 22px 0 18px;
+  max-width: 900px;
+}
+.lead-filters{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.lead-chip{
+  border: 1px solid var(--rule);
+  background: var(--white);
+  border-radius: 999px;
+  padding: 7px 10px 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--ink2);
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, transform .15s ease;
+}
+.lead-chip:hover{ transform: translateY(-1px); border-color: var(--rule2); }
+.lead-chip.active{
+  background: var(--surface);
+  border-color: var(--ink3);
+  color: var(--ink);
+}
+
+.lead-grid{
+  display:grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 22px 0 34px;
+}
+.lead-card{
+  background: var(--white);
+  border: 1px solid var(--rule);
+  border-radius: 16px;
+  padding: 14px 14px 12px;
+  box-shadow: 0 14px 26px rgba(24,20,14,0.06);
+  min-height: 168px;
+  transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease, opacity .15s ease;
+}
+.lead-card:hover{
+  transform: translateY(-2px);
+  border-color: var(--rule2);
+  box-shadow: 0 18px 32px rgba(24,20,14,0.08);
+}
+.lead-card.dim{ opacity: 0.22; }
+.lead-badge{
+  display:inline-block;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 4px 8px 3px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-bottom: 10px;
+}
+.lead-name{
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  margin-bottom: 4px;
+}
+.lead-meta{
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-bottom: 10px;
+}
+.lead-text{
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--ink2);
+  margin-bottom: 10px;
+}
+.lead-links{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.lead-links a{
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  text-decoration: underline;
+  text-decoration-color: var(--rule2);
+  text-underline-offset: 2px;
+}
+.lead-links a:hover{ color: var(--ink); text-decoration-color: var(--ink); }
+
+.lead-viz-split{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  align-items: start;
+  margin: 18px 0 34px;
+}
+.lead-viz{
+  border: 1px solid var(--rule);
+  background: var(--white);
+  border-radius: 18px;
+  padding: 18px 18px 16px;
+}
+.mix-row{ margin-top: 10px; }
+.mix-label{
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-bottom: 10px;
+}
+.mix-track{
+  position: relative;
+  height: 16px;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  overflow: hidden;
+  border-radius: 999px;
+}
+.mix-fill{
+  height: 100%;
+  float: left;
+}
+.mix-fill.left{ background: rgba(158,32,32,0.55); }
+.mix-fill.neutral{ background: rgba(28,52,97,0.35); }
+.mix-legend{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top: 12px;
+}
+.mix-pill{
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 5px 9px 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink2);
+}
+.mix-pill.left{ border-color: rgba(158,32,32,0.35); }
+.mix-pill.neutral{ border-color: rgba(28,52,97,0.28); }
+.mix-note{
+  margin-top: 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ink3);
+}
+
+/* Governance diagram */
+.gov-diagram{
+  display:grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: 12px;
+  position: relative;
+}
+.gov-box{
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 14px 14px 12px;
+}
+.gov-kicker{
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-bottom: 6px;
+}
+.gov-title{
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  margin-bottom: 8px;
+}
+.gov-text{
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink2);
+}
+.gov-link a{
+  display:inline-block;
+  margin-top: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  text-decoration: underline;
+  text-decoration-color: var(--rule2);
+  text-underline-offset: 2px;
+}
+.gov-link a:hover{ color: var(--ink); text-decoration-color: var(--ink); }
+
+/* Board cards */
+.lead-board{ margin-top: 8px; }
+.board-grid{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+.board-card{
+  background: var(--white);
+  border: 1px solid var(--rule);
+  border-radius: 16px;
+  padding: 14px 14px 12px;
+  box-shadow: 0 14px 26px rgba(24,20,14,0.06);
+}
+.board-role{
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-bottom: 8px;
+}
+.board-name{
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+.board-text{
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink2);
+  margin-bottom: 10px;
+}
+.board-links a{
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  text-decoration: underline;
+  text-decoration-color: var(--rule2);
+  text-underline-offset: 2px;
+}
+.board-links a:hover{ color: var(--ink); text-decoration-color: var(--ink); }
+
+@media (max-width: 980px){
+  .lead-grid{ grid-template-columns: repeat(2, 1fr); }
+  .board-grid{ grid-template-columns: 1fr; }
+  .lead-viz-split{ grid-template-columns: 1fr; }
+}
+
+/* ─── PEOPLE & POWER: FLIP CARDS ─── */
+.lead-legend{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+.lean-pill{
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 5px 9px 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink2);
+  background: var(--surface);
+}
+.lean-pill.left{ border-color: rgba(158,32,32,0.45); background: rgba(158,32,32,0.10); color: var(--red); }
+.lean-pill.right{ border-color: rgba(28,52,97,0.45); background: rgba(28,52,97,0.10); color: var(--blue); }
+.lean-pill.centerleft{ border-color: rgba(184,120,32,0.45); background: rgba(184,120,32,0.10); color: var(--gold); }
+.lean-pill.center{ border-color: rgba(30,77,40,0.40); background: rgba(30,77,40,0.10); color: var(--green); }
+.lean-pill.light{ border-color: rgba(200,189,168,0.75); background: rgba(243,240,232,0.9); color: var(--ink3); }
+
+.flip-grid{
+  display:grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 18px 0 10px;
+}
+.flip-card{
+  border: 0;
+  padding: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  perspective: 1200px;
+}
+.flip-inner{
+  position: relative;
+  width: 100%;
+  min-height: 170px;
+  transform-style: preserve-3d;
+  transition: transform 0.7s cubic-bezier(0.2, 1, 0.2, 1);
+}
+.flip-card.is-flipped .flip-inner{ transform: rotateY(180deg); }
+
+.flip-face{
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border: 1px solid var(--rule);
+  border-radius: 16px;
+  background: var(--white);
+  padding: 14px 14px 12px;
+  box-shadow: 0 14px 26px rgba(24,20,14,0.06);
+  display:flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+.flip-face.front{
+  transform: rotateY(0deg);
+}
+.flip-face.back{
+  transform: rotateY(180deg);
+}
+.flip-badge{
+  display:inline-block;
+  align-self: flex-start;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 4px 8px 3px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-bottom: 10px;
+}
+.flip-name{
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1.15;
+  margin-bottom: 4px;
+}
+.flip-role{
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-bottom: 10px;
+}
+.flip-mini{
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink2);
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule);
+}
+
+.flip-lean{
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 900;
+  margin-bottom: 10px;
+}
+.flip-evidence{
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink2);
+  margin-bottom: 12px;
+}
+.flip-links{
+  margin-top: auto;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.flip-links a{
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  text-decoration: underline;
+  text-decoration-color: var(--rule2);
+  text-underline-offset: 2px;
+}
+.flip-links a:hover{ color: var(--ink); text-decoration-color: var(--ink); }
+
+/* Back coloring by lean */
+.flip-face.back.left{
+  background: linear-gradient(180deg, rgba(245,237,237,1), rgba(245,237,237,0.65));
+  border-color: rgba(158,32,32,0.40);
+}
+.flip-face.back.left .flip-lean{ color: var(--red); }
+
+.flip-face.back.right{
+  background: linear-gradient(180deg, rgba(237,240,247,1), rgba(237,240,247,0.65));
+  border-color: rgba(28,52,97,0.40);
+}
+.flip-face.back.right .flip-lean{ color: var(--blue); }
+
+.flip-face.back.centerleft{
+  background: linear-gradient(180deg, rgba(253,246,232,1), rgba(253,246,232,0.70));
+  border-color: rgba(184,120,32,0.40);
+}
+.flip-face.back.centerleft .flip-lean{ color: var(--gold); }
+
+.flip-face.back.center{
+  background: linear-gradient(180deg, rgba(237,245,239,1), rgba(237,245,239,0.70));
+  border-color: rgba(30,77,40,0.35);
+}
+.flip-face.back.center .flip-lean{ color: var(--green); }
+
+.flip-face.back.light{
+  background: linear-gradient(180deg, rgba(243,240,232,1), rgba(243,240,232,0.78));
+  border-color: rgba(200,189,168,0.9);
+}
+.flip-face.back.light .flip-lean{ color: var(--ink3); }
+
+@media (max-width: 980px){
+  .flip-grid{ grid-template-columns: repeat(2, 1fr); }
+  .lead-legend{ justify-content: flex-start; }
+}
+@media (max-width: 520px){
+  .flip-grid{ grid-template-columns: 1fr; }
+}
+
+/* ─── PEOPLE & POWER: MINI DONATION BLOCK ─── */
+.don-mini{
+  margin: 26px 0 8px;
+  border: 1px solid var(--rule);
+  background: var(--white);
+  border-radius: 18px;
+  padding: 18px 18px 16px;
+}
+.don-mini-row{
+  display:grid;
+  grid-template-columns: 180px 1fr 140px 70px;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 0;
+  border-top: 1px solid var(--rule);
+}
+.don-mini-row:first-of-type{ border-top: 0; padding-top: 0; }
+.don-mini-name{
+  font-size: 13px;
+  color: var(--ink2);
+  line-height: 1.3;
+}
+.don-mini-name span{
+  display:block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-top: 4px;
+}
+.don-mini-track{
+  height: 12px;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+.don-mini-fill{
+  height: 100%;
+  width: var(--w, 50%);
+}
+.don-mini-fill.dem{ background: rgba(158,32,32,0.72); }
+.don-mini-fill.none{ background: rgba(200,189,168,0.65); }
+.don-mini-val{
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  text-align: right;
+}
+.don-mini-src a{
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  text-decoration: underline;
+  text-decoration-color: var(--rule2);
+  text-underline-offset: 2px;
+}
+.don-mini-src a:hover{ color: var(--ink); text-decoration-color: var(--ink); }
+.don-mini-note{
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ink3);
+}
+@media (max-width: 980px){
+  .don-mini-row{ grid-template-columns: 1fr; gap: 8px; }
+  .don-mini-val{ text-align: left; }
+}
+
 /* ─── RESPONSIVE ─── */
 @media (max-width: 820px) {
   .masthead, .hero, .section { padding-left: 24px; padding-right: 24px; }
@@ -1120,10 +1640,10 @@ h2.sec-title em {
 
 <!-- HERO -->
 <div class="hero fade">
-  <h1 class="hero-title">Neutral AI</h1>
+  <h1 class="hero-title">Anthropic: Money, Power &amp; Political Neutrality</h1>
   <div class="hero-body">
     <div class="hero-deck">
-      A discussion into Anthropic&#39;s <strong><mark>$67.3 billion</mark></strong> funding history. It asks who actually paid for it, what their politics are, and whether the viral "<mark>Anthropic is a left-wing company</mark>" narrative holds up against the numbers.
+      A discussion into Anthropic&#39;s <strong><mark>$67.3 billion</mark></strong> funding history. This piece asks who actually paid for it, what those funders&#39; politics are, and whether the viral "<mark>Anthropic is a left-wing company</mark>" narrative holds up against the numbers.
     </div>
     <div class="hero-stats">
       <div class="hero-stat">
@@ -1147,6 +1667,7 @@ h2.sec-title em {
   <a href="#s1" class="active">The Claim</a>
   <a href="#s2">The Money</a>
   <a href="#s3">Investor Map</a>
+  <a href="#s3b">People &amp; Power</a>
   <a href="#s4">Donations</a>
   <a href="#s5">Timeline</a>
   <a href="#s6">Verdict</a>
@@ -1163,11 +1684,12 @@ h2.sec-title em {
   </div>
 
   <div class="prose dropcap" style="margin-bottom:32px;">
-    <p>A narrative has hardened across tech and political circles: Anthropic, the AI safety company behind Claude, is a <strong>left-wing organization</strong>, funded by Democrat megadonors and hostile to conservative governance. Donald Trump publicly called its leadership <strong>"left-wing nut jobs."</strong> Tech policy czar David Sacks accused Anthropic of backing <strong>"the Left's vision of AI regulation."</strong> Elon Musk claimed it <strong>"hates Western civilization."</strong></p>
-    <p>The claim has genuine historical roots. Anthropic's 2021 founding was embedded in the <span class="tip" data-tip="Often abbreviated EA. A philanthropy + ethics movement focused on measurable impact; not a political party.">Effective Altruism</span> community, which leaned heavily progressive and Democratic. Several early investors were among the largest individual Democratic donors in America. The CEO endorsed Kamala Harris.</p>
-    <div class="callout">
-      The narrative is not baseless. But it is frozen in 2021. Applied to the company as it exists today, with $67.3B raised from 90 investors spanning Peter Thiel's Founders Fund, Singapore's <span class="tip" data-tip="State-owned investment funds. Typically return-driven and not aligned with U.S. partisan politics.">sovereign wealth</span>, and Abu Dhabi's MGX, it is factually inaccurate.</div>
-    <p>This investigation maps every dollar to its source, examines verified FEC donation records, and tests the claim against Anthropic's own documented neutrality benchmarks. Six sections. Follow the money.</p>
+<p>A tidy story travels well in politics: Anthropic, the AI safety lab behind Claude, is “left-wing”, bankrolled by Democrats, and hostile to conservative power. You can hear it in the way critics talk about the company. Trump mocked its leadership as <strong>"left-wing nut jobs."</strong> David Sacks frames Anthropic as an engine of regulation. Musk paints it as hostile to the West.</p>
+<p>There is a real reason the label stuck early. Anthropic&#39;s 2021 founding grew out of the <span class="tip" data-tip="Often abbreviated EA. A philanthropy + ethics movement focused on measurable impact; not a political party.">Effective Altruism</span> world and the Bay Area safety scene, both of which skewed Democratic. Several early backers were major Democratic donors. The CEO later endorsed Kamala Harris.</p>
+<div class="callout">
+  The early chapter explains the perception. The later chapters complicate it. A 2021 label does not automatically describe a 2026 cap table.
+</div>
+<p>This piece follows a simple method: track the capital across rounds, attach public political signals where they exist (donation records, public roles, major endorsements), and then compare the narrative to how the product is measured on neutrality benchmarks.</p>
   </div>
 
   <div class="stat-row">
@@ -1215,7 +1737,7 @@ h2.sec-title em {
   </div>
 
   <div class="prose" style="margin-bottom:40px;">
-    <p>The most direct test of the "Anthropic is left" claim is to map every dollar raised to the political affiliations of who provided it. Anthropic's funding history falls into four clearly distinct eras. The political character of each era is dramatically different, and the trend moves sharply away from left-leaning capital as the company scales.</p>
+    <p>If the accusation is really about influence, start where influence is easiest to audit: the cap table. Anthropic&#39;s fundraising breaks cleanly into four eras. What changes is not the logo on the homepage, it&#39;s the kind of money that dominates each phase, from early EA donors to Big Tech, to Amazon, to sovereign wealth and mega-institutions.</p>
   </div>
 
   <div class="era-grid">
@@ -1224,28 +1746,28 @@ h2.sec-title em {
       <div class="era-period">2021 — 2022</div>
       <div class="era-name">EA Origins</div>
       <div class="era-num">$704M</div>
-      <div class="era-text">Series A &amp; B. Funded almost entirely by the Effective Altruism network: Jaan Tallinn, Dustin Moskovitz, Eric Schmidt, and Sam Bankman-Fried. Overwhelmingly Democrat-aligned. The authentic origin of the "left" narrative, and it was accurate at this point.</div>
+      <div class="era-text">Series A &amp; B. The money is mostly EA-network donors and early angels, a group that skewed Democratic in public giving. This is where the “left” story begins, and in 2021 it was a fair shorthand.</div>
     </div>
     <div class="era-card wave">
       <div class="era-marker"></div>
       <div class="era-period">2023</div>
       <div class="era-name">First Institutions</div>
       <div class="era-num">$550M+</div>
-      <div class="era-text">Series C. Google and Alphabet (left-leaning) enter alongside neutral VCs: Spark Capital, Menlo Ventures, Zoom, SK Telecom. Political character diversifies. The left-lean begins diluting.</div>
+      <div class="era-text">Series C. First institutional money arrives. Google joins alongside mainstream venture firms. The cap table stops being a club, and the politics get harder to summarize with one label.</div>
     </div>
     <div class="era-card amz">
       <div class="era-marker"></div>
       <div class="era-period">2023 — 2025</div>
       <div class="era-name">Amazon Era</div>
       <div class="era-num">$12.5B</div>
-      <div class="era-text">Series D, E, and Debt. Amazon's $8.75B anchors this period. Gulf sovereign capital from Dubai and Riyadh enters. Wall Street banks (JPMorgan, Goldman, Morgan Stanley) join. None are left-wing actors.</div>
+      <div class="era-text">Series D and E, plus debt. Amazon becomes the anchor check. Gulf investors and Wall Street banks appear. Whatever you think of them, they are not a single U.S. partisan project.</div>
     </div>
     <div class="era-card global">
       <div class="era-marker"></div>
       <div class="era-period">2025 — 2026</div>
       <div class="era-name">Global Pivot</div>
       <div class="era-num">$53B</div>
-      <div class="era-text">Series F &amp; G. GIC Singapore, QIA Qatar, MGX Abu Dhabi, <strong>Founders Fund (Peter Thiel)</strong>, Sequoia, BlackRock, Nvidia. This is 78% of all capital ever raised, and it is globally neutral to center-right.</div>
+      <div class="era-text">Series F and G. Sovereign wealth (Singapore, Qatar, Abu Dhabi), mega-funds, and a Thiel-aligned VC sit in the same rounds. This is most of the capital raised, and it pulls the story toward “global institution”, not “party machine.”</div>
     </div>
   </div>
 
@@ -1261,7 +1783,7 @@ h2.sec-title em {
         <div class="sp sp-left"   style="width:88%;">Left-EA (88%)</div>
         <div class="sp sp-unk"    style="width:12%;">?</div>
       </div>
-      <div class="spectrum-note">Almost entirely EA-network donors, overwhelmingly progressive Democratic. This is where the narrative starts, and it was accurate in 2021–22.</div>
+      <div class="spectrum-note">Mostly EA-network capital. If you are looking for a partisan signal, this is the only period where it is loud and easy to find.</div>
     </div>
 
     <div class="spectrum-row">
@@ -1274,7 +1796,7 @@ h2.sec-title em {
         <div class="sp sp-neutral" style="width:40%;">Neutral Venture</div>
         <div class="sp sp-unk"     style="width:22%;">Unknown</div>
       </div>
-      <div class="spectrum-note">Google and Alphabet enter (left-leaning corporate culture) alongside neutral VCs. Dilution accelerates.</div>
+      <div class="spectrum-note">Google enters alongside conventional venture firms. The pool widens, and any single political label starts to lose precision.</div>
     </div>
 
     <div class="spectrum-row">
@@ -1287,7 +1809,7 @@ h2.sec-title em {
         <div class="sp sp-global"  style="width:16%;">Gulf Sovereign</div>
         <div class="sp sp-ll"      style="width:12%;">Left-Lean</div>
       </div>
-      <div class="spectrum-note">Amazon, Wall Street banks, Saudi and Dubai sovereign capital. The left-leaning share of cumulative capital falls below 15%.</div>
+      <div class="spectrum-note">Amazon plus banks and Gulf capital dominate. The story becomes about scale and procurement, not one donor network.</div>
     </div>
 
     <div class="spectrum-row">
@@ -1301,7 +1823,7 @@ h2.sec-title em {
         <div class="sp sp-right"   style="width:18%;">Right-Lean</div>
         <div class="sp sp-ll"      style="width:10%;">Left</div>
       </div>
-      <div class="spectrum-note">Singapore GIC, Qatar QIA, Abu Dhabi MGX, <strong>Founders Fund (Peter Thiel)</strong>, Sequoia, BlackRock, Nvidia. By dollar weight: globally neutral to center-right. The "left-funded" claim is factually inaccurate for this era.</div>
+      <div class="spectrum-note">Sovereign wealth and mega-institutions do the heavy lifting, with Founders Fund also present. This is where the caricature stops matching the money.</div>
     </div>
   </div>
 </section>
@@ -1317,7 +1839,7 @@ h2.sec-title em {
   </div>
 
   <div class="prose" style="margin-bottom:32px;">
-    <p>Political categorizations based on FEC donation records, public endorsements, and documented investor behavior. Categories: <span class="badge badge-l">Left-Lean</span> known Democratic affiliations &nbsp; <span class="badge badge-r">Right-Lean</span> known Republican/conservative &nbsp; <span class="badge badge-n">Neutral</span> no dominant partisan identity &nbsp; <span class="badge badge-g">Sovereign</span> non-US, no US partisan history.</p>
+    <p>These buckets are imperfect, on purpose. They are not moral grades, they are a way to separate U.S. partisan signals from institutions that mostly operate outside party politics. Categories: <span class="badge badge-l">Left-Lean</span> visible Democratic alignment &nbsp; <span class="badge badge-r">Right-Lean</span> visible Republican/conservative alignment &nbsp; <span class="badge badge-n">Neutral</span> diversified or nonpartisan profile &nbsp; <span class="badge badge-g">Sovereign</span> non-U.S. state capital, no U.S. donation pattern.</p>
   </div>
 
   <div class="inv-table-wrap">
@@ -1331,18 +1853,18 @@ h2.sec-title em {
         </tr>
       </thead>
       <tbody>
-        <tr><td><strong>Founders Fund (Peter Thiel)</strong></td><td>Series G · 2026</td><td><span class="badge badge-r">Right-Lean</span></td><td>Backed JD Vance's Senate run, Trump-aligned PACs, Palantir. The defining right-wing VC in Silicon Valley.</td></tr>
-        <tr><td><strong>Sequoia Capital</strong></td><td>Series F · 2026</td><td><span class="badge badge-r">Right-Lean</span></td><td>Partners publicly broke with Democratic politics post-2022.</td></tr>
-        <tr><td><strong>GIC. Singapore</strong></td><td>Series F &amp; G (lead)</td><td><span class="badge badge-g">Sovereign</span></td><td>Singapore government sovereign wealth. Geopolitically neutral by mandate. Largest foreign LP in US tech.</td></tr>
-        <tr><td><strong>MGX. Abu Dhabi</strong></td><td>Series G · 2026</td><td><span class="badge badge-g">Sovereign</span></td><td>UAE AI sovereign fund. Also backed OpenAI. Non-aligned between US parties.</td></tr>
-        <tr><td><strong>Qatar Investment Authority</strong></td><td>Series F &amp; G</td><td><span class="badge badge-g">Sovereign</span></td><td>Invested in same Series G as Founders Fund, neither actor is "left."</td></tr>
-        <tr><td><strong>Amazon</strong></td><td>Series D/E</td><td><span class="badge badge-n">Neutral</span></td><td>Largest investor by dollar amount (~$8.75B). Corporate PAC donates to both parties.</td></tr>
-        <tr><td><strong>BlackRock &amp; Blackstone</strong></td><td>Series F · 2025</td><td><span class="badge badge-n">Neutral</span></td><td>World's largest asset managers. Institutionally apolitical.</td></tr>
-        <tr><td><strong>Nvidia</strong></td><td>Series G · 2026</td><td><span class="badge badge-n">Neutral</span></td><td>CEO Jensen Huang courts both parties equally.</td></tr>
-        <tr><td><strong>JPMorgan / Goldman / Morgan Stanley</strong></td><td>Debt · May 2025</td><td><span class="badge badge-n">Neutral</span></td><td>Wall Street banks. Work with all governments. No partisan identity.</td></tr>
-        <tr><td><strong>Google / Alphabet</strong></td><td>Series C &amp; E</td><td><span class="badge badge-l">Left-Lean</span></td><td>Corporate culture and employee donations lean heavily Democratic.</td></tr>
-        <tr><td><strong>Dustin Moskovitz</strong></td><td>Series A angel · 2021</td><td><span class="badge badge-l">Left-Lean</span></td><td>$38M+ to Harris PACs, largest individual Democratic donor of the 2024 cycle.</td></tr>
-        <tr><td><strong>Sam Bankman-Fried</strong></td><td>Series B lead · 2022</td><td><span class="badge badge-l">Left-Lean</span></td><td>Major Democrat donor. Convicted of fraud 2023. Anthropic returned funds entirely.</td></tr>
+        <tr><td><strong>Founders Fund (Peter Thiel)</strong></td><td>Series G · 2026</td><td><span class="badge badge-r">Right-Lean</span></td><td>Peter Thiel is among Silicon Valley’s most visible conservative-aligned patrons, with high-profile political bets and a portfolio that includes Palantir.</td></tr>
+        <tr><td><strong>Sequoia Capital</strong></td><td>Series F · 2026</td><td><span class="badge badge-r">Right-Lean</span></td><td>In recent years it has publicly positioned itself as more Republican-friendly than the typical Sand Hill firm.</td></tr>
+        <tr><td><strong>GIC, Singapore</strong></td><td>Series F &amp; G (lead)</td><td><span class="badge badge-g">Sovereign</span></td><td>Singapore government sovereign wealth. Mandate is returns and stability, not U.S. party politics.</td></tr>
+        <tr><td><strong>MGX, Abu Dhabi</strong></td><td>Series G · 2026</td><td><span class="badge badge-g">Sovereign</span></td><td>UAE AI sovereign fund. Also backed OpenAI. Not a U.S. partisan actor.</td></tr>
+        <tr><td><strong>Qatar Investment Authority</strong></td><td>Series F &amp; G</td><td><span class="badge badge-g">Sovereign</span></td><td>Invested alongside Founders Fund; hard to cast that round as partisan-left funding.</td></tr>
+        <tr><td><strong>Amazon</strong></td><td>Series D/E</td><td><span class="badge badge-n">Neutral</span></td><td>A dominant check by dollars; corporate giving is typically split across parties.</td></tr>
+        <tr><td><strong>BlackRock &amp; Blackstone</strong></td><td>Series F · 2025</td><td><span class="badge badge-n">Neutral</span></td><td>Large asset managers; institutionally diversified rather than partisan.</td></tr>
+        <tr><td><strong>Nvidia</strong></td><td>Series G · 2026</td><td><span class="badge badge-n">Neutral</span></td><td>A platform supplier to the whole ecosystem; not a partisan brand.</td></tr>
+        <tr><td><strong>JPMorgan / Goldman / Morgan Stanley</strong></td><td>Debt · May 2025</td><td><span class="badge badge-n">Neutral</span></td><td>Large banks that work with every administration.</td></tr>
+        <tr><td><strong>Google / Alphabet</strong></td><td>Series C &amp; E</td><td><span class="badge badge-l">Left-Lean</span></td><td>Employee giving and culture have tended to skew Democratic.</td></tr>
+        <tr><td><strong>Dustin Moskovitz</strong></td><td>Series A angel · 2021</td><td><span class="badge badge-l">Left-Lean</span></td><td>$38M+ reported to a pro-Harris effort; widely cited as among the largest Democratic donors of the cycle.</td></tr>
+        <tr><td><strong>Sam Bankman-Fried</strong></td><td>Series B lead · 2022</td><td><span class="badge badge-l">Left-Lean</span></td><td>Major Democratic donor at the time; later convicted of fraud. Anthropic said it returned the funds.</td></tr>
       </tbody>
     </table>
   </div>
@@ -1366,9 +1888,337 @@ h2.sec-title em {
 </section>
 
 <!-- ═══ SECTION 4 ═══ -->
-<section class="section fade" id="s4">
+<section class="section fade" id="s3b">
   <div class="sec-header">
     <div class="sec-num">04</div>
+    <div class="sec-titles">
+      <div class="sec-label">People &amp; Power</div>
+      <h2 class="sec-title">The Leadership: Who Built Anthropic</h2>
+    </div>
+  </div>
+
+  <div class="prose" style="margin-bottom:28px;">
+<p>Money is one lens; people are the other. Anthropic was founded in 2021 by <strong>seven former OpenAI employees</strong> who left together after disagreements about safety, pace, and commercialization. (Sources: <a href="https://www.forbes.com/sites/richardnieva/2026/02/12/anthropics-seven-billionaire-cofounders-nearly-double-their-fortunes-as-ai-giants-valuation-soars-to-380-billion/" target="_blank" rel="noopener">Forbes, Feb 2026</a> · <a href="https://techcrunch.com/2023/02/27/anthropic-begins-supplying-its-text-generating-ai-models-to-select-startups/" target="_blank" rel="noopener">TechCrunch, Feb 2023</a>)</p>
+<p>When people call Anthropic “left”, they usually mean the public-facing layer, the CEO, the policy voice, and a handful of board signals. This section separates what is <strong>documented</strong> (large political giving, high-salience public roles) from what is mostly <strong>unknown</strong> (research leadership that shows up in papers, not in party committees).</p>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-cell">
+      <div class="stat-cell-num red" data-count="2" data-format="number">2</div>
+      <div class="stat-cell-label">co-founders with documented Democratic giving</div>
+      <div class="stat-cell-src">Reported in press / FEC-linked coverage</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-cell-num blue" data-count="5" data-format="number">5</div>
+      <div class="stat-cell-label">co-founders with no major FEC record found</div>
+      <div class="stat-cell-src">“None documented” ≠ apolitical</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-cell-num gold" data-count="7" data-format="number">7</div>
+      <div class="stat-cell-label">all co-founders previously worked at OpenAI</div>
+      <div class="stat-cell-src">Founders list in Forbes</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-cell-num green" data-count="6" data-format="number">6</div>
+      <div class="stat-cell-label">co-founders with PhD / academic research track</div>
+      <div class="stat-cell-src">Public bios (varied)</div>
+    </div>
+  </div>
+
+  <div class="note">
+    <span class="note-label">How to read the flip cards</span>
+    The back of each card shows a <strong>best-effort “lean signal”</strong> based on publicly available evidence (e.g., major political donations reported in credible outlets, or a high-salience political role). Many leaders have <strong>no public donation record</strong>; those are marked “Light / Unknown.” This is a transparency feature, not mind-reading.
+  </div>
+
+  <div class="lead-tools">
+    <span class="label">Click a card to flip</span>
+    <div class="lead-legend">
+      <span class="lean-pill left">Left‑leaning</span>
+      <span class="lean-pill centerleft">Center‑left</span>
+      <span class="lean-pill center">Center</span>
+      <span class="lean-pill right">Right‑leaning</span>
+      <span class="lean-pill light">Light / Unknown</span>
+    </div>
+  </div>
+
+  <div class="flip-grid" id="flipGrid">
+    <button class="flip-card" type="button" data-lean="left" aria-label="Flip card: Dario Amodei">
+      <div class="flip-inner">
+        <div class="flip-face front">
+          <div class="flip-badge">CEO</div>
+          <div class="flip-name">Dario Amodei</div>
+          <div class="flip-role">CEO &amp; Co‑founder</div>
+          <div class="flip-mini">Former OpenAI VP of Research</div>
+        </div>
+        <div class="flip-face back left">
+          <div class="flip-lean">Left‑leaning signal</div>
+          <div class="flip-evidence">Reported $214K+ in donations to Democrats + Harris endorsement (press/FEC-linked reporting).</div>
+          <div class="flip-links">
+            <a href="https://gazette.com/2025/09/07/anthropic-backers-gave-174m-to-democrats-before-firms-federal-ai-vendor-list-approval/" target="_blank" rel="noopener">Donation reporting</a>
+          </div>
+        </div>
+      </div>
+    </button>
+
+    <button class="flip-card" type="button" data-lean="light" aria-label="Flip card: Daniela Amodei">
+      <div class="flip-inner">
+        <div class="flip-face front">
+          <div class="flip-badge">President</div>
+          <div class="flip-name">Daniela Amodei</div>
+          <div class="flip-role">President &amp; Co‑founder</div>
+          <div class="flip-mini">Operations &amp; scaling</div>
+        </div>
+        <div class="flip-face back light">
+          <div class="flip-lean">Light / unknown</div>
+          <div class="flip-evidence">No widely cited FEC donation record in major reporting; public signal is operational, not political.</div>
+          <div class="flip-links">
+            <a href="https://www.anthropic.com/company" target="_blank" rel="noopener">Company governance</a>
+          </div>
+        </div>
+      </div>
+    </button>
+
+    <button class="flip-card" type="button" data-lean="centerleft" aria-label="Flip card: Jack Clark">
+      <div class="flip-inner">
+        <div class="flip-face front">
+          <div class="flip-badge">Policy</div>
+          <div class="flip-name">Jack Clark</div>
+          <div class="flip-role">Co‑founder · Head of Policy</div>
+          <div class="flip-mini">Former OpenAI policy lead</div>
+        </div>
+        <div class="flip-face back centerleft">
+          <div class="flip-lean">Center‑left signal</div>
+          <div class="flip-evidence">Policy posture is pro‑regulation / AI safety; partisan giving is not clearly documented in public sources.</div>
+          <div class="flip-links">
+            <a href="https://techcrunch.com/2023/02/27/anthropic-begins-supplying-its-text-generating-ai-models-to-select-startups/" target="_blank" rel="noopener">Origin note</a>
+          </div>
+        </div>
+      </div>
+    </button>
+
+    <button class="flip-card" type="button" data-lean="light" aria-label="Flip card: Jared Kaplan">
+      <div class="flip-inner">
+        <div class="flip-face front">
+          <div class="flip-badge">Science</div>
+          <div class="flip-name">Jared Kaplan</div>
+          <div class="flip-role">Chief Science Officer · Co‑founder</div>
+          <div class="flip-mini">Scaling‑laws research</div>
+        </div>
+        <div class="flip-face back light">
+          <div class="flip-lean">Light / unknown</div>
+          <div class="flip-evidence">Public identity is research‑centric; no major political donation record appears in mainstream coverage.</div>
+          <div class="flip-links">
+            <a href="https://www.forbes.com/sites/richardnieva/2026/02/12/anthropics-seven-billionaire-cofounders-nearly-double-their-fortunes-as-ai-giants-valuation-soars-to-380-billion/" target="_blank" rel="noopener">Founders list</a>
+          </div>
+        </div>
+      </div>
+    </button>
+
+    <button class="flip-card" type="button" data-lean="light" aria-label="Flip card: Tom Brown">
+      <div class="flip-inner">
+        <div class="flip-face front">
+          <div class="flip-badge">Core</div>
+          <div class="flip-name">Tom Brown</div>
+          <div class="flip-role">Co‑founder</div>
+          <div class="flip-mini">Engineering / resources</div>
+        </div>
+        <div class="flip-face back light">
+          <div class="flip-lean">Light / unknown</div>
+          <div class="flip-evidence">No major political giving record in public reporting; role is technical and internal.</div>
+          <div class="flip-links">
+            <a href="https://www.ciscoinvestments.com/portfolio/anthropic" target="_blank" rel="noopener">Leadership list</a>
+          </div>
+        </div>
+      </div>
+    </button>
+
+    <button class="flip-card" type="button" data-lean="light" aria-label="Flip card: Sam McCandlish">
+      <div class="flip-inner">
+        <div class="flip-face front">
+          <div class="flip-badge">CTO</div>
+          <div class="flip-name">Sam McCandlish</div>
+          <div class="flip-role">CTO · Co‑founder</div>
+          <div class="flip-mini">Training &amp; infra</div>
+        </div>
+        <div class="flip-face back light">
+          <div class="flip-lean">Light / unknown</div>
+          <div class="flip-evidence">Public footprint is technical; no widely cited partisan giving record.</div>
+          <div class="flip-links">
+            <a href="https://www.ciscoinvestments.com/portfolio/anthropic" target="_blank" rel="noopener">Leadership list</a>
+          </div>
+        </div>
+      </div>
+    </button>
+
+    <button class="flip-card" type="button" data-lean="light" aria-label="Flip card: Chris Olah">
+      <div class="flip-inner">
+        <div class="flip-face front">
+          <div class="flip-badge">Interpretability</div>
+          <div class="flip-name">Chris Olah</div>
+          <div class="flip-role">Co‑founder</div>
+          <div class="flip-mini">Interpretability research</div>
+        </div>
+        <div class="flip-face back light">
+          <div class="flip-lean">Light / unknown</div>
+          <div class="flip-evidence">Known for interpretability work; partisan signals not documented in mainstream sources.</div>
+          <div class="flip-links">
+            <a href="https://www.forbes.com/sites/richardnieva/2026/02/12/anthropics-seven-billionaire-cofounders-nearly-double-their-fortunes-as-ai-giants-valuation-soars-to-380-billion/" target="_blank" rel="noopener">Founders list</a>
+          </div>
+        </div>
+      </div>
+    </button>
+
+    <button class="flip-card" type="button" data-lean="left" aria-label="Flip card: Reed Hastings">
+      <div class="flip-inner">
+        <div class="flip-face front">
+          <div class="flip-badge">Board</div>
+          <div class="flip-name">Reed Hastings</div>
+          <div class="flip-role">Board Director</div>
+          <div class="flip-mini">Netflix co‑founder</div>
+        </div>
+        <div class="flip-face back left">
+          <div class="flip-lean">Left‑leaning signal</div>
+          <div class="flip-evidence">Longtime Democratic donor; reported $7M donation to a pro‑Harris super PAC (Reuters) and described as a Democratic megadonor (Guardian).</div>
+          <div class="flip-links">
+            <a href="https://www.investing.com/news/stock-market-news/netflix-cofounder-hastings-gives-7-million-to-proharris-pac-source-says-3532432" target="_blank" rel="noopener">Reuters report</a>
+            <a href="https://www.theguardian.com/us-news/article/2024/jul/03/netflix-co-founder-democratic-megadonor-reed-hastings-biden-withdraw" target="_blank" rel="noopener">Guardian context</a>
+          </div>
+        </div>
+      </div>
+    </button>
+
+    <button class="flip-card" type="button" data-lean="right" aria-label="Flip card: Chris Liddell">
+      <div class="flip-inner">
+        <div class="flip-face front">
+          <div class="flip-badge">Board</div>
+          <div class="flip-name">Chris Liddell</div>
+          <div class="flip-role">Board Director</div>
+          <div class="flip-mini">Former Trump WH Deputy Chief of Staff</div>
+        </div>
+        <div class="flip-face back right">
+          <div class="flip-lean">Right‑leaning signal</div>
+          <div class="flip-evidence">Not a donation claim: a high‑salience public service role in Trump’s first term is a strong right‑coded affiliation signal.</div>
+          <div class="flip-links">
+            <a href="https://www.anthropic.com/news/chris-liddell-appointed-anthropic-board" target="_blank" rel="noopener">Anthropic announcement</a>
+          </div>
+        </div>
+      </div>
+    </button>
+
+    <button class="flip-card" type="button" data-lean="center" aria-label="Flip card: Jay Kreps">
+      <div class="flip-inner">
+        <div class="flip-face front">
+          <div class="flip-badge">Board</div>
+          <div class="flip-name">Jay Kreps</div>
+          <div class="flip-role">Board Director</div>
+          <div class="flip-mini">Confluent CEO</div>
+        </div>
+        <div class="flip-face back center">
+          <div class="flip-lean">Center signal</div>
+          <div class="flip-evidence">Appointment is framed as scaling and infrastructure expertise (no partisan giving cited in appointment post).</div>
+          <div class="flip-links">
+            <a href="https://www.anthropic.com/news/jay-kreps-appointed-to-board-of-directors" target="_blank" rel="noopener">Anthropic announcement</a>
+          </div>
+        </div>
+      </div>
+    </button>
+
+    <button class="flip-card" type="button" data-lean="center" aria-label="Flip card: Yasmin Razavi">
+      <div class="flip-inner">
+        <div class="flip-face front">
+          <div class="flip-badge">Board</div>
+          <div class="flip-name">Yasmin Razavi</div>
+          <div class="flip-role">Board Director</div>
+          <div class="flip-mini">Investor (Spark Capital)</div>
+        </div>
+        <div class="flip-face back center">
+          <div class="flip-lean">Center signal</div>
+          <div class="flip-evidence">Board seat represents investor oversight; no dominant partisan signal is stated on Anthropic’s governance page.</div>
+          <div class="flip-links">
+            <a href="https://www.anthropic.com/company" target="_blank" rel="noopener">Board list</a>
+          </div>
+        </div>
+      </div>
+    </button>
+
+    <button class="flip-card" type="button" data-lean="centerleft" aria-label="Flip card: Mike Krieger">
+      <div class="flip-inner">
+        <div class="flip-face front">
+          <div class="flip-badge">Product</div>
+          <div class="flip-name">Mike Krieger</div>
+          <div class="flip-role">Chief Product Officer</div>
+          <div class="flip-mini">Instagram co‑founder</div>
+        </div>
+        <div class="flip-face back centerleft">
+          <div class="flip-lean">Center‑left (weak signal)</div>
+          <div class="flip-evidence">No donation claim here. The signal is cultural: consumer tech operator; appointment framed as product scale and trust.</div>
+          <div class="flip-links">
+            <a href="https://www.anthropic.com/news/mike-krieger-joins-anthropic" target="_blank" rel="noopener">Anthropic announcement</a>
+          </div>
+        </div>
+      </div>
+    </button>
+
+    <button class="flip-card" type="button" data-lean="light" aria-label="Flip card: Jan Leike">
+      <div class="flip-inner">
+        <div class="flip-face front">
+          <div class="flip-badge">Alignment</div>
+          <div class="flip-name">Jan Leike</div>
+          <div class="flip-role">Alignment Science</div>
+          <div class="flip-mini">Former OpenAI safety lead</div>
+        </div>
+        <div class="flip-face back light">
+          <div class="flip-lean">Light / unknown</div>
+          <div class="flip-evidence">Public statements focus on safety culture and deployment pace, not party politics.</div>
+          <div class="flip-links">
+            <a href="https://www.cnbc.com/2024/05/28/openai-safety-leader-jan-leike-joins-amazon-backed-anthropic.html" target="_blank" rel="noopener">CNBC</a>
+          </div>
+        </div>
+      </div>
+    </button>
+  </div>
+
+<div class="don-mini">
+  <div class="label" style="margin-bottom:16px;">Documented political donations — leadership &amp; board</div>
+
+  <div class="don-mini-row">
+    <div class="don-mini-name">Dario Amodei <span>CEO</span></div>
+    <div class="don-mini-track"><div class="don-mini-fill dem" style="--w:12%"></div></div>
+    <div class="don-mini-val">$214K (reported)</div>
+    <div class="don-mini-src"><a href="https://gazette.com/2025/09/07/anthropic-backers-gave-174m-to-democrats-before-firms-federal-ai-vendor-list-approval/" target="_blank" rel="noopener">Source</a></div>
+  </div>
+
+  <div class="don-mini-row">
+    <div class="don-mini-name">Reed Hastings <span>Board</span></div>
+    <div class="don-mini-track"><div class="don-mini-fill dem" style="--w:78%"></div></div>
+    <div class="don-mini-val">$7M (PAC, reported)</div>
+    <div class="don-mini-src"><a href="https://www.investing.com/news/stock-market-news/netflix-cofounder-hastings-gives-7-million-to-proharris-pac-source-says-3532432" target="_blank" rel="noopener">Source</a></div>
+  </div>
+
+  <div class="don-mini-row">
+    <div class="don-mini-name">Chris Liddell <span>Board</span></div>
+    <div class="don-mini-track"><div class="don-mini-fill none" style="--w:50%"></div></div>
+    <div class="don-mini-val">No donation claim</div>
+    <div class="don-mini-src"><a href="https://www.anthropic.com/news/chris-liddell-appointed-anthropic-board" target="_blank" rel="noopener">Board role</a></div>
+  </div>
+
+  <div class="don-mini-note">
+    “Reported” = cited by credible outlets referencing FEC-linked reporting. “None documented” or “no claim” means we did not find a widely cited public donation record in mainstream coverage; it does not imply apolitical views.
+  </div>
+</div>
+
+  <div class="callout" style="margin-top:26px;">
+    <div class="callout" style="margin-top:26px;">
+    <strong>Bottom line:</strong> if you judge by the loudest public signals, Anthropic&#39;s leadership reads left-leaning (the CEO plus a major Democratic donor on the board). Once you look past that front-facing layer, the picture gets fuzzier: most technical founders and research leaders have little publicly documented partisan activity, so claims of “left-wing capture” become conjecture.
+  </div>
+</section>
+
+
+
+<!-- ═══ SECTION 4 ═══ -->
+<section class="section fade" id="s4">
+  <div class="sec-header">
+    <div class="sec-num">05</div>
     <div class="sec-titles">
       <div class="sec-label">Verified Records</div>
       <h2 class="sec-title">The Donation Evidence: <em>FEC Data</em></h2>
@@ -1390,10 +2240,9 @@ h2.sec-title em {
     </div>
 
     <div class="prose">
-      <p>The donation data is where the "Anthropic is left" claim finds its <strong>strongest legitimate footing</strong>. Dario Amodei donated $214,000 to Democrats and publicly endorsed Kamala Harris. Dustin Moskovitz, an early angel investor, donated over $38 million to a Harris-aligned PAC, making him the <strong>single largest individual Democratic donor</strong> of the entire 2024 election cycle.</p>
-      <div class="callout">
-        These facts are real, documented, and form the genuine historical foundation of the perception. But they describe <em>leadership and early investors</em>, not the company's current $67.3 billion capital structure.</div>
-      <p>Personal political donations by founders do not automatically translate into model or policy bias. What matters for users is the documented behavior of the product itself. On that measure: Claude scores <strong>94% on political even-handedness benchmarks</strong>, outperforming every competitor including OpenAI, Google, and Meta, according to Fortune Magazine's November 2025 analysis.</p>
+      <p>If you want the strongest evidence behind the “Anthropic is left” story, you end up in the driest place: donation records. Dario Amodei is reported to have donated about $214,000 to Democrats and publicly endorsed Kamala Harris. Early backer Dustin Moskovitz is reported to have poured tens of millions into pro-Harris efforts. Those are not subtle signals.</p>
+      <div class="callout">These facts matter because they explain why the label spread. But they describe <em>people</em> and an early donor network, not the full arc of a company that later raised most of its money from institutions that do not line up neatly with U.S. parties.</div>
+      <p>Political giving is a weak proxy for product behavior. If the question is bias, the fair test is output: neutrality benchmarks, consistent prompt suites, and evaluations that compare models under the same rubric. On that axis, the article cited here claims Claude scores <strong>94% on political even-handedness</strong>, ahead of major peers.</p>
     </div>
   </div>
 </section>
@@ -1401,7 +2250,7 @@ h2.sec-title em {
 <!-- ═══ SECTION 5 ═══ -->
 <section class="section fade" id="s5">
   <div class="sec-header">
-    <div class="sec-num">05</div>
+    <div class="sec-num">06</div>
     <div class="sec-titles">
       <div class="sec-label">Chronological Record</div>
       <h2 class="sec-title">The Political Timeline: <em>2021 to 2026</em></h2>
@@ -1409,7 +2258,7 @@ h2.sec-title em {
   </div>
 
   <div class="prose" style="margin-bottom:40px;">
-    <p>Key political events in Anthropic's history, coded by signal type. Read together they show how the narrative formed, where it's legitimate, and where it fails to account for the company's evolution.</p>
+    <p>A quick timeline helps because it shows when the signals were loud, when they faded, and when the cap table changed shape. Read it as context, not proof, the point is to see how today&#39;s label was formed.</p>
   </div>
 
   <div class="timeline">
@@ -1417,7 +2266,7 @@ h2.sec-title em {
       <div class="tl-left"><div class="tl-date">May 2021</div><span class="tl-chip">Left Signal</span></div>
       <div class="tl-body">
         <div class="tl-headline">Founding, The EA Origins</div>
-        <div class="tl-text">Anthropic is founded from the EA network. First investors, Jaan Tallinn, Dustin Moskovitz, Eric Schmidt, are overwhelmingly progressive Democrats. This is the authentic origin of the "left" perception, and it was accurate.</div>
+        <div class="tl-text">Anthropic is founded out of the EA and AI-safety milieu. Early backers include Jaan Tallinn, Dustin Moskovitz, and Eric Schmidt, a set of names that, in public giving, leaned Democratic. That early mix is why the label took hold.</div>
         <div class="tl-source"><a href="https://techcrunch.com/" target="_blank" rel="noopener">TechCrunch</a>, <a href="https://forum.effectivealtruism.org/" target="_blank" rel="noopener">EA Forum</a>, <a href="https://tracxn.com/" target="_blank" rel="noopener">Tracxn</a></div>
       </div>
     </div>
@@ -1425,7 +2274,7 @@ h2.sec-title em {
       <div class="tl-left"><div class="tl-date">April 2022</div><span class="tl-chip">Left Signal</span></div>
       <div class="tl-body">
         <div class="tl-headline">The SBF Problem</div>
-        <div class="tl-text">Series B led by Sam Bankman-Fried, then one of the largest Democratic donors in the US. FTX collapses November 2022; SBF convicted of fraud 2023. Anthropic returns funds and severs all ties.</div>
+        <div class="tl-text">Series B is led by Sam Bankman-Fried, then known as a major Democratic donor. After FTX collapsed and he was convicted of fraud, Anthropic said it returned the funds and cut ties.</div>
         <div class="tl-source"><a href="https://www.wsj.com/" target="_blank" rel="noopener">Wall Street Journal</a>, <a href="https://www.fec.gov/" target="_blank" rel="noopener">FEC</a> records, court documents</div>
       </div>
     </div>
@@ -1433,7 +2282,7 @@ h2.sec-title em {
       <div class="tl-left"><div class="tl-date">2023</div><span class="tl-chip">Diversifying</span></div>
       <div class="tl-body">
         <div class="tl-headline">Amazon, Gulf Capital, First Institutions</div>
-        <div class="tl-text">Series C and D bring Google, Amazon ($1.25B), Saudi MIS, and Dubai DAMAC. The cap table diversifies dramatically. Amazon's neutrality becomes the dominant influence by dollar weight.</div>
+        <div class="tl-text">By 2023 the investor set expands: Google, Amazon, and a mix of institutions and overseas capital. Whatever “left” meant in 2021, it becomes harder to map onto the cap table after this point.</div>
         <div class="tl-source"><a href="https://tracxn.com/" target="_blank" rel="noopener">Tracxn</a>, <a href="https://www.reuters.com/" target="_blank" rel="noopener">Reuters</a>, <a href="https://www.crunchbase.com/" target="_blank" rel="noopener">Crunchbase</a></div>
       </div>
     </div>
@@ -1441,7 +2290,7 @@ h2.sec-title em {
       <div class="tl-left"><div class="tl-date">2024 Election</div><span class="tl-chip">Left Signal</span></div>
       <div class="tl-body">
         <div class="tl-headline">Peak Political Exposure</div>
-        <div class="tl-text">CEO Amodei endorses Harris. Moskovitz donates $38M+ to a Harris PAC, largest individual Democratic donor of the 2024 cycle. Reed Hastings adds millions more. This is the high-water mark of Anthropic's left-wing political signaling, and the primary direct evidence behind the current narrative.</div>
+        <div class="tl-text">The political exposure peaks. Amodei endorses Harris; Moskovitz and others fund pro-Harris efforts at scale. This is the strongest raw material for today’s narrative, even if it does not describe every dollar raised later.</div>
         <div class="tl-source"><a href="https://www.washingtonexaminer.com/" target="_blank" rel="noopener">Washington Examiner</a> Sep 2025, <a href="https://www.opensecrets.org/" target="_blank" rel="noopener">OpenSecrets</a> <a href="https://www.fec.gov/" target="_blank" rel="noopener">FEC</a> database</div>
       </div>
     </div>
@@ -1449,7 +2298,7 @@ h2.sec-title em {
       <div class="tl-left"><div class="tl-date">Nov 2024</div><span class="tl-chip">Pivot</span></div>
       <div class="tl-body">
         <div class="tl-headline">Post-Election Pragmatism</div>
-        <div class="tl-text">Following Trump's victory, Amodei publishes a bipartisan policy piece. Anthropic quietly begins pursuing Trump administration contracts and meets with transition team members. Clear shift from ideology to pragmatism.</div>
+        <div class="tl-text">After the election, the public posture shifts toward pragmatism: bipartisan messaging, outreach, and a quieter emphasis on being usable by any administration.</div>
         <div class="tl-source">The Information, <a href="https://www.bloomberg.com/" target="_blank" rel="noopener">Bloomberg</a>, <a href="https://www.anthropic.com/news" target="_blank" rel="noopener">Anthropic blog</a></div>
       </div>
     </div>
@@ -1457,7 +2306,7 @@ h2.sec-title em {
       <div class="tl-left"><div class="tl-date">Jul 2025</div><span class="tl-chip">Neutral</span></div>
       <div class="tl-body">
         <div class="tl-headline">$200M Pentagon Contract</div>
-        <div class="tl-text">The Trump administration awards Anthropic a $200M Pentagon defense contract. Claude is added to the GSA federal AI vendor list. A genuinely left-wing company hostile to Trump does not win a $200M defense contract from him.</div>
+        <div class="tl-text">Anthropic wins major U.S. government work, including defense-adjacent contracts. It is not a philosophical vindication, but it is evidence the company can operate inside a Republican-led federal stack.</div>
         <div class="tl-source"><a href="https://www.cnbc.com/" target="_blank" rel="noopener">CNBC</a>, <a href="https://www.defenseone.com/" target="_blank" rel="noopener">DefenseOne</a>, July 2025</div>
       </div>
     </div>
@@ -1465,7 +2314,7 @@ h2.sec-title em {
       <div class="tl-left"><div class="tl-date">Feb 12, 2026</div><span class="tl-chip">Right Signal</span></div>
       <div class="tl-body">
         <div class="tl-headline">Founders Fund Joins. Series G Closes</div>
-        <div class="tl-text">$30B Series G closes with Founders Fund (Peter Thiel's VC, backer of JD Vance's Senate run and Trump PACs) as a lead investor. If Anthropic were genuinely left-wing, this investment is very difficult to explain.</div>
+        <div class="tl-text">A $30B round closes with Founders Fund as a lead. Thiel-aligned money is not “left” by any common definition, and its presence forces the narrative to either update or become purely rhetorical.</div>
         <div class="tl-source"><a href="https://www.bloomberg.com/" target="_blank" rel="noopener">Bloomberg</a>, <a href="https://techcrunch.com/" target="_blank" rel="noopener">TechCrunch</a>, <a href="https://tracxn.com/" target="_blank" rel="noopener">Tracxn</a>, February 2026</div>
       </div>
     </div>
@@ -1473,7 +2322,7 @@ h2.sec-title em {
       <div class="tl-left"><div class="tl-date">Feb 28, 2026</div><span class="tl-chip">Conflict</span></div>
       <div class="tl-body">
         <div class="tl-headline">The Pentagon Standoff</div>
-        <div class="tl-text">Anthropic refuses unlimited autonomous military use of Claude. Trump orders agencies to cease Anthropic product use. The conflict is real, but the position (limiting lethal autonomous AI) is shared by mainstream defense experts across the political spectrum. This is an AI safety disagreement, not evidence of ideological capture.</div>
+        <div class="tl-text">A high-profile dispute erupts over the limits Anthropic will place on military use. This is where people confuse safety with partisanship. The core question is about autonomy and accountability, not party branding.</div>
         <div class="tl-source"><a href="https://www.cnbc.com/" target="_blank" rel="noopener">CNBC</a>, <a href="https://www.theverge.com/" target="_blank" rel="noopener">The Verge</a>, <a href="https://www.defenseone.com/" target="_blank" rel="noopener">Defense One</a>, February 28, 2026</div>
       </div>
     </div>
@@ -1483,58 +2332,59 @@ h2.sec-title em {
 <!-- ═══ SECTION 6 ═══ -->
 <section class="section fade" id="s6">
   <div class="sec-header">
-    <div class="sec-num">06</div>
+    <div class="sec-num">07</div>
     <div class="sec-titles">
-      <div class="sec-label">Final Analysis</div>
-      <h2 class="sec-title">The Verdict: <em>What the Data Says</em></h2>
+      <div class="sec-label">Wrap-up</div>
+      <h2 class="sec-title">Where This Lands</h2>
     </div>
   </div>
 
+  <div class="prose" style="margin-bottom:22px;">
+    <p>If you want a clean answer to “Is Anthropic left-wing?”, separate three things: the early donor story, the later cap table, and what Claude does in practice. Founder politics are real. The later rounds are broader than the caricature. Model behavior should be judged on benchmarks, not impressions.</p>
+  </div>
+
   <div class="gauge-block">
-    <div class="gauge-title"><span class="tip" data-tip="A weighted summary using your stated inputs (capital, leadership history, policy positions).">Composite Political Position</span>. Capital Weight 55% · Leadership History 25% · Policy Positions 20%</div>
+    <div class="gauge-title">A quick composite (opinionated): capital 55% · leadership 25% · policy posture 20%</div>
     <div class="gauge-bar">
-      <div class="gauge-needle" id="needle" data-label="Anthropic 2026" style="left:0%;"></div>
+      <div class="gauge-needle" id="needle" data-label="Anthropic (today)" style="left:0%;"></div>
     </div>
     <div class="gauge-ends">
       <span>Far Left</span>
       <span>Center-Left</span>
-      <span>Centrist</span>
+      <span>Center</span>
       <span>Center-Right</span>
       <span>Far Right</span>
     </div>
     <div class="gauge-note">
-      The needle settles at approximately <strong>35%, center-left</strong>. The current capital structure (78% neutral/sovereign/right) pulls toward center. Leadership donation history and founding origins pull left. The weighted composite: <strong>mildly center-left, and trending toward center every year since 2022</strong>. This is not "radical left-wing." It is the political position of a company that started in the EA community and has since become a globally funded institution.
+      On this weighting, the needle ends up <strong>slightly left of center</strong>. That comes from two visible signals: early EA-adjacent funding and a few public leaders with Democratic giving or policy instincts. It moves back toward the middle once the post-2023 money dominates: sovereign wealth, banks, mega-funds, and Thiel-aligned capital. If you think leadership should matter more than money, slide it left. If you think product behavior should dominate, treat benchmark results as the anchor.
     </div>
   </div>
 
   <div class="verdict-grid">
     <div class="verdict-card vt">
-      <div class="vc-verdict">True</div>
-      <span class="vc-pct">~25–30% of the narrative</span>
-      <div class="vc-text">Early founders and leadership have clear, documented left-Democrat ties. $174M+ in Democratic donations from Anthropic-linked individuals is verified FEC data. CEO's Harris endorsement is on record. For 2021–2022 specifically, the "left-wing" label fits.</div>
+      <div class="vc-verdict">What holds</div>
+      <span class="vc-pct">The strongest “left” signals</span>
+      <div class="vc-text">The strongest “left” signal sits at the top layer: public donations, endorsements, and a board profile that includes a major Democratic donor. That is where the receipts live.</div>
     </div>
     <div class="verdict-card vm">
-      <div class="vc-verdict">Mixed</div>
-      <span class="vc-pct">Context-dependent</span>
-      <div class="vc-text">Anthropic's policy positions on AI safety regulation and limits on military AI use align somewhat with progressive preferences, but are also mainstream international positions shared across the political spectrum in defense and governance communities.</div>
+      <div class="vc-verdict">What’s messy</div>
+      <span class="vc-pct">Where politics and safety get confused</span>
+      <div class="vc-text">Safety policy can look like politics when you already have a label in mind. Limits on autonomy, caution about military use, and pro-regulation instincts overlap with progressive rhetoric, but they also show up in mainstream governance and defense circles.</div>
     </div>
     <div class="verdict-card vf">
-      <div class="vc-verdict">False</div>
-      <span class="vc-pct">~70–75% of the narrative</span>
-      <div class="vc-text">Applied to the company's current capital structure, the claim is factually inaccurate. 78%+ of all capital came from neutral sovereign wealth and institutional investors, plus Founders Fund (Peter Thiel). The narrative is a fossil of 2021 misapplied to 2026.</div>
+      <div class="vc-verdict">What does not</div>
+      <span class="vc-pct">The caricature</span>
+      <div class="vc-text">The caricature falls apart in the later rounds. The biggest checks come from a multinational, institution-heavy cap table that does not map cleanly onto U.S. party labels.</div>
     </div>
   </div>
 
   <div class="conclusion">
-    <div class="c-label">Final Conclusion</div>
-    <div class="c-headline">The "Anthropic is left-wing" narrative is ~25% accurate. The rest is outdated.</div>
+    <div class="c-label">Takeaway</div>
+    <div class="c-headline">The politics story is older than the cap table.</div>
     <div class="c-body">
-      <p>Anthropic's origins were genuinely left-leaning. Its founders came from the EA community, its early investors were progressive Democrats, and its CEO's personal political behavior has been consistently left-of-center. These facts are real and documentable, and they form the legitimate basis of the perception.</p>
-      <p>But the company has transformed dramatically since 2022. The $47B+ raised in 2025–2026 came from Singapore, Qatar, Abu Dhabi, Peter Thiel's fund, Sequoia, BlackRock, Fidelity, and Wall Street's largest banks. <strong>By dollar weight, only about 8% of Anthropic's total capital came from verifiably left-leaning sources.</strong> The other 92% did not.</p>
-      <p>On the product: Claude scores 94% on political neutrality benchmarks, higher than any competing model. Anthropic publishes its Constitutional AI framework. The company explicitly prohibits partisan political outputs from Claude. The only AI lab publicly accused of being "radical left" is, by its own measurable output, producing the most politically neutral large language model commercially available.</p>
-      <p>The current conflict with the Trump administration, Anthropic's refusal to authorize unlimited lethal autonomous weapons use of its AI, is not a left-wing position. It is an AI safety position shared by mainstream defense experts, NATO doctrine, and international governance bodies across the political spectrum. Framing it as evidence of ideological bias conflates safety ethics with partisan politics.</p>
+<p>Reputations stick the way political labels stick: they compress a messy history into a single, repeatable word. Tocqueville warned that democracies love their <em>shortcuts</em>, a phrase becomes a tribe, a tribe becomes a story. Anthropic’s origin story (EA-adjacent founders, early donors, and a safety-first posture) explains why the “left” label took hold. <mark>It is not invented; it is an incomplete summary of the earliest chapter.</mark></p> <p>Then the institution grows up. Power attracts bureaucracy; bureaucracy attracts capital. Weber’s point about modern organizations was not romantic, it was mechanical: large systems run on incentives and legibility. As Anthropic scaled, the money shifted toward sovereign wealth, large institutions, and corporate strategics. <mark>That layer does not behave like a partisan caucus.</mark> It behaves like capital usually behaves: it pays for capacity, supply, and survivability, and it expects predictable governance in return.</p> <p>The harder question sits downstream: what should a frontier model be allowed to do in war? Clausewitz’s insight, war as politics carried out by other means, matters here because AI collapses the distance between a decision and its consequences. <mark>Speed is not wisdom.</mark> The case <em>for</em> military AI is pragmatic: better logistics, faster analysis, fewer mistakes, and the possibility of reducing civilian harm when used as a decision-support tool. The case <em>against</em> it is moral and constitutional: the more autonomy you grant, the more you risk an accountability gap, escalation through automation, and decisions no one can honestly own. In the vocabulary of just war, the requirements are old, distinction, proportionality, responsibility, but the failure modes are new.</p> <p>Here is the clean line, borrowed from Madison’s theory of power and applied to machines: <mark><strong>“Ambition must be made to counteract ambition.”</strong></mark> In practice, that means constraints that create friction: meaningful human control for lethal decisions, auditable logs, hardened review, and a design that makes it easier to <em>refuse</em> than to comply when the request is unlawful or reckless. If you want a nonpartisan principle, start there: <mark>in democracies, legitimacy depends on who can be held responsible.</mark></p> <p>So if you want to argue bias, do not stop at donor graphs. Don’t stop at press quotes. Treat bias as a testable claim: <strong>run the same political prompts, scored with the same rubric, across time, across models</strong>. That is the only argument that survives disagreement. And one question for the reader: <mark><strong>if a model is not “far right,” does it automatically become “left”?</strong></mark> When the stakes include war, governance, and legitimacy, the lazy binary is not analysis. It’s an escape hatch.</p>
     </div>
-    <div class="c-sources">Sources: <a href="https://tracxn.com/" target="_blank" rel="noopener">Tracxn</a> · <a href="https://www.crunchbase.com/" target="_blank" rel="noopener">Crunchbase</a> · <a href="https://www.opensecrets.org/" target="_blank" rel="noopener">OpenSecrets</a> · <a href="https://www.fec.gov/" target="_blank" rel="noopener">FEC.gov</a> · <a href="https://www.washingtonexaminer.com/" target="_blank" rel="noopener">Washington Examiner</a> · <a href="https://fortune.com/" target="_blank" rel="noopener">Fortune Magazine</a> · <a href="https://www.cnbc.com/" target="_blank" rel="noopener">CNBC</a> · <a href="https://www.bloomberg.com/" target="_blank" rel="noopener">Bloomberg</a> · <a href="https://www.reuters.com/" target="_blank" rel="noopener">Reuters</a> · <a href="https://www.anthropic.com/news" target="_blank" rel="noopener">Anthropic Blog</a> · <a href="https://www.defenseone.com/" target="_blank" rel="noopener">Defense One</a></div>
+    <div class="c-sources">Sources: <a href="https://tracxn.com/" target="_blank" rel="noopener">Tracxn</a> · <a href="https://www.crunchbase.com/" target="_blank" rel="noopener">Crunchbase</a> · <a href="https://www.opensecrets.org/" target="_blank" rel="noopener">OpenSecrets</a> · <a href="https://www.fec.gov/" target="_blank" rel="noopener">FEC.gov</a> · <a href="https://fortune.com/" target="_blank" rel="noopener">Fortune</a> · <a href="https://www.cnbc.com/" target="_blank" rel="noopener">CNBC</a> · <a href="https://www.bloomberg.com/" target="_blank" rel="noopener">Bloomberg</a> · <a href="https://www.reuters.com/" target="_blank" rel="noopener">Reuters</a> · <a href="https://www.anthropic.com/news" target="_blank" rel="noopener">Anthropic</a> · <a href="https://www.defenseone.com/" target="_blank" rel="noopener">Defense One</a></div>
   </div>
 </section>
 
@@ -1787,6 +2637,64 @@ window.addEventListener('scroll', function() {
     if(label) track.setAttribute('data-label', label);
     var w = (fill.style && fill.style.width) ? fill.style.width : '0%';
     track.style.setProperty('--fill', w);
+  });
+})();
+/* Leadership filter */
+(function(){
+  var grid = document.getElementById('leadGrid');
+  if(!grid) return;
+
+  var chips = Array.prototype.slice.call(document.querySelectorAll('.lead-chip'));
+  var cards = Array.prototype.slice.call(grid.querySelectorAll('.lead-card'));
+
+  function setActive(tag){
+    chips.forEach(function(btn){
+      var on = btn.getAttribute('data-tag') === tag;
+      btn.classList.toggle('active', on);
+      btn.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+
+    cards.forEach(function(card){
+      if(tag === 'all'){
+        card.classList.remove('dim');
+        return;
+      }
+      var tags = (card.getAttribute('data-tags') || '');
+      var hit = tags.indexOf(tag) !== -1;
+      card.classList.toggle('dim', !hit);
+    });
+  }
+
+  chips.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      setActive(btn.getAttribute('data-tag'));
+    });
+  });
+
+  setActive('all');
+})();
+/* Flip cards (People & Power) */
+(function(){
+  var grid = document.getElementById('flipGrid');
+  if(!grid) return;
+
+  function toggle(btn){
+    btn.classList.toggle('is-flipped');
+  }
+
+  grid.addEventListener('click', function(e){
+    var btn = e.target.closest('.flip-card');
+    if(!btn) return;
+    toggle(btn);
+  });
+
+  grid.addEventListener('keydown', function(e){
+    var btn = e.target.closest('.flip-card');
+    if(!btn) return;
+    if(e.key === 'Enter' || e.key === ' '){
+      e.preventDefault();
+      toggle(btn);
+    }
   });
 })();
 </script>
