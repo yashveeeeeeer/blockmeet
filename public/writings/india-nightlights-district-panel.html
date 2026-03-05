@@ -284,6 +284,44 @@ body::before {
 .fact-card:hover .fact-expand-hint { opacity: 0.6; }
 .fact-card.expanded .fact-expand-hint { display: none; }
 
+/* ─── TIMELAPSE ─── */
+.timelapse-section { margin: 2px 0; }
+.timelapse-wrap {
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.timelapse-wrap img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--border);
+}
+.download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold);
+  background: rgba(245,197,66,0.06);
+  border: 1px solid rgba(245,197,66,0.2);
+  padding: 8px 18px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.download-btn:hover {
+  background: rgba(245,197,66,0.12);
+  border-color: rgba(245,197,66,0.4);
+  color: #fff;
+}
+
 /* ─── CHART ─── */
 .chart-section { margin-top: 2px; }
 .chart-wrap {
@@ -550,6 +588,17 @@ body::before {
         <span class="fact-expand-hint">+ detail</span>
       </div>
 
+    </div>
+  </div>
+
+  <!-- TIMELAPSE -->
+  <div class="timelapse-section reveal">
+    <div class="section-label">/ district timelapse · 2012–2024</div>
+    <div class="timelapse-wrap">
+      <img src="india-nightlights-timelapse.gif" alt="India nightlight timelapse 2012-2024" loading="lazy">
+      <a class="download-btn" href="india-nightlights-timelapse.gif" download="india-nightlights-timelapse.gif">
+        ↓ Download GIF
+      </a>
     </div>
   </div>
 
