@@ -21,6 +21,14 @@ export const SITE = {
   },
   writings: [
     {
+      slug: "india-nightlights-district-panel",
+      title: "India Nightlights — District Panel 2012–2024",
+      oneLiner:
+        "631 districts, 13 years of VIIRS/DMSP satellite radiance data. How India lit up — and where it didn't.",
+      date: "2026-03-05",
+      url: "/blockmeet/writings/india-nightlights-district-panel.html",
+    },
+    {
       slug: "anthropic-money-power-politics",
       title: "Anthropic: Money, Power & Political Neutrality",
       oneLiner:

@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>India Nightlights — District Panel 2012–2024</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #1a1a2e;
+  --bg2: #16213e;
+  --card: #16213e;
+  --card-hover: #1c2a4a;
+  --border: rgba(245,197,66,0.10);
+  --border-hover: rgba(245,197,66,0.25);
+  --gold: #f5c542;
+  --gold-dim: #d4a030;
+  --green: #4ecca3;
+  --accent: #e94560;
+  --sky: #5b86e5;
+  --dim: #8a94b0;
+  --white: #e0e8f0;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--white);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 10% 15%, rgba(245,197,66,0.25) 0%, transparent 100%),
+    radial-gradient(1px 1px at 25% 40%, rgba(78,204,163,0.15) 0%, transparent 100%),
+    radial-gradient(1.2px 1.2px at 40% 10%, rgba(255,255,255,0.2) 0%, transparent 100%),
+    radial-gradient(1px 1px at 55% 60%, rgba(245,197,66,0.18) 0%, transparent 100%),
+    radial-gradient(1px 1px at 70% 25%, rgba(255,255,255,0.12) 0%, transparent 100%),
+    radial-gradient(1px 1px at 80% 50%, rgba(78,204,163,0.2) 0%, transparent 100%),
+    radial-gradient(1px 1px at 90% 80%, rgba(255,255,255,0.15) 0%, transparent 100%),
+    radial-gradient(1px 1px at 15% 70%, rgba(245,197,66,0.12) 0%, transparent 100%),
+    radial-gradient(1px 1px at 60% 85%, rgba(255,255,255,0.12) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+#readbar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 3px;
+  width: 0%;
+  background: linear-gradient(90deg, var(--green), var(--gold));
+  z-index: 200;
+  transition: width 0.1s linear;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 60px 24px 80px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── HEADER ─── */
+.header { margin-bottom: 56px; position: relative; }
+.header-glow {
+  position: absolute;
+  top: -60px; right: -80px;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(245,197,66,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+.eyebrow {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  color: var(--green);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(52px, 10vw, 96px);
+  line-height: 0.92;
+  letter-spacing: 0.02em;
+  color: var(--white);
+  margin-bottom: 20px;
+}
+.title span { color: var(--gold); }
+.subtitle {
+  font-size: 14px;
+  color: var(--dim);
+  font-weight: 300;
+  line-height: 1.6;
+  max-width: 500px;
+}
+
+/* ─── STATS ─── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  margin-bottom: 2px;
+}
+.stat-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 24px 20px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s, background 0.3s;
+}
+.stat-card:hover {
+  border-color: var(--border-hover);
+  background: var(--card-hover);
+}
+.stat-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--green), var(--gold));
+  transform: scaleX(0);
+  transition: transform 0.4s ease;
+  transform-origin: left;
+}
+.stat-card:hover::after { transform: scaleX(1); }
+.stat-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 52px;
+  line-height: 1;
+  color: var(--gold);
+  letter-spacing: 0.02em;
+}
+.stat-unit {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--green);
+  margin-left: 2px;
+}
+.stat-label {
+  font-size: 11px;
+  color: var(--dim);
+  margin-top: 6px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.stat-badge {
+  position: absolute;
+  top: 12px; right: 12px;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--green);
+  background: rgba(78,204,163,0.08);
+  border: 1px solid rgba(78,204,163,0.18);
+  padding: 2px 7px;
+  letter-spacing: 0.1em;
+}
+
+/* ─── FACTS ─── */
+.facts-section { margin: 2px 0; }
+.section-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--green);
+  text-transform: uppercase;
+  padding: 16px 20px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-bottom: none;
+}
+.facts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+}
+.fact-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 28px 24px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: background 0.3s, border-color 0.3s;
+  user-select: none;
+}
+.fact-card:hover {
+  background: var(--card-hover);
+  border-color: var(--border-hover);
+}
+.fact-card.expanded {
+  background: var(--card-hover);
+  border-color: var(--border-hover);
+}
+.fact-card.full { grid-column: 1 / -1; }
+.fact-number {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 120px;
+  line-height: 0.85;
+  color: rgba(245,197,66,0.04);
+  position: absolute;
+  right: 16px; top: 10px;
+  pointer-events: none;
+}
+.fact-icon { font-size: 22px; margin-bottom: 14px; }
+.fact-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 26px;
+  letter-spacing: 0.04em;
+  color: var(--white);
+  margin-bottom: 8px;
+  line-height: 1.1;
+}
+.fact-highlight { color: var(--gold); }
+.fact-body {
+  font-size: 13px;
+  color: var(--dim);
+  line-height: 1.65;
+  font-weight: 300;
+  max-width: 380px;
+}
+.fact-body strong { color: var(--white); font-weight: 600; }
+.fact-detail {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease;
+  opacity: 0;
+}
+.fact-card.expanded .fact-detail {
+  max-height: 200px;
+  opacity: 1;
+  margin-top: 14px;
+}
+.fact-detail-inner {
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--dim);
+  line-height: 1.7;
+}
+.fact-detail-inner span { color: var(--gold); }
+.fact-tag {
+  display: inline-block;
+  margin-top: 14px;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--green);
+  background: rgba(78,204,163,0.07);
+  border: 1px solid rgba(78,204,163,0.15);
+  padding: 3px 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.fact-expand-hint {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--dim);
+  opacity: 0;
+  position: absolute;
+  bottom: 12px; right: 16px;
+  transition: opacity 0.3s;
+}
+.fact-card:hover .fact-expand-hint { opacity: 0.6; }
+.fact-card.expanded .fact-expand-hint { display: none; }
+
+/* ─── CHART ─── */
+.chart-section { margin-top: 2px; }
+.chart-wrap {
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 32px 28px 24px;
+}
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.chart-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 0.06em;
+  color: var(--white);
+}
+.chart-desc {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--dim);
+  margin-top: 4px;
+}
+.chart-inner { position: relative; height: 280px; }
+.chart-note {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(233,69,96,0.06);
+  border: 1px solid rgba(233,69,96,0.15);
+  white-space: nowrap;
+}
+
+/* ─── SORT CONTROLS ─── */
+.sort-controls {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 16px 20px 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-bottom: none;
+}
+.sort-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--dim);
+  letter-spacing: 0.1em;
+  margin-right: 4px;
+}
+.sort-btn {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dim);
+  background: transparent;
+  border: 1px solid var(--border);
+  padding: 5px 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.sort-btn:hover {
+  border-color: var(--border-hover);
+  color: var(--white);
+}
+.sort-btn.active {
+  color: var(--gold);
+  border-color: rgba(245,197,66,0.3);
+  background: rgba(245,197,66,0.06);
+}
+
+/* ─── BARS ─── */
+.bars-wrap {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-top: none;
+  padding: 16px 28px 28px;
+}
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  padding: 4px 0;
+  transition: opacity 0.3s;
+}
+.bar-row:hover { opacity: 1 !important; }
+.bar-row.dimmed { opacity: 0.3; }
+.bar-rank {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--dim);
+  width: 20px;
+  flex-shrink: 0;
+  opacity: 0.4;
+  text-align: right;
+}
+.bar-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--dim);
+  width: 130px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.2s;
+}
+.bar-row:hover .bar-label { color: var(--white); }
+.bar-track {
+  flex: 1;
+  height: 20px;
+  background: rgba(255,255,255,0.03);
+  position: relative;
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green), var(--gold));
+  width: 0%;
+  transition: width 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.bar-row:hover .bar-fill {
+  background: linear-gradient(90deg, var(--gold), #f5d56a);
+}
+.bar-val {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--gold);
+  width: 50px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ─── FOOTER ─── */
+.footer {
+  margin-top: 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: rgba(138,148,176,0.4);
+  letter-spacing: 0.08em;
+}
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 600px) {
+  .stats-row { grid-template-columns: 1fr 1fr; }
+  .facts-grid { grid-template-columns: 1fr; }
+  .fact-card.full { grid-column: 1; }
+  .chart-header { flex-direction: column; }
+  .sort-controls { flex-wrap: wrap; }
+  .footer { flex-direction: column; gap: 8px; }
+  .bar-label { width: 90px; font-size: 10px; }
+}
+</style>
+</head>
+<body>
+<div id="readbar"></div>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header reveal">
+    <div class="header-glow"></div>
+    <div class="eyebrow">Satellite Nightlights · India District Panel</div>
+    <h1 class="title">LIGHTS<br>OF <span>INDIA</span></h1>
+    <p class="subtitle">631 districts · 13 years · 2012–2024 · VIIRS/DMSP satellite radiance</p>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row reveal">
+    <div class="stat-card">
+      <div class="stat-badge">2012 → 2024</div>
+      <div class="stat-num"><span class="counter" data-target="83" data-suffix="%">0%</span></div>
+      <div class="stat-label">National avg nightlight growth</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-badge">Districts</div>
+      <div class="stat-num"><span class="counter" data-target="631" data-suffix="">0</span></div>
+      <div class="stat-label">Districts across 35 states & UTs</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-badge">Inequality</div>
+      <div class="stat-num"><span class="counter" data-target="37" data-suffix="%">0%</span></div>
+      <div class="stat-label">Drop in spatial inequality (CV)</div>
+    </div>
+  </div>
+
+  <!-- FACTS -->
+  <div class="facts-section reveal">
+    <div class="section-label">/ 05 key findings</div>
+    <div class="facts-grid">
+
+      <div class="fact-card" onclick="toggleFact(this)">
+        <div class="fact-number">01</div>
+        <div class="fact-icon">⚡</div>
+        <div class="fact-title"><span class="fact-highlight">Bihar</span><br>478%</div>
+        <p class="fact-body">Average district nightlight intensity in Bihar grew <strong>478%</strong> between 2012 and 2024 — roughly <strong>6× the national rate</strong>. Bihar dominates the fastest-growing districts list.</p>
+        <div class="fact-detail">
+          <div class="fact-detail-inner">Mean radiance: <span>0.294</span> (2012) → <span>1.697</span> (2024). Growth concentrated in rural districts gaining grid access for the first time.</div>
+        </div>
+        <span class="fact-tag">Rural Electrification</span>
+        <span class="fact-expand-hint">+ detail</span>
+      </div>
+
+      <div class="fact-card" onclick="toggleFact(this)">
+        <div class="fact-number">02</div>
+        <div class="fact-icon">🌆</div>
+        <div class="fact-title">Delhi vs<br><span class="fact-highlight">The Rest</span></div>
+        <p class="fact-body">NCT of Delhi glows at <strong>37× the national district average</strong>. Central Delhi records mean radiance of <strong>58.5</strong> — over 200× the darkest districts in Arunachal Pradesh.</p>
+        <div class="fact-detail">
+          <div class="fact-detail-inner">Delhi 2024 mean: <span>37.12</span>. National district mean: <span>~2.35</span>. The ratio has narrowed from ~45× in 2012 as other regions grew faster.</div>
+        </div>
+        <span class="fact-tag">Urban Concentration</span>
+        <span class="fact-expand-hint">+ detail</span>
+      </div>
+
+      <div class="fact-card" onclick="toggleFact(this)">
+        <div class="fact-number">03</div>
+        <div class="fact-icon">🎯</div>
+        <div class="fact-title">Inequality<br><span class="fact-highlight">Narrowing</span></div>
+        <p class="fact-body">Cross-district coefficient of variation: <strong>3.91 in 2012</strong>, <strong>2.47 in 2024</strong>. A 37% drop. Lagging districts are catching up to urban cores.</p>
+        <div class="fact-detail">
+          <div class="fact-detail-inner">CV measures spread relative to mean. Falling CV with a rising mean = broad-based gains. Bottom districts grew faster than top ones.</div>
+        </div>
+        <span class="fact-tag">Convergence</span>
+        <span class="fact-expand-hint">+ detail</span>
+      </div>
+
+      <div class="fact-card" onclick="toggleFact(this)">
+        <div class="fact-number">04</div>
+        <div class="fact-icon">📍</div>
+        <div class="fact-title"><span class="fact-highlight">Noida</span> &<br>Gurgaon</div>
+        <p class="fact-body">Gautam Buddha Nagar (Noida) doubled nightlight intensity to <strong>14.5</strong>. Gurgaon nearly doubled to <strong>12.5</strong>. Both outpaced Mumbai over the period.</p>
+        <div class="fact-detail">
+          <div class="fact-detail-inner">Mumbai district avg: <span>~8.2</span>. NCR satellite cities grew faster than legacy metros, driven by IT and services corridor expansion.</div>
+        </div>
+        <span class="fact-tag">NCR Corridor</span>
+        <span class="fact-expand-hint">+ detail</span>
+      </div>
+
+      <div class="fact-card full" onclick="toggleFact(this)">
+        <div class="fact-number">05</div>
+        <div class="fact-icon">🌑</div>
+        <div class="fact-title">The <span class="fact-highlight">Northeast</span></div>
+        <p class="fact-body">Arunachal Pradesh, Mizoram, Andaman & Nicobar — all below <strong>0.40</strong> average in 2024. But zero districts in India got darker over 12 years. Every region gained.</p>
+        <div class="fact-detail">
+          <div class="fact-detail-inner">Lowest recorded: Upper Dibang Valley, Arunachal Pradesh at <span>0.08</span>. Even at that level, 2024 readings are roughly 3× what they were in 2012.</div>
+        </div>
+        <span class="fact-tag">No District Declined</span>
+        <span class="fact-expand-hint">+ detail</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- LINE CHART -->
+  <div class="chart-section reveal">
+    <div class="chart-wrap">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">National Mean Nightlight Intensity · 2012–2024</div>
+          <div class="chart-desc">avg across 631 districts · radiance units · click legend to toggle</div>
+        </div>
+        <div class="chart-note">
+          <span>◆</span> COVID-19 dip visible at 2020
+        </div>
+      </div>
+      <div class="chart-inner">
+        <canvas id="lineChart"></canvas>
+      </div>
+    </div>
+
+    <!-- BAR CHART -->
+    <div class="section-label" style="border-top:1px solid var(--border)">/ top states by 2024 nightlight intensity</div>
+    <div class="sort-controls">
+      <span class="sort-label">Sort:</span>
+      <button class="sort-btn active" onclick="sortBars('value-desc', this)">Value ↓</button>
+      <button class="sort-btn" onclick="sortBars('value-asc', this)">Value ↑</button>
+      <button class="sort-btn" onclick="sortBars('alpha', this)">A → Z</button>
+    </div>
+    <div class="bars-wrap">
+      <div id="barsContainer"></div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer reveal">
+    <span>Source: VIIRS/DMSP Nightlights · District Panel 2012–2024</span>
+    <span>India · 35 States & UTs · 8,333 obs.</span>
+  </div>
+
+</div>
+
+<script>
+/* ─── DATA ─── */
+var years = [2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024];
+var nationalMean = [1.281,1.501,1.594,1.638,1.579,1.794,1.803,1.806,1.797,1.890,2.056,2.247,2.350];
+var biharMean = [0.294,0.387,0.518,0.688,0.763,1.024,1.185,1.353,1.397,1.480,1.552,1.651,1.697];
+
+var topStates = [
+  { name: 'NCT of Delhi',   val: 37.12 },
+  { name: 'Chandigarh',     val: 27.12 },
+  { name: 'Daman & Diu',    val: 7.54  },
+  { name: 'Puducherry',     val: 5.63  },
+  { name: 'West Bengal',    val: 4.57  },
+  { name: 'Haryana',        val: 3.42  },
+  { name: 'Andhra Pradesh', val: 3.19  },
+  { name: 'Tamil Nadu',     val: 2.75  },
+  { name: 'Maharashtra',    val: 2.69  },
+  { name: 'Uttar Pradesh',  val: 2.16  },
+];
+
+/* ─── READING PROGRESS ─── */
+var readbar = document.getElementById('readbar');
+window.addEventListener('scroll', function() {
+  var h = document.documentElement.scrollHeight - window.innerHeight;
+  if (h > 0) readbar.style.width = ((window.scrollY / h) * 100) + '%';
+}, { passive: true });
+
+/* ─── SCROLL REVEAL ─── */
+var revealObs = new IntersectionObserver(function(entries) {
+  entries.forEach(function(e) {
+    if (e.isIntersecting) e.target.classList.add('in');
+  });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(function(el) { revealObs.observe(el); });
+
+/* ─── COUNTER ANIMATION ─── */
+function animateCounter(el) {
+  var target = +el.dataset.target;
+  var suffix = el.dataset.suffix || '';
+  var duration = 1400;
+  var start = null;
+  function step(ts) {
+    if (!start) start = ts;
+    var p = Math.min((ts - start) / duration, 1);
+    var ease = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.floor(ease * target) + suffix;
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+var counterObs = new IntersectionObserver(function(entries) {
+  entries.forEach(function(e) {
+    if (e.isIntersecting && !e.target.dataset.done) {
+      e.target.dataset.done = '1';
+      animateCounter(e.target);
+    }
+  });
+}, { threshold: 0.5 });
+document.querySelectorAll('.counter').forEach(function(el) { counterObs.observe(el); });
+
+/* ─── FACT CARD EXPAND ─── */
+function toggleFact(card) {
+  var wasExpanded = card.classList.contains('expanded');
+  document.querySelectorAll('.fact-card.expanded').forEach(function(c) {
+    if (c !== card) c.classList.remove('expanded');
+  });
+  card.classList.toggle('expanded', !wasExpanded);
+}
+
+/* ─── LINE CHART ─── */
+var ctx = document.getElementById('lineChart').getContext('2d');
+
+var g1 = ctx.createLinearGradient(0, 0, 0, 280);
+g1.addColorStop(0, 'rgba(245,197,66,0.18)');
+g1.addColorStop(1, 'rgba(245,197,66,0)');
+
+var g2 = ctx.createLinearGradient(0, 0, 0, 280);
+g2.addColorStop(0, 'rgba(78,204,163,0.12)');
+g2.addColorStop(1, 'rgba(78,204,163,0)');
+
+var verticalLinePlugin = {
+  id: 'verticalLine',
+  afterDraw: function(chart) {
+    if (chart.tooltip && chart.tooltip._active && chart.tooltip._active.length) {
+      var x = chart.tooltip._active[0].element.x;
+      var yAxis = chart.scales.y;
+      var c = chart.ctx;
+      c.save();
+      c.beginPath();
+      c.moveTo(x, yAxis.top);
+      c.lineTo(x, yAxis.bottom);
+      c.lineWidth = 1;
+      c.strokeStyle = 'rgba(245,197,66,0.12)';
+      c.setLineDash([4, 4]);
+      c.stroke();
+      c.restore();
+    }
+  }
+};
+
+var covidLinePlugin = {
+  id: 'covidLine',
+  afterDraw: function(chart) {
+    var xScale = chart.scales.x;
+    var yScale = chart.scales.y;
+    var idx = years.indexOf(2020);
+    if (idx === -1) return;
+    var x = xScale.getPixelForValue(idx);
+    var c = chart.ctx;
+    c.save();
+    c.beginPath();
+    c.moveTo(x, yScale.top);
+    c.lineTo(x, yScale.bottom);
+    c.lineWidth = 1;
+    c.strokeStyle = 'rgba(233,69,96,0.25)';
+    c.setLineDash([3, 3]);
+    c.stroke();
+    c.restore();
+  }
+};
+
+new Chart(ctx, {
+  type: 'line',
+  plugins: [verticalLinePlugin, covidLinePlugin],
+  data: {
+    labels: years,
+    datasets: [
+      {
+        label: 'National Average',
+        data: nationalMean,
+        borderColor: '#f5c542',
+        backgroundColor: g1,
+        borderWidth: 2.5,
+        pointRadius: 4,
+        pointHoverRadius: 8,
+        pointBackgroundColor: '#f5c542',
+        pointBorderColor: '#1a1a2e',
+        pointBorderWidth: 2,
+        tension: 0.4,
+        fill: true,
+      },
+      {
+        label: 'Bihar',
+        data: biharMean,
+        borderColor: '#4ecca3',
+        backgroundColor: g2,
+        borderWidth: 2,
+        pointRadius: 3.5,
+        pointHoverRadius: 7,
+        pointBackgroundColor: '#4ecca3',
+        pointBorderColor: '#1a1a2e',
+        pointBorderWidth: 2,
+        tension: 0.4,
+        fill: true,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 1400, easing: 'easeInOutQuart' },
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: {
+        position: 'top',
+        align: 'end',
+        labels: {
+          color: '#8a94b0',
+          font: { family: 'DM Mono', size: 11 },
+          boxWidth: 20,
+          boxHeight: 2,
+          padding: 16,
+          usePointStyle: false,
+        }
+      },
+      tooltip: {
+        backgroundColor: '#16213e',
+        borderColor: 'rgba(245,197,66,0.2)',
+        borderWidth: 1,
+        titleColor: '#f5c542',
+        bodyColor: '#8a94b0',
+        titleFont: { family: 'Bebas Neue', size: 16 },
+        bodyFont: { family: 'DM Mono', size: 11 },
+        padding: 14,
+        cornerRadius: 2,
+        displayColors: true,
+        callbacks: {
+          label: function(c) { return '  ' + c.dataset.label + ': ' + c.parsed.y.toFixed(3); },
+          afterBody: function(items) {
+            if (items.length === 2) {
+              var diff = items[0].parsed.y - items[1].parsed.y;
+              return ['  Gap: ' + diff.toFixed(3)];
+            }
+            return [];
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { color: 'rgba(255,255,255,0.03)', drawTicks: false },
+        ticks: { color: '#8a94b0', font: { family: 'DM Mono', size: 10 }, padding: 8 },
+        border: { color: 'rgba(255,255,255,0.06)' }
+      },
+      y: {
+        grid: { color: 'rgba(255,255,255,0.03)', drawTicks: false },
+        ticks: {
+          color: '#8a94b0',
+          font: { family: 'DM Mono', size: 10 },
+          padding: 10,
+          callback: function(v) { return v.toFixed(1); }
+        },
+        border: { color: 'rgba(255,255,255,0.06)', dash: [4, 4] }
+      }
+    }
+  }
+});
+
+/* ─── BAR CHART ─── */
+var highlighted = null;
+
+function renderBars(data) {
+  var maxVal = Math.max.apply(null, data.map(function(d) { return d.val; }));
+  var container = document.getElementById('barsContainer');
+  container.innerHTML = '';
+
+  data.forEach(function(s, i) {
+    var pct = (s.val / maxVal) * 100;
+    var row = document.createElement('div');
+    row.className = 'bar-row';
+    row.dataset.name = s.name;
+    row.innerHTML =
+      '<span class="bar-rank">' + (i + 1) + '</span>' +
+      '<div class="bar-label">' + s.name + '</div>' +
+      '<div class="bar-track"><div class="bar-fill"></div></div>' +
+      '<div class="bar-val">' + s.val.toFixed(2) + '</div>';
+
+    row.addEventListener('click', function() { toggleHighlight(s.name); });
+    container.appendChild(row);
+
+    var fill = row.querySelector('.bar-fill');
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() {
+        fill.style.width = pct + '%';
+      });
+    });
+  });
+}
+
+function toggleHighlight(name) {
+  if (highlighted === name) {
+    highlighted = null;
+    document.querySelectorAll('.bar-row').forEach(function(r) { r.classList.remove('dimmed'); });
+  } else {
+    highlighted = name;
+    document.querySelectorAll('.bar-row').forEach(function(r) {
+      r.classList.toggle('dimmed', r.dataset.name !== name);
+    });
+  }
+}
+
+function sortBars(mode, btn) {
+  document.querySelectorAll('.sort-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  highlighted = null;
+
+  var sorted = topStates.slice();
+  if (mode === 'value-desc') sorted.sort(function(a, b) { return b.val - a.val; });
+  else if (mode === 'value-asc') sorted.sort(function(a, b) { return a.val - b.val; });
+  else sorted.sort(function(a, b) { return a.name.localeCompare(b.name); });
+
+  renderBars(sorted);
+}
+
+renderBars(topStates.slice().sort(function(a, b) { return b.val - a.val; }));
+</script>
+</body>
+</html>
