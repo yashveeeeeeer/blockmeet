@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Why LPG Rationing Will Break the System It Claims to Save</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+
+:root {
+  --bg: #fafaf7;
+  --bg-alt: #f2f0ec;
+  --text: #1a1a1a;
+  --muted: #5a5650;
+  --accent: #c56a1b;
+  --accent-lt: #e89a4a;
+  --blue: #1a5276;
+  --green: #1e8449;
+  --red: #c0392b;
+  --ok: #27ae60;
+  --neutral: #7f8c8d;
+  --border: #d5d0c8;
+  --hd: 'Playfair Display', Georgia, serif;
+  --bd: 'Source Sans 3', 'Segoe UI', sans-serif;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; font-size:17px; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
+body { font-family:var(--bd); color:var(--text); background:var(--bg); line-height:1.8; overflow-x:hidden; }
+
+#scroll-progress { position:fixed; top:0; left:0; height:3px; background:linear-gradient(90deg,var(--accent),var(--accent-lt)); width:0%; z-index:1000; }
+
+#story-nav { position:fixed; right:1.2rem; top:50%; transform:translateY(-50%); z-index:900; display:flex; flex-direction:column; gap:0.7rem; }
+.nav-dot { width:8px; height:8px; border-radius:50%; background:var(--border); border:none; cursor:pointer; transition:all .3s; position:relative; }
+.nav-dot:hover,.nav-dot.active { background:var(--accent); transform:scale(1.5); }
+.nav-dot::after { content:attr(data-label); position:absolute; right:1.4rem; top:50%; transform:translateY(-50%); white-space:nowrap; font-size:.68rem; font-weight:500; color:var(--muted); opacity:0; pointer-events:none; transition:opacity .2s; font-family:var(--bd); letter-spacing:.03em; text-transform:uppercase; }
+.nav-dot:hover::after { opacity:1; }
+
+.section { padding:clamp(3.5rem,8vw,6rem) clamp(1.5rem,5vw,4rem); position:relative; }
+.section .inner { max-width:740px; margin:0 auto; width:100%; }
+.section.wide .inner { max-width:920px; }
+.section.dark { background:linear-gradient(160deg,#0d2137 0%,#163b5c 40%,#1a5276 100%); color:#fff; }
+.section.alt { background:var(--bg-alt); }
+
+h1,h2,h3 { font-family:var(--hd); font-weight:400; line-height:1.25; }
+h1 { font-size:clamp(2.2rem,5.5vw,3.6rem); color:var(--blue); margin-bottom:.6rem; letter-spacing:-.02em; }
+h2 { font-size:clamp(1.5rem,3.5vw,2.2rem); color:var(--blue); margin-bottom:1rem; }
+p { margin-bottom:1rem; font-size:1rem; max-width:740px; color:var(--text); }
+p.sm { color:var(--muted); font-size:.88rem; }
+.dark h1,.dark h2 { color:#fff; }
+.dark p { color:rgba(255,255,255,.8); }
+.dark p.sm { color:rgba(255,255,255,.45); }
+
+.kicker {
+  display:inline-block; font-family:var(--bd); font-size:.68rem; font-weight:700;
+  text-transform:uppercase; letter-spacing:.12em; color:var(--accent);
+  margin-bottom:.5rem; padding-bottom:.3rem;
+  border-bottom:2px solid var(--accent);
+}
+.dark .kicker { color:var(--accent-lt); border-color:var(--accent-lt); }
+
+.lead::first-letter {
+  font-family:var(--hd); float:left; font-size:3.8rem; line-height:.82;
+  padding-right:.12em; padding-top:.06em; color:var(--blue); font-weight:700;
+}
+.dark .lead::first-letter { color:var(--accent-lt); }
+.lead { font-size:1.15rem; line-height:1.85; }
+
+.pq {
+  margin:2.5rem 0; padding:1.5rem 0; position:relative; max-width:600px;
+  border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+}
+.pq p {
+  font-family:var(--hd); font-size:clamp(1.15rem,2.5vw,1.5rem); font-style:italic;
+  line-height:1.5; color:var(--blue); margin:0; max-width:none;
+}
+.pq cite {
+  display:block; margin-top:.6rem; font-family:var(--bd); font-size:.75rem;
+  font-style:normal; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.06em;
+}
+.dark .pq { border-color:rgba(255,255,255,.12); }
+.dark .pq p { color:rgba(255,255,255,.9); }
+.dark .pq cite { color:rgba(255,255,255,.4); }
+
+.byline {
+  padding:.8rem 0; margin-bottom:1.5rem;
+  border-top:1px solid rgba(255,255,255,.08); border-bottom:1px solid rgba(255,255,255,.08);
+  font-size:.82rem; color:rgba(255,255,255,.45); line-height:1.5;
+}
+.byline strong { color:rgba(255,255,255,.7); font-size:.88rem; }
+
+.divider {
+  width:30px; height:3px; border-radius:2px;
+  background:linear-gradient(90deg,var(--accent),var(--accent-lt));
+  margin-bottom:1.2rem;
+}
+.dark .divider { background:linear-gradient(90deg,var(--accent-lt),rgba(255,255,255,.15)); }
+
+.em-stat {
+  font-family:var(--hd); font-weight:600; color:var(--blue);
+  font-size:1.1em;
+}
+.dark .em-stat { color:var(--accent-lt); }
+
+.rv { opacity:0; transform:translateY(24px); transition:opacity .6s ease, transform .6s ease; }
+.rv.left { transform:translateX(-30px) translateY(0); }
+.rv.right { transform:translateX(30px) translateY(0); }
+.rv.pop { transform:scale(.93); }
+.rv.on { opacity:1; transform:none; }
+.stg>.rv:nth-child(1){transition-delay:0s}
+.stg>.rv:nth-child(2){transition-delay:.1s}
+.stg>.rv:nth-child(3){transition-delay:.15s}
+.stg>.rv:nth-child(4){transition-delay:.2s}
+.stg>.rv:nth-child(5){transition-delay:.25s}
+.stg>.rv:nth-child(6){transition-delay:.3s}
+.stg>.rv:nth-child(7){transition-delay:.35s}
+.stg>.rv:nth-child(8){transition-delay:.4s}
+.stg>.rv:nth-child(9){transition-delay:.45s}
+
+#s1 { min-height:100vh; display:flex; align-items:center; overflow:hidden; }
+#s1::before { content:''; position:absolute; top:-40%; right:-25%; width:70vw; height:70vw; border-radius:50%; background:radial-gradient(circle,rgba(197,106,27,.06) 0%,transparent 70%); pointer-events:none; animation:pulse 6s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:.35;transform:scale(1)} 50%{opacity:.6;transform:scale(1.04)} }
+#s1 h1 { color:#fff; font-size:clamp(2.4rem,5.5vw,3.8rem); letter-spacing:-.02em; max-width:650px; }
+#s1 .sub { color:var(--accent-lt); font-family:var(--hd); font-size:clamp(.9rem,2vw,1.15rem); font-style:italic; margin-bottom:1.5rem; opacity:.8; }
+.callout { background:rgba(255,255,255,.04); border-left:3px solid var(--accent); padding:.9rem 1.2rem; margin:1.5rem 0; border-radius:0 6px 6px 0; max-width:560px; }
+.callout strong { color:var(--accent-lt); font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; }
+.callout p { color:rgba(255,255,255,.65); font-size:.88rem; margin:0; }
+.scroll-arrow { position:absolute; bottom:2rem; left:50%; transform:translateX(-50%); animation:bob 2s ease-in-out infinite; }
+.scroll-arrow svg { width:20px; height:20px; stroke:rgba(255,255,255,.25); stroke-width:2; fill:none; }
+@keyframes bob { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(7px)} }
+
+.cht { position:relative; width:100%; max-width:800px; margin:1.5rem 0; background:#fff; border:1px solid var(--border); border-radius:8px; padding:1.2rem; box-shadow:0 2px 12px rgba(0,0,0,.04); }
+.cht-h { font-size:.72rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:.8rem; font-family:var(--bd); }
+.cht-foot { font-size:.68rem; color:var(--neutral); margin-top:.6rem; border-top:1px solid var(--border); padding-top:.4rem; }
+.cht-foot a { color:var(--accent); text-decoration:none; }
+.cht canvas { display:block; width:100%; }
+
+.stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(155px,1fr)); gap:1rem; margin:1.5rem 0; }
+.st-card {
+  background:#fff; border:1px solid var(--border); border-radius:8px;
+  padding:1.2rem .9rem; text-align:center; transition:transform .3s,box-shadow .3s;
+  position:relative; overflow:hidden;
+}
+.st-card::after {
+  content:''; position:absolute; top:0; left:0; width:100%; height:3px;
+  background:linear-gradient(90deg,var(--blue),var(--accent));
+}
+.st-card:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(0,0,0,.07); }
+.st-card .num { font-family:var(--hd); font-size:2.2rem; color:var(--blue); display:block; line-height:1.1; margin-bottom:.3rem; font-weight:600; }
+.st-card .lbl { font-size:.72rem; color:var(--muted); font-weight:500; line-height:1.3; text-transform:uppercase; letter-spacing:.03em; }
+
+.bb-wrap { max-width:720px; margin:1.5rem 0; }
+.bb-wrap .bb-title { font-size:.72rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:.6rem; }
+.bb { display:flex; height:40px; border-radius:6px; overflow:hidden; background:var(--bg-alt); }
+.bb .sg {
+  display:flex; align-items:center; justify-content:center; color:#fff;
+  font-size:.68rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  transition:width 1.2s cubic-bezier(.25,.46,.45,.94); width:0%;
+  position:relative; cursor:default; padding:0 5px;
+}
+.bb .sg.r{background:#1a5276} .bb .sg.u{background:#2e86c1} .bb .sg.s{background:#5dade2} .bb .sg.t{background:#c56a1b}
+.bb .sg .sg-tip {
+  display:none; position:absolute; bottom:calc(100% + 6px); left:50%; transform:translateX(-50%);
+  background:#1a1a1a; color:#fff; font-size:.7rem; font-weight:500;
+  padding:.3rem .7rem; border-radius:4px; white-space:nowrap; z-index:10; pointer-events:none;
+}
+.bb .sg .sg-tip::after { content:''; position:absolute; top:100%; left:50%; transform:translateX(-50%); border:4px solid transparent; border-top-color:#1a1a1a; }
+.bb .sg:hover .sg-tip { display:block; }
+.bb-leg { display:flex; flex-wrap:wrap; gap:1rem; margin-top:.5rem; font-size:.72rem; color:var(--muted); }
+.bb-leg span { display:flex; align-items:center; gap:4px; }
+.bb-leg i { width:9px; height:9px; border-radius:2px; display:inline-block; flex-shrink:0; }
+
+.hl {
+  display:inline; font-weight:700; font-family:var(--hd); color:var(--text);
+  background: linear-gradient(104deg, rgba(255,210,80,0) 0.9%, rgba(255,210,80,0.45) 2.4%, rgba(255,210,80,0.55) 5.8%, rgba(255,210,80,0.43) 93%, rgba(255,210,80,0.32) 96%, rgba(255,210,80,0) 98%);
+  padding:.12em .35em .08em; border-radius:7.5px; text-decoration:none;
+  box-decoration-break:clone; -webkit-box-decoration-break:clone;
+}
+
+.gap-box {
+  background:rgba(192,57,43,.04); border-left:3px solid var(--red);
+  padding:.65rem 1rem; border-radius:0 6px 6px 0;
+  margin:.8rem 0 1.5rem; max-width:560px; display:flex; align-items:center; gap:.5rem;
+}
+.gap-box::before { content:'\26A0'; font-size:1rem; flex-shrink:0; }
+.gap-box p { color:var(--red); font-weight:600; font-size:.85rem; margin:0; }
+
+.cht-row { display:flex; gap:1.2rem; flex-wrap:wrap; margin:1.5rem 0; }
+.cht-row .cht { flex:1; min-width:280px; }
+
+.sim { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:1.5rem; margin:1.5rem 0; }
+.sim-ctrls { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:1.2rem; margin-bottom:1.5rem; }
+.sim-ctrls label { display:block; font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:rgba(255,255,255,.5); margin-bottom:.4rem; }
+.sim-ctrls .sv { float:right; color:var(--accent-lt); font-family:var(--hd); font-size:1rem; }
+.sim-ctrls input[type=range] { width:100%; -webkit-appearance:none; appearance:none; height:4px; border-radius:3px; background:rgba(255,255,255,.12); outline:none; }
+.sim-ctrls input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:var(--accent); cursor:pointer; border:2px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,.3); }
+.sim-ctrls input[type=range]::-moz-range-thumb { width:18px; height:18px; border-radius:50%; background:var(--accent); cursor:pointer; border:2px solid #fff; }
+.presets { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:1.2rem; }
+.pre-btn { padding:.4rem 1rem; border-radius:18px; border:1px solid rgba(255,255,255,.15); background:transparent; color:rgba(255,255,255,.6); font-family:var(--bd); font-size:.75rem; font-weight:600; cursor:pointer; transition:all .3s; letter-spacing:.02em; }
+.pre-btn:hover { border-color:var(--accent); color:var(--accent-lt); }
+.pre-btn.on { background:var(--accent); border-color:var(--accent); color:#fff; }
+.gauges { display:grid; grid-template-columns:repeat(auto-fit,minmax(135px,1fr)); gap:.7rem; }
+.ga { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.06); border-radius:6px; padding:.7rem; text-align:center; }
+.ga .ga-l { font-size:.62rem; text-transform:uppercase; letter-spacing:.05em; color:rgba(255,255,255,.4); margin-bottom:.3rem; font-weight:700; }
+.ga .ga-v { font-family:var(--hd); font-size:1.2rem; margin-bottom:.35rem; transition:color .4s; }
+.ga .ga-bg { width:100%; height:4px; background:rgba(255,255,255,.08); border-radius:3px; overflow:hidden; }
+.ga .ga-f { height:100%; border-radius:3px; transition:width .5s ease,background-color .4s; width:50%; }
+.meth summary { cursor:pointer; color:rgba(255,255,255,.35); font-size:.72rem; font-weight:600; text-transform:uppercase; letter-spacing:.05em; list-style:none; margin-top:1rem; }
+.meth summary::-webkit-details-marker{display:none}
+.meth summary::before{content:'+ '}
+.meth[open] summary::before{content:'- '}
+.meth .mc { margin-top:.5rem; padding:.7rem; background:rgba(255,255,255,.03); border-radius:5px; font-size:.75rem; color:rgba(255,255,255,.4); line-height:1.7; }
+
+.tabs { display:flex; gap:.5rem; margin-bottom:1rem; flex-wrap:wrap; }
+.tab { padding:.4rem 1rem; border-radius:5px; border:1px solid var(--border); background:#fff; color:var(--muted); font-family:var(--bd); font-size:.75rem; font-weight:600; cursor:pointer; transition:all .3s; letter-spacing:.02em; }
+.tab:hover { border-color:var(--blue); color:var(--blue); }
+.tab.on { background:var(--blue); border-color:var(--blue); color:#fff; }
+.hm-wrap { overflow-x:auto; margin:0 0 1rem; }
+.hm { border-collapse:collapse; width:100%; max-width:800px; font-size:.85rem; }
+.hm th { font-weight:700; font-size:.68rem; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); padding:.5rem .7rem; text-align:left; border-bottom:2px solid var(--border); }
+.hm td { padding:.45rem .7rem; border-bottom:1px solid rgba(0,0,0,.04); transition:background .4s,color .4s; position:relative; }
+.hm .sn { font-weight:500; white-space:nowrap; background:transparent!important; }
+.hm .sc { text-align:center; font-weight:700; border-radius:3px; min-width:45px; cursor:default; }
+.hm .sc .tip { display:none; position:absolute; bottom:calc(100% + 5px); left:50%; transform:translateX(-50%); background:#1a1a1a; color:#fff; font-size:.7rem; font-weight:400; padding:.3rem .6rem; border-radius:3px; white-space:nowrap; z-index:10; pointer-events:none; }
+.hm .sc:hover .tip { display:block; }
+.hn5{background:#c0392b;color:#fff}.hn4{background:#d35400;color:#fff}.hn3{background:#e67e22;color:#fff}.hn2{background:#f0b27a;color:#1a1a1a}.hn1{background:#fad7a0;color:#1a1a1a}.h0{background:#eaecee;color:#7f8c8d}.hp1{background:#a9dfbf;color:#1a1a1a}.hp2{background:#82e0aa;color:#1a1a1a}.hp3{background:#58d68d;color:#1a1a1a}.hp4{background:#27ae60;color:#fff}.hp5{background:#1e8449;color:#fff}
+
+.radar-row { display:flex; gap:1.5rem; align-items:flex-start; flex-wrap:wrap; margin:1.5rem 0; }
+.radar-col { flex:1; min-width:300px; max-width:440px; }
+.radar-col .cht { border:none; box-shadow:none; background:transparent; padding:0; }
+.mcards { display:grid; grid-template-columns:repeat(3,1fr); gap:.5rem; flex:1; min-width:260px; }
+.mc {
+  background:#fff; border:1px solid var(--border); border-radius:6px;
+  padding:.7rem; cursor:pointer; transition:all .3s;
+  display:flex; flex-direction:column; align-items:center; text-align:center; gap:.25rem;
+}
+.mc:hover,.mc.on { border-color:var(--blue); box-shadow:0 3px 12px rgba(26,82,118,.1); transform:translateY(-2px); }
+.mc .ml {
+  font-family:var(--hd); font-size:1.6rem; color:var(--blue); line-height:1; font-weight:600;
+  width:40px; height:40px; display:flex; align-items:center; justify-content:center;
+  background:rgba(26,82,118,.05); border-radius:50%;
+}
+.mc .mn { font-size:.58rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; line-height:1.2; }
+.md { margin-top:1.2rem; background:rgba(26,82,118,.04); border-left:3px solid var(--blue); border-radius:0 5px 5px 0; padding:.8rem 1rem; max-width:560px; transition:opacity .3s; }
+.md h3 { font-family:var(--bd); font-weight:700; font-size:.9rem; color:var(--blue); margin-bottom:.3rem; }
+.md p { font-size:.88rem; margin:0; }
+
+.steps { position:relative; margin:2rem 0; padding-left:2.2rem; }
+.steps::before { content:''; position:absolute; left:.8rem; top:0; bottom:0; width:2px; background:rgba(255,255,255,.1); }
+.step { position:relative; margin-bottom:1.5rem; padding:1rem 1.2rem; background:rgba(255,255,255,.04); border-radius:7px; border:1px solid rgba(255,255,255,.06); max-width:600px; }
+.step::before { content:attr(data-n); position:absolute; left:-2.2rem; top:1rem; width:24px; height:24px; border-radius:50%; background:var(--accent); color:#fff; font-family:var(--hd); font-size:.8rem; display:flex; align-items:center; justify-content:center; z-index:1; font-weight:600; }
+.step h3 { color:var(--accent-lt); font-family:var(--bd); font-weight:700; font-size:.88rem; margin-bottom:.25rem; text-transform:uppercase; letter-spacing:.02em; }
+.step p { color:rgba(255,255,255,.65); font-size:.88rem; margin:0; }
+.close-q { margin:2.5rem 0; padding-top:1.2rem; border-top:1px solid rgba(255,255,255,.08); max-width:600px; }
+.close-q p { font-family:var(--hd); font-size:1.25rem; color:#fff; line-height:1.5; font-style:italic; }
+.refs summary { cursor:pointer; color:rgba(255,255,255,.4); font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; list-style:none; margin-top:1.5rem; }
+.refs summary::-webkit-details-marker{display:none}
+.refs summary::before{content:'+ '}
+.refs[open] summary::before{content:'- '}
+.refs ol { list-style:none; padding:0; margin-top:.6rem; }
+.refs li { font-size:.75rem; color:rgba(255,255,255,.45); line-height:1.7; padding:.2rem 0; border-bottom:1px solid rgba(255,255,255,.03); }
+.refs a { color:var(--accent-lt); text-decoration:none; }
+.refs a:hover { text-decoration:underline; }
+
+footer {
+  background:#0d2137; color:rgba(255,255,255,.45); padding:2.5rem 2rem;
+  text-align:center; font-size:.78rem; line-height:1.7;
+  border-top:1px solid rgba(255,255,255,.05);
+}
+footer strong { color:rgba(255,255,255,.85); font-size:.9rem; }
+footer p + p { margin-top:.2rem; color:rgba(255,255,255,.3); font-size:.7rem; letter-spacing:.04em; text-transform:uppercase; }
+
+@media(max-width:768px) {
+  #story-nav{display:none}
+  .cht{padding:.8rem}
+  .radar-row{flex-direction:column}
+  .mcards{grid-template-columns:repeat(3,1fr);gap:.35rem}
+  .mc{padding:.5rem}
+  .mc .ml{width:32px;height:32px;font-size:1.3rem}
+  .mc .mn{font-size:.5rem}
+  .bb .sg{font-size:.58rem;padding:0 3px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .lead::first-letter{font-size:3rem}
+  .pq p{font-size:1.1rem}
+}
+@media(max-width:480px) {
+  .stats{grid-template-columns:1fr}
+  .cht-row{flex-direction:column}
+  .cht-row .cht{min-width:auto}
+  .byline{flex-direction:column;text-align:center;gap:.4rem}
+}
+</style>
+</head>
+<body>
+
+<div id="scroll-progress"></div>
+
+<nav id="story-nav">
+  <button class="nav-dot active" data-section="s1" data-label="Opinion"></button>
+  <button class="nav-dot" data-section="s2" data-label="The Price"></button>
+  <button class="nav-dot" data-section="s3" data-label="The Scale"></button>
+  <button class="nav-dot" data-section="s4" data-label="The Crisis"></button>
+  <button class="nav-dot" data-section="s5" data-label="Test It"></button>
+  <button class="nav-dot" data-section="s6" data-label="Tradeoffs"></button>
+  <button class="nav-dot" data-section="s7" data-label="The Case"></button>
+  <button class="nav-dot" data-section="s8" data-label="The Fix"></button>
+</nav>
+
+<section id="s1" class="section dark">
+  <div class="inner stg">
+    <span class="kicker rv">Opinion &middot; Energy Policy</span>
+    <h1 class="rv">Why LPG Rationing Will Break the System It Claims to Save</h1>
+    <div class="byline rv">
+      <div><strong>An economic analysis of India's proposed LPG rationing policy</strong><br>March 2026</div>
+    </div>
+    <p class="rv lead">India's LPG supply chain serves 33 crore households. It is run by three state-owned oil marketing companies, backed by over 25,000 distributors, and extends into the remotest districts of the country. When the government proposed rationing LPG cylinders to manage rising costs, it reached for the simplest available lever. But simplicity is not the same thing as effectiveness. Rationing does not lower costs. It restricts supply &mdash; and risks destabilising the only infrastructure capable of delivering clean cooking fuel at national scale.</p>
+    <div class="callout rv left">
+      <strong>What is rationing?</strong>
+      <p>A government-imposed cap on the number of LPG cylinders per household per year. It restricts demand but does nothing about the cost of sourcing, refining, or delivering gas.</p>
+    </div>
+  </div>
+  <div class="scroll-arrow"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+</section>
+
+<section id="s2" class="section alt" data-chart="s2">
+  <div class="inner">
+    <span class="kicker rv">The Price Problem</span>
+    <h2 class="rv">Prices Rose 56%. The Cuts Were Political.</h2>
+    <div class="divider rv"></div>
+    <p class="rv">Between 2019 and 2022, the price of a domestic LPG cylinder in Delhi climbed from &#8377;706 to &#8377;1,053. Then the government intervened &mdash; twice. A &#8377;200 cut in August 2023. Another &#8377;100 in March 2024. Both times, directly before elections. Both times, the cost difference was absorbed not by the treasury but by the oil marketing companies themselves.</p>
+    <div class="cht rv pop" style="max-width:800px;">
+      <div class="cht-h">Domestic LPG Price (14.2 kg cylinder) &mdash; Delhi</div>
+      <div style="position:relative;height:320px;"><canvas id="c-price"></canvas></div>
+      <div class="cht-foot">Source: <a href="https://ppac.gov.in">PPAC</a>, <a href="https://data.gov.in">data.gov.in</a></div>
+    </div>
+    <p class="rv sm">The pattern is unmistakable: price hikes are gradual and market-driven. Cuts are sudden, political, and unfunded.</p>
+  </div>
+</section>
+
+<section id="s3" class="section" data-chart="s3">
+  <div class="inner">
+    <span class="kicker rv">The Infrastructure</span>
+    <h2 class="rv">The Supply Chain That Rationing Depends On</h2>
+    <div class="divider rv"></div>
+    <p class="rv">Before debating whether to ration LPG, it is worth examining the infrastructure that any rationing policy would have to operate through.</p>
+    <div class="stats stg">
+      <div class="st-card rv"><span class="num counter" data-target="25542">0</span><span class="lbl">Distributors</span></div>
+      <div class="st-card rv"><span class="num counter" data-target="32.97" data-d="2" data-s=" Cr">0</span><span class="lbl">Households served</span></div>
+      <div class="st-card rv"><span class="num counter" data-target="31.2" data-d="1" data-s=" MMT">0</span><span class="lbl">LPG moved, FY25</span></div>
+      <div class="st-card rv"><span class="num counter" data-target="10.35" data-d="2" data-s=" Cr">0</span><span class="lbl">Ujjwala connections</span></div>
+    </div>
+    <div class="bb-wrap rv left" id="bb">
+      <div class="bb-title">Distribution network by area</div>
+      <div class="bb">
+        <div class="sg r" data-w="46.3%"><span class="sg-tip">11,823 Rural Distributors (46%)</span>11,823 Rural</div>
+        <div class="sg u" data-w="31.0%"><span class="sg-tip">7,925 Urban Distributors (31%)</span>7,925 Urban</div>
+        <div class="sg s" data-w="14.8%"><span class="sg-tip">3,774 Semi-urban (15%)</span>3,774 Semi</div>
+        <div class="sg t" data-w="8.0%"><span class="sg-tip">2,044 Difficult Terrain (8%)</span>2,044</div>
+      </div>
+      <div class="bb-leg">
+        <span><i style="background:#1a5276"></i> Rural 46%</span>
+        <span><i style="background:#2e86c1"></i> Urban 31%</span>
+        <span><i style="background:#5dade2"></i> Semi-urban 15%</span>
+        <span><i style="background:#c56a1b"></i> Difficult 8%</span>
+      </div>
+    </div>
+    <p class="rv">Nearly half the distribution network is rural. Eight percent operates in terrain the government officially classifies as &ldquo;difficult&rdquo; &mdash; hilly, remote, hard to reach. No private competitor serves these routes. They exist because state-owned companies are mandated to go where the market will not.</p>
+    <div class="pq rv">
+      <p>Ujjwala &mdash; the government&rsquo;s flagship clean-cooking programme, 10.35 crore connections &mdash; runs entirely on this infrastructure. Rationing threatens the very network it depends on.</p>
+    </div>
+  </div>
+</section>
+
+<section id="s4" class="section alt" data-chart="s4">
+  <div class="inner">
+    <span class="kicker rv">The Fiscal Reality</span>
+    <h2 class="rv">&#8377;53,700 Crore in Losses. And Counting.</h2>
+    <div class="divider rv"></div>
+    <p class="rv"><span class="hl">&thinsp;&#8377;53,700 Cr&thinsp;</span> &mdash; that is the cumulative under-recovery from selling LPG below cost. The government has compensated about &#8377;30,000 crore. The remaining <span class="em-stat">&#8377;23,700 crore</span> sits on the books of three public-sector companies as uncompensated loss.</p>
+    <div class="gap-box rv left"><p>&#8377;23,700 Cr gap &mdash; absorbed by state-owned companies, not the treasury.</p></div>
+
+    <div class="cht rv pop" style="max-width:800px;">
+      <div class="cht-h">Under-Recovery vs. Government Compensation (&#8377; Cr)</div>
+      <div style="position:relative;height:280px;"><canvas id="c-loss"></canvas></div>
+      <div class="cht-foot">Source: <a href="https://www.thehindubusinessline.com">Hindu BusinessLine</a>, PPAC</div>
+    </div>
+
+    <p class="rv">Here is what makes this structural, not cyclical: <span class="em-stat">60%</span> of India&rsquo;s LPG is imported. It is purchased in dollars at international prices and sold in rupees at controlled domestic prices. That gap does not close with rationing &mdash; it widens, because fixed costs remain constant while volumes drop.</p>
+
+    <div class="cht-row">
+      <div class="cht rv pop">
+        <div class="cht-h">Loss Per Cylinder (&#8377;)</div>
+        <div style="position:relative;height:220px;"><canvas id="c-cyl"></canvas></div>
+        <div class="cht-foot">Source: New Indian Express, ET Energyworld</div>
+      </div>
+      <div class="cht rv pop">
+        <div class="cht-h">LPG Import Dependency</div>
+        <div style="position:relative;height:220px;"><canvas id="c-imp"></canvas></div>
+        <div class="cht-foot">Source: <a href="https://www.indiatoday.in">India Today</a>, CRISIL</div>
+      </div>
+    </div>
+
+    <div class="pq rv">
+      <p>Rationing addresses demand. The problem is on the cost side. It is like prescribing a diet to someone who has a broken leg.</p>
+    </div>
+  </div>
+</section>
+
+<section id="s5" class="section dark wide">
+  <div class="inner">
+    <span class="kicker rv">Interactive</span>
+    <h2 class="rv">The Policy Simulator</h2>
+    <div class="divider rv"></div>
+    <p class="rv">Adjust the policy parameters and observe how each scenario affects supply-chain viability, household access, and fiscal exposure simultaneously.</p>
+    <div class="sim rv pop">
+      <div class="presets">
+        <button class="pre-btn on" data-p="sq">Status Quo</button>
+        <button class="pre-btn" data-p="rat">Full Rationing</button>
+        <button class="pre-btn" data-p="omc">Reform Proposal</button>
+      </div>
+      <div class="sim-ctrls">
+        <div><label>Cylinders / year <span class="sv" id="vq">9</span></label><input type="range" id="sq" min="3" max="12" value="9"></div>
+        <div><label>Subsidy / cylinder <span class="sv" id="vs">&#8377;300</span></label><input type="range" id="ss" min="0" max="400" step="25" value="300"></div>
+        <div><label>Price cap <span class="sv" id="vp">&#8377;853</span></label><input type="range" id="sp" min="700" max="1200" step="25" value="853"></div>
+      </div>
+      <div class="gauges">
+        <div class="ga"><div class="ga-l">Supplier Viability</div><div class="ga-v" id="go">-&#8377;160/cyl</div><div class="ga-bg"><div class="ga-f" id="bo"></div></div></div>
+        <div class="ga"><div class="ga-l">Household Access</div><div class="ga-v" id="ga">128%</div><div class="ga-bg"><div class="ga-f" id="ba"></div></div></div>
+        <div class="ga"><div class="ga-l">Black Mkt Risk</div><div class="ga-v" id="gb">Low</div><div class="ga-bg"><div class="ga-f" id="bb2"></div></div></div>
+        <div class="ga"><div class="ga-l">Fiscal Burden</div><div class="ga-v" id="gf">&#8377;28K Cr</div><div class="ga-bg"><div class="ga-f" id="bf"></div></div></div>
+        <div class="ga"><div class="ga-l">Rural Stability</div><div class="ga-v" id="gr">Stable</div><div class="ga-bg"><div class="ga-f" id="br"></div></div></div>
+      </div>
+    </div>
+    <details class="meth rv"><summary>Methodology</summary><div class="mc">Supplier viability = retail price &minus; cost (~&#8377;1013/cyl). Access = quota &divide; 7 avg refills. Black market risk rises with lower quota + bigger price gaps. Fiscal = subsidy &times; 10.35 Cr connections &times; quota. Rural stability degrades when losses exceed &#8377;100/cyl.</div></details>
+  </div>
+</section>
+
+<section id="s6" class="section" data-chart="s6">
+  <div class="inner">
+    <span class="kicker rv">Equity vs. Efficiency</span>
+    <h2 class="rv">Who Wins, Who Loses &mdash; and the Equity Paradox</h2>
+    <div class="divider rv"></div>
+    <p class="rv">Rationing sounds equitable: everyone gets the same cap. In practice, a family of three in Bandra and a joint family of nine in Bundelkhand both receive the same quota. One is comfortable. The other goes back to firewood. That is not equity &mdash; it is uniformity masquerading as fairness.</p>
+    <div class="tabs rv" id="htabs">
+      <button class="tab on" data-sc="rat">Full Rationing</button>
+      <button class="tab" data-sc="sq">Status Quo</button>
+      <button class="tab" data-sc="omc">Reform Proposal</button>
+    </div>
+    <div class="hm-wrap rv pop">
+      <table class="hm"><thead><tr><th>Stakeholder</th><th>Impact</th></tr></thead><tbody id="hbody"></tbody></table>
+    </div>
+    <p class="rv sm">Scored &minus;5 (severe harm) to +5 (strong benefit). Hover cells for detail.</p>
+
+    <div class="pq rv">
+      <p>Rationing looks like equity but delivers inefficiency. Targeted reform looks like market pricing but delivers real equity &mdash; because the subsidy goes exactly where it is needed and nowhere else.</p>
+      <cite>The central tension of this debate</cite>
+    </div>
+  </div>
+</section>
+
+<section id="s7" class="section alt" data-chart="s7">
+  <div class="inner">
+    <span class="kicker rv">Impact Analysis</span>
+    <h2 class="rv">Why Supply-Chain Viability Should Be the Priority</h2>
+    <div class="divider rv"></div>
+    <p class="rv">On the VRPILLLSU impact framework &mdash; nine metrics for weighing competing stakeholder claims &mdash; the supply-side case does not need to win all nine. It wins on the three that are structurally decisive.</p>
+    <div class="radar-row">
+      <div class="radar-col rv pop"><div class="cht"><div style="position:relative;height:340px;"><canvas id="c-radar"></canvas></div></div></div>
+      <div class="mcards stg" id="mcards">
+        <div class="mc rv" data-m="V"><div class="ml">V</div><div class="mn">Vulnerability</div></div>
+        <div class="mc rv" data-m="R"><div class="ml">R</div><div class="mn">Reversibility</div></div>
+        <div class="mc rv" data-m="P"><div class="ml">P</div><div class="mn">Principle</div></div>
+        <div class="mc rv" data-m="I"><div class="ml">I</div><div class="mn">Intensity</div></div>
+        <div class="mc rv" data-m="LP"><div class="ml">L</div><div class="mn">Logical Prior</div></div>
+        <div class="mc rv" data-m="LK"><div class="ml">L</div><div class="mn">Likelihood</div></div>
+        <div class="mc rv" data-m="LT"><div class="ml">L</div><div class="mn">Long-term</div></div>
+        <div class="mc rv" data-m="S"><div class="ml">S</div><div class="mn">Scale</div></div>
+        <div class="mc rv" data-m="U"><div class="ml">U</div><div class="mn">Urgency</div></div>
+      </div>
+    </div>
+    <div class="md rv" id="mdetail" style="display:none"><h3 id="mdt"></h3><p id="mdp"></p></div>
+    <p class="rv"><strong>Logical Prior</strong> is the metric that settles this debate. No stakeholder receives LPG if the supply chain cannot deliver it. Supplier viability is not one interest among many &mdash; it is a precondition for every other stakeholder&rsquo;s benefit. <strong>Scale</strong>: 33 crore households, every district. <strong>Urgency</strong>: &#8377;53,700 crore in accumulated losses, growing every quarter.</p>
+  </div>
+</section>
+
+<section id="s8" class="section dark">
+  <div class="inner">
+    <span class="kicker rv">The Way Forward</span>
+    <h2 class="rv">Three Reforms Instead of Rationing</h2>
+    <div class="divider rv"></div>
+    <p class="rv">The cost problem is real. Doing nothing is not an option. But the solution is structural reform, not supply restriction. Three measures &mdash; each implementable within existing institutional frameworks &mdash; would address the root causes that rationing merely papers over.</p>
+    <div class="steps stg">
+      <div class="step rv left" data-n="1">
+        <h3>Targeted DBT, Not Blanket Rationing</h3>
+        <p>Subsidy reaches BPL and Ujjwala households directly via existing Direct Benefit Transfer infrastructure. Everyone else pays a fair, cost-recovery price. The vulnerable are still protected. The supply chain stops haemorrhaging.</p>
+      </div>
+      <div class="step rv left" data-n="2">
+        <h3>Deregulate Commercial LPG</h3>
+        <p>Hotels, restaurants, and industry can absorb market rates. They already do in most comparable economies. This alone eliminates a substantial portion of under-recoveries without affecting a single household.</p>
+      </div>
+      <div class="step rv left" data-n="3">
+        <h3>Quarterly Price Indexing</h3>
+        <p>A transparent formula tied to the Saudi Contract Price, forex, and a reasonable margin &mdash; reviewed by PPAC, with a cap on per-quarter increases. Predictable for consumers. Sustainable for suppliers.</p>
+      </div>
+    </div>
+    <div class="close-q rv">
+      <p>&ldquo;The LPG supply chain keeps gas flowing to 33 crore homes. The question is not whether to fix the economics &mdash; it is whether to fix them intelligently, or break the system trying.&rdquo;</p>
+    </div>
+
+    <details class="refs rv"><summary>References &amp; Sources (17)</summary><ol>
+      <li>[1] PPAC &mdash; LPG pricing data. <a href="https://ppac.gov.in">ppac.gov.in</a></li>
+      <li>[2] data.gov.in &mdash; Domestic LPG prices 2018-2023. <a href="https://data.gov.in">data.gov.in</a></li>
+      <li>[3] Hindu BusinessLine, Aug 2025 &mdash; &#8377;30,000 Cr relief package. <a href="https://www.thehindubusinessline.com/economy/govt-provides-30000-cr-relief-to-omcs-for-lpg-under-recoveries/article69909425.ece">link</a></li>
+      <li>[4] Hindu BusinessLine, Sep 2025 &mdash; &#8377;53,700 Cr cumulative losses. <a href="https://www.thehindubusinessline.com/economy/oil-psus-lpg-losses-stands-at-53700-crore-likely-to-get-government-subsidy-of-30000-crore-report/article70302790.ece">link</a></li>
+      <li>[5] New Indian Express, Aug 2025 &mdash; Q1 under-recoveries. <a href="https://newindianexpress.com/business/2025/Aug/26/lpg-under-recoveries-fall-35-in-q1-to-rs-7940-crore">link</a></li>
+      <li>[6] ET Energyworld &mdash; FY25 LPG sales. <a href="https://energy.economictimes.indiatimes.com/news/oil-and-gas/lpg-sales-grow-5-1-in-fy25-43-6-lakh-new-customers-enrolled/121201043">link</a></li>
+      <li>[7] IANS, Dec 2025 &mdash; 10.35 Cr PMUY connections. <a href="https://ianslive.in/number-of-poor-getting-subsidised-lpg-under-pmuy-scheme-touches-1035-crore-in-2025--20251226133904">link</a></li>
+      <li>[8] PIB 2025 &mdash; PMUY statistics. <a href="https://www.pib.gov.in/PressReleseDetailm.aspx?PRID=2208694">link</a></li>
+      <li>[9] India Today, Mar 2026 &mdash; Import dependency analysis. <a href="https://www.indiatoday.in/diu/story/how-dependent-is-india-on-imported-lpg-2879974-2026-03-10">link</a></li>
+      <li>[10] CRISIL / Financial Express &mdash; 55-60% import dependence. <a href="https://www.financialexpress.com/policy/economy-indias-lpg-import-dependence-at-5560-despite-output-growth-crisil-says-us-deal-to-diversify-supply-4056925/">link</a></li>
+      <li>[11] ZeeBiz, Mar 2026 &mdash; Current cylinder prices. <a href="https://www.zeebiz.com/economy-infra/news-your-lpg-cylinder-refill-rate-march-2026-new-commercial-domestic-household-rates-391593">link</a></li>
+      <li>[12] Down To Earth &mdash; Commercial LPG supply cap. <a href="https://www.downtoearth.org.in/energy/india-caps-commercial-lpg-supply-at-20-to-curb-price-rise-hoarding-amid-west-asia-crisis">link</a></li>
+      <li>[13] Times of India &mdash; 179-cylinder black market bust. <a href="https://timesofindia.indiatimes.com/city/nagpur/crime-branch-busts-lpg-black-marketing-racket-seizes-179-cylinders-amid-domestic-gas-shortage/articleshow/128174147.cms">link</a></li>
+      <li>[14] IOCL Investor Presentation FY25. <a href="https://iocl.com/uploads/IOCL_Investor_Presentation_2025.pdf">link</a></li>
+      <li>[15] BPCL Annual Report FY25. <a href="https://www.bharatpetroleum.in/bharat-petroleum/index.html">link</a></li>
+      <li>[16] HPCL Annual Report FY25. <a href="https://www.hindustanpetroleum.com/documents/pdf/HPCL-Annual-Report-2024-25.pdf">link</a></li>
+      <li>[17] Rediff, Mar 2024 &mdash; &#8377;100 price cut analysis. <a href="https://www.rediff.com/money/report/lpg-price-cut-by-rs-100cylinder/20240308.htm">link</a></li>
+    </ol></details>
+  </div>
+</section>
+
+<footer>
+  <p><strong>Energy Policy Analysis</strong></p>
+  <p>March 2026</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+  var bar = document.getElementById('scroll-progress');
+  window.addEventListener('scroll', function() {
+    var h = document.documentElement.scrollHeight - window.innerHeight;
+    bar.style.width = (h > 0 ? (window.scrollY / h) * 100 : 0) + '%';
+  }, { passive: true });
+
+  var obs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) e.target.classList.add('on');
+      else e.target.classList.remove('on');
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -30px 0px' });
+  document.querySelectorAll('.rv').forEach(function(el) { obs.observe(el); });
+
+  var dots = document.querySelectorAll('.nav-dot');
+  var secObs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) {
+        var id = e.target.id;
+        dots.forEach(function(d) { d.classList.toggle('active', d.dataset.section === id); });
+      }
+    });
+  }, { threshold: 0.3 });
+  document.querySelectorAll('.section').forEach(function(s) { secObs.observe(s); });
+  dots.forEach(function(d) {
+    d.addEventListener('click', function() {
+      var t = document.getElementById(d.dataset.section);
+      if (t) t.scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+
+  function animateCounter(el) {
+    var to = parseFloat(el.dataset.target);
+    var dec = parseInt(el.dataset.d || '0');
+    var suf = el.dataset.s || '';
+    var dur = 1600;
+    var t0 = performance.now();
+    el.textContent = (0).toFixed(dec) + suf;
+    (function tick(now) {
+      var p = Math.min((now - t0) / dur, 1);
+      var v = (1 - Math.pow(1 - p, 3)) * to;
+      el.textContent = v.toFixed(dec).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + suf;
+      if (p < 1) requestAnimationFrame(tick);
+    })(t0);
+  }
+
+  var cObs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) {
+        animateCounter(e.target);
+      } else {
+        var dec = parseInt(e.target.dataset.d || '0');
+        var suf = e.target.dataset.s || '';
+        e.target.textContent = (0).toFixed(dec) + suf;
+      }
+    });
+  }, { threshold: 0.5 });
+  document.querySelectorAll('.counter').forEach(function(c) { cObs.observe(c); });
+
+  var bb = document.getElementById('bb');
+  if (bb) {
+    var segs = bb.querySelectorAll('.sg');
+    var bObs = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) {
+        if (e.isIntersecting) {
+          segs.forEach(function(s, i) {
+            setTimeout(function() { s.style.width = s.dataset.w; }, i * 180);
+          });
+        } else {
+          segs.forEach(function(s) { s.style.width = '0%'; });
+        }
+      });
+    }, { threshold: 0.3 });
+    bObs.observe(bb);
+  }
+
+  /* ===== CHARTS ===== */
+  var CI = {};
+  var CInstances = {};
+  var created = {};
+
+  CI.s2 = function() {
+    var ctx = document.getElementById('c-price');
+    if (!ctx) return;
+    var lbl = ['Jan 19','Jul 19','Jan 20','Jul 20','Jan 21','Jul 21','Jan 22','Jul 22','Jan 23','Aug 23','Jan 24','Mar 24','Jan 25','Apr 25','Jul 25','Jan 26','Mar 26'];
+    var dat = [706,706,714,594,694,809,900,1053,1053,903,903,803,803,853,853,853,913];
+    var anno = {
+      id: 'anno',
+      afterDatasetsDraw: function(chart) {
+        var c = chart.ctx;
+        var pts = chart.getDatasetMeta(0).data;
+        var marks = [
+          {i:7,t:'Peak \u20B91,053',a:'t'},{i:9,t:'\u20B9200 cut',a:'t'},
+          {i:11,t:'\u20B9100 cut\n(election)',a:'b'},{i:13,t:'\u20B950 hike',a:'t'},
+          {i:16,t:'\u20B9913 now',a:'t'}
+        ];
+        c.save(); c.font='10px "Source Sans 3",sans-serif'; c.textAlign='center';
+        marks.forEach(function(m) {
+          var p = pts[m.i]; if(!p) return;
+          c.beginPath(); c.arc(p.x,p.y,3.5,0,Math.PI*2); c.fillStyle='#c56a1b'; c.fill();
+          c.fillStyle='#5a5650';
+          m.t.split('\n').forEach(function(line,j) {
+            c.fillText(line, p.x, p.y + (m.a==='t' ? -10-j*13 : 16+j*13));
+          });
+        });
+        c.restore();
+      }
+    };
+    var ch = new Chart(ctx, {
+      type:'line',
+      data:{ labels:lbl, datasets:[{ data:dat, borderColor:'#1a5276', backgroundColor:'rgba(26,82,118,.07)', borderWidth:2.5, fill:true, tension:.35, pointRadius:0, pointHoverRadius:5, pointHoverBackgroundColor:'#c56a1b' }] },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        animation:{duration:1400,easing:'easeOutQuart'},
+        interaction:{mode:'index',intersect:false},
+        plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'#1e1e1e',titleColor:'#f0a660',bodyColor:'#fff',cornerRadius:4, callbacks:{ title:function(i){return i[0].label}, label:function(i){return '  \u20B9'+i.formattedValue} } } },
+        scales:{
+          x:{ grid:{display:false}, ticks:{font:{size:10},color:'#999',maxRotation:45,autoSkip:true,maxTicksLimit:9} },
+          y:{ min:500,max:1150, grid:{color:'rgba(0,0,0,.04)'}, ticks:{font:{size:10},color:'#999',callback:function(v){return '\u20B9'+v}} }
+        }
+      },
+      plugins:[anno]
+    });
+    CInstances.s2 = [ch];
+  };
+
+  CI.s4 = function() {
+    var list = [];
+    var c1 = document.getElementById('c-loss');
+    if (c1) {
+      var ch1 = new Chart(c1, {
+        type:'bar',
+        data:{ labels:['FY23','FY24','FY25','H1 FY26'], datasets:[
+          {label:'Under-Recovery',data:[14200,31500,49210,53700],backgroundColor:'#c0392b',borderRadius:3,barPercentage:.55},
+          {label:'Govt Compensation',data:[0,0,22000,30000],backgroundColor:'#1e8449',borderRadius:3,barPercentage:.55}
+        ]},
+        options:{
+          responsive:true,maintainAspectRatio:false,
+          animation:{duration:1200,easing:'easeOutQuart'},
+          plugins:{ legend:{position:'bottom',labels:{font:{size:11},padding:14,usePointStyle:true,pointStyle:'rectRounded'}}, tooltip:{backgroundColor:'#1e1e1e',bodyColor:'#fff',callbacks:{label:function(i){return '  '+i.dataset.label+': \u20B9'+i.formattedValue+' Cr'}}} },
+          scales:{ x:{grid:{display:false},ticks:{font:{size:11},color:'#999'}}, y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:10},color:'#999',callback:function(v){return '\u20B9'+(v/1000).toFixed(0)+'K Cr'}}} }
+        }
+      });
+      list.push(ch1);
+    }
+    var c2 = document.getElementById('c-cyl');
+    if (c2) {
+      var ch2 = new Chart(c2, {
+        type:'line',
+        data:{ labels:['Q3 FY25','Q4 FY25','Q1 FY26','Q2 FY26','Q3 FY26'], datasets:[{data:[250,220,160,130,105],borderColor:'#c0392b',backgroundColor:'rgba(192,57,43,.07)',borderWidth:2.5,fill:true,tension:.3,pointRadius:4,pointBackgroundColor:'#c0392b',pointBorderColor:'#fff',pointBorderWidth:2}] },
+        options:{
+          responsive:true,maintainAspectRatio:false,
+          animation:{duration:1200,easing:'easeOutQuart'},
+          plugins:{legend:{display:false},tooltip:{backgroundColor:'#1e1e1e',bodyColor:'#fff',callbacks:{label:function(i){return '  Loss: \u20B9'+i.formattedValue+'/cyl'}}}},
+          scales:{ x:{grid:{display:false},ticks:{font:{size:10},color:'#999'}}, y:{min:0,max:300,grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:10},color:'#999',callback:function(v){return '\u20B9'+v}}} }
+        }
+      });
+      list.push(ch2);
+    }
+    var c3 = document.getElementById('c-imp');
+    if (c3) {
+      var ch3 = new Chart(c3, {
+        type:'doughnut',
+        data:{ labels:['UAE 41%','Qatar 22%','Saudi 15%','Kuwait 15%','Other 7%','Domestic 40%'], datasets:[{data:[24.6,13.2,9,9,4.2,40],backgroundColor:['#c0392b','#e74c3c','#f1948a','#f5b7b1','#fadbd8','#1a5276'],borderWidth:2,borderColor:'#fff',hoverOffset:6}] },
+        options:{
+          responsive:true,maintainAspectRatio:false,cutout:'50%',
+          animation:{animateRotate:true,duration:1200,easing:'easeOutQuart'},
+          plugins:{ legend:{position:'bottom',labels:{font:{size:10},padding:10,usePointStyle:true,pointStyle:'circle'}}, tooltip:{backgroundColor:'#1e1e1e',bodyColor:'#fff'} }
+        }
+      });
+      list.push(ch3);
+    }
+    CInstances.s4 = list;
+  };
+
+  CI.s6 = function() {
+    var tbody = document.getElementById('hbody');
+    var tabs = document.querySelectorAll('#htabs .tab');
+    if (!tbody) return;
+    var data = [
+      {n:'Oil Marketing Companies',s:{rat:-5,sq:-2,omc:3},t:{rat:'Volume drops, fixed costs stay',sq:'Under-recoveries at \u20B9160/cyl',omc:'Cost-recovery pricing restores viability'}},
+      {n:'Domestic Households',s:{rat:-3,sq:0,omc:1},t:{rat:'Capped at 4 cyl vs avg need of 7',sq:'Prices stable, supply fragile',omc:'BPL gets DBT, others pay fair rate'}},
+      {n:'LPG Distributors',s:{rat:-4,sq:-1,omc:2},t:{rat:'Volume-based income collapses',sq:'Thin margins, barely OK',omc:'Stable volumes, healthier partners'}},
+      {n:'Agricultural Sector',s:{rat:-3,sq:-1,omc:0},t:{rat:'Rural supply cut first',sq:'Access OK, infra underfunded',omc:'Rural network maintained'}},
+      {n:'SMEs (LPG-dependent)',s:{rat:-4,sq:-1,omc:1},t:{rat:'Commercial quota slashed 80%',sq:'Rising costs squeeze margins',omc:'Transparent market pricing'}},
+      {n:'Hospitality & Food',s:{rat:-4,sq:-1,omc:0},t:{rat:'Severe supply cuts',sq:'Expensive but available',omc:'Market rate, reliable supply'}},
+      {n:'Renewable Energy',s:{rat:3,sq:0,omc:-1},t:{rat:'Scarcity boosts alternatives',sq:'No urgency to transition',omc:'Stable LPG = less transition pressure'}},
+      {n:'RBI / Macro',s:{rat:-2,sq:-1,omc:1},t:{rat:'Black markets drive inflation',sq:'Hidden fiscal risk',omc:'Transparent pricing, less exposure'}}
+    ];
+    var cur = 'rat';
+    function render(sc) {
+      tbody.innerHTML = '';
+      data.forEach(function(d) {
+        var v = d.s[sc], tip = d.t[sc];
+        var cls = v>0?'hp'+v:v<0?'hn'+Math.abs(v):'h0';
+        var tr = document.createElement('tr');
+        tr.innerHTML = '<td class="sn">'+d.n+'</td><td class="sc '+cls+'">'+( v>0?'+':'')+v+'<span class="tip">'+tip+'</span></td>';
+        tbody.appendChild(tr);
+      });
+    }
+    render(cur);
+    tabs.forEach(function(t) {
+      t.addEventListener('click', function() {
+        tabs.forEach(function(x) { x.classList.remove('on'); });
+        t.classList.add('on');
+        cur = t.dataset.sc;
+        render(cur);
+      });
+    });
+  };
+
+  CI.s7 = function() {
+    var ctx = document.getElementById('c-radar');
+    if (!ctx) return;
+    var ch = new Chart(ctx, {
+      type:'radar',
+      data:{
+        labels:['Vulnerability','Reversibility','Principle','Intensity','Logical Prior','Likelihood','Long-term','Scale','Urgency'],
+        datasets:[
+          {label:'Supply Chain (OMCs)',data:[7,8,6,8,10,8,9,10,9],backgroundColor:'rgba(26,82,118,.18)',borderColor:'#1a5276',borderWidth:2.5,pointBackgroundColor:'#1a5276',pointRadius:3},
+          {label:'Households',data:[9,4,7,6,3,5,5,9,7],backgroundColor:'rgba(192,57,43,.05)',borderColor:'#c0392b',borderWidth:1.5,borderDash:[5,3],pointBackgroundColor:'#c0392b',pointRadius:2},
+          {label:'Renewable Energy',data:[4,3,6,3,2,4,8,5,3],backgroundColor:'rgba(39,174,96,.05)',borderColor:'#27ae60',borderWidth:1.5,borderDash:[3,3],pointBackgroundColor:'#27ae60',pointRadius:2}
+        ]
+      },
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        animation:{duration:1400,easing:'easeOutQuart'},
+        scales:{ r:{min:0,max:10,ticks:{stepSize:2,font:{size:9},color:'#aaa',backdropColor:'transparent'},grid:{color:'rgba(0,0,0,.05)'},angleLines:{color:'rgba(0,0,0,.05)'},pointLabels:{font:{size:10,weight:'500'},color:'#5a5650'}} },
+        plugins:{ legend:{position:'bottom',labels:{font:{size:11},padding:14,usePointStyle:true,pointStyle:'line'}}, tooltip:{backgroundColor:'#1e1e1e',titleColor:'#f0a660',bodyColor:'#fff'} }
+      }
+    });
+    CInstances.s7 = [ch];
+
+    var md = {
+      V:{t:'Vulnerability',p:'If rural routes are cut, 10.35 Cr Ujjwala households lose access first. The most vulnerable populations depend entirely on this supply chain.'},
+      R:{t:'Reversibility',p:'Shuttered plants and closed distributorships take years to rebuild. Infrastructure decay, once it begins, is not easily reversed.'},
+      P:{t:'Principle',p:'State-owned enterprises should not be forced into sustained insolvency. Fair cost recovery is a basic principle of fiscal responsibility.'},
+      I:{t:'Intensity',p:'For 25,000+ distributors, rationing threatens livelihoods directly. Volume-based income collapses when quotas shrink.'},
+      LP:{t:'Logical Prior',p:'No stakeholder receives LPG if the supply chain cannot deliver it. Supplier viability is a precondition for every other stakeholder\'s benefit.'},
+      LK:{t:'Likelihood',p:'Rationing without supply-chain buy-in leads to black markets. The Nagpur bust (179 cylinders seized) already demonstrates this.'},
+      LT:{t:'Long-term',p:'Sustainable supplier finances mean sustained LPG supply for decades. Rationing offers temporary relief at best.'},
+      S:{t:'Scale',p:'32.97 crore customers across every district in India. If the supply chain fails, the impact is national.'},
+      U:{t:'Urgency',p:'\u20B953,700 Cr in cumulative losses and growing. Every quarter of inaction deepens the crisis. This is happening now.'}
+    };
+    var box = document.getElementById('mdetail');
+    var mt = document.getElementById('mdt'), mp = document.getElementById('mdp');
+    document.querySelectorAll('.mc[data-m]').forEach(function(c) {
+      c.addEventListener('click', function() {
+        var d = md[c.dataset.m]; if(!d) return;
+        document.querySelectorAll('.mc[data-m]').forEach(function(x) { x.classList.remove('on'); });
+        c.classList.add('on');
+        mt.textContent = d.t; mp.textContent = d.p;
+        box.style.display = 'block';
+      });
+    });
+  };
+
+  CI.s3 = function() {};
+
+  var chObs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      var k = e.target.dataset.chart;
+      if (e.isIntersecting) {
+        if (!created[k] && CI[k]) {
+          CI[k]();
+          created[k] = true;
+        } else if (created[k] && CInstances[k]) {
+          CInstances[k].forEach(function(ch) { ch.reset(); ch.update('active'); });
+        }
+      }
+    });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('[data-chart]').forEach(function(el) { chObs.observe(el); });
+
+  /* ===== SIMULATOR ===== */
+  var sqEl = document.getElementById('sq');
+  var ssEl = document.getElementById('ss');
+  var spEl = document.getElementById('sp');
+  if (!sqEl) return;
+
+  var vq = document.getElementById('vq');
+  var vs = document.getElementById('vs');
+  var vp = document.getElementById('vp');
+  var go = document.getElementById('go'), boEl = document.getElementById('bo');
+  var gaEl = document.getElementById('ga'), baEl = document.getElementById('ba');
+  var gb = document.getElementById('gb'), bb2 = document.getElementById('bb2');
+  var gf = document.getElementById('gf'), bfEl = document.getElementById('bf');
+  var gr = document.getElementById('gr'), brEl = document.getElementById('br');
+
+  var COST = 1013, AVG = 7, PMUY = 10.35, MKT = 1100;
+  var presets = { sq:{q:9,s:300,p:853}, rat:{q:4,s:300,p:803}, omc:{q:12,s:300,p:1050} };
+
+  function calc() {
+    var q = +sqEl.value, s = +ssEl.value, p = +spEl.value;
+    vq.textContent = q;
+    vs.textContent = '\u20B9' + s;
+    vp.textContent = '\u20B9' + p;
+
+    var net = p - COST;
+    go.textContent = (net >= 0 ? '+\u20B9' : '\u2212\u20B9') + Math.abs(net) + '/cyl';
+    go.style.color = net >= 0 ? '#27ae60' : '#e74c3c';
+    var op = Math.max(0, Math.min(100, ((net + 300) / 500) * 100));
+    boEl.style.width = op + '%';
+    boEl.style.backgroundColor = net >= 0 ? '#27ae60' : net > -100 ? '#f39c12' : '#e74c3c';
+
+    var acc = Math.round((q / AVG) * 100);
+    gaEl.textContent = acc + '%';
+    gaEl.style.color = acc >= 90 ? '#27ae60' : acc >= 60 ? '#f39c12' : '#e74c3c';
+    baEl.style.width = Math.min(100, acc) + '%';
+    baEl.style.backgroundColor = gaEl.style.color;
+
+    var gap = MKT - p, restr = Math.max(0, AVG - q);
+    var bsc = (gap / 400) * 50 + (restr / 7) * 50;
+    var bp = Math.max(0, Math.min(100, bsc));
+    var bl = 'Low', bc = '#27ae60';
+    if (bp > 60) { bl = 'High'; bc = '#e74c3c'; }
+    else if (bp > 30) { bl = 'Medium'; bc = '#f39c12'; }
+    gb.textContent = bl; gb.style.color = bc;
+    bb2.style.width = bp + '%'; bb2.style.backgroundColor = bc;
+
+    var fc = (s * PMUY * q) / 100;
+    gf.textContent = fc >= 1000 ? '\u20B9' + (fc / 1000).toFixed(1) + 'K Cr' : '\u20B9' + Math.round(fc) + ' Cr';
+    var fp = Math.min(100, (fc / 500) * 100);
+    gf.style.color = fp > 70 ? '#e74c3c' : fp > 40 ? '#f39c12' : '#27ae60';
+    bfEl.style.width = fp + '%'; bfEl.style.backgroundColor = gf.style.color;
+
+    var rl, rc, rp;
+    if (net < -150) { rl = 'At Risk'; rc = '#e74c3c'; rp = 25; }
+    else if (net < -50) { rl = 'Fragile'; rc = '#f39c12'; rp = 55; }
+    else { rl = 'Stable'; rc = '#27ae60'; rp = 90; }
+    gr.textContent = rl; gr.style.color = rc;
+    brEl.style.width = rp + '%'; brEl.style.backgroundColor = rc;
+  }
+
+  [sqEl, ssEl, spEl].forEach(function(s) {
+    s.addEventListener('input', function() {
+      document.querySelectorAll('.pre-btn').forEach(function(b) { b.classList.remove('on'); });
+      calc();
+    });
+  });
+
+  function anim(slider, from, to, dur) {
+    var t0 = performance.now();
+    (function tick(now) {
+      var p = Math.min((now - t0) / dur, 1);
+      slider.value = Math.round(from + (to - from) * (1 - Math.pow(1 - p, 3)));
+      calc();
+      if (p < 1) requestAnimationFrame(tick);
+    })(t0);
+  }
+
+  document.querySelectorAll('.pre-btn').forEach(function(b) {
+    b.addEventListener('click', function() {
+      var pr = presets[b.dataset.p]; if (!pr) return;
+      document.querySelectorAll('.pre-btn').forEach(function(x) { x.classList.remove('on'); });
+      b.classList.add('on');
+      anim(sqEl, +sqEl.value, pr.q, 350);
+      anim(ssEl, +ssEl.value, pr.s, 350);
+      anim(spEl, +spEl.value, pr.p, 350);
+    });
+  });
+
+  calc();
+});
+</script>
+</body>
+</html>
