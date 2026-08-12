@@ -46,6 +46,7 @@ function getTimeOfDayXp(): number {
 
 export default function WorldPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const dragAreaRef = useRef<HTMLElement>(null);
   const worldRef = useRef<WorldState | null>(null);
   const lastTimeRef = useRef(0);
   const navigate = useNavigate();
@@ -195,12 +196,21 @@ export default function WorldPage() {
       />
 
       <main className="relative z-10 pointer-events-none">
-        <section className="village-hero" aria-labelledby="hero-title">
+        <section
+          ref={dragAreaRef}
+          className="village-hero"
+          aria-labelledby="hero-title"
+        >
           <motion.article
             id="booking"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
+            drag
+            dragConstraints={dragAreaRef}
+            dragElastic={0.08}
+            dragMomentum={false}
+            whileDrag={{ scale: 1.015 }}
             className="village-board pointer-events-auto"
           >
             <h1 id="hero-title" className="hero-brand">

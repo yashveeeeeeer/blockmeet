@@ -185,6 +185,9 @@
 .village-board {
   position: relative;
   width: min(100%, 620px);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
   border: 5px solid #3d6d62;
   background:
     linear-gradient(rgba(14, 19, 36, 0.93), rgba(12, 18, 31, 0.96)),
@@ -195,6 +198,10 @@
     9px 9px 0 rgba(0, 0, 0, 0.55),
     inset 0 0 0 3px rgba(7, 13, 25, 0.75),
     0 0 55px rgba(29, 220, 190, 0.08);
+}
+
+.village-board:active {
+  cursor: grabbing;
 }
 
 .village-board::before,
