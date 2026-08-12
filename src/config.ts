@@ -9,8 +9,12 @@ export interface Writing {
 export const SITE = {
   repoBase: "/blockmeet/",
   title: "BLOCKMeet",
-  subtitle: "Book a session, let's discuss.",
+  owner: "Yashveer Singh",
+  subtitle:
+    "Book 15 or 30 minutes with Yashveer Singh to discuss startups, technology, research, or collaboration.",
   timezone: "Asia/Kolkata",
+  timezoneLabel: "India Standard Time (IST)",
+  meetingLocation: "Google Meet",
   links: {
     min15: "https://cal.com/yashveer/15min",
     min30: "https://cal.com/yashveer/30min",

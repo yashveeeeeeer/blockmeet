@@ -15,8 +15,6 @@ import {
   drawBirchTree,
   drawFlowerBush,
   drawShop,
-  drawGrassBlock,
-  drawWaterTile,
   drawStreetLight,
   drawLightGlow,
   drawHorseWithRider,
@@ -26,8 +24,7 @@ import { InputState, createInputState, attachInputHandlers } from "./input";
 
 const MAX_PARTICLES = 60;
 const GRID_SIZE = 32;
-const GROUND_ROW_COUNT = 4;
-const WATER_ROW_COUNT = 2;
+const GROUND_ROW_COUNT = 2;
 const NPC_COUNT = 6;
 
 interface Particle {
@@ -231,7 +228,7 @@ class MusicPlayer {
   private createAudio(src: string, volume: number): HTMLAudioElement {
     const a = new Audio();
     a.volume = volume;
-    a.preload = "auto";
+    a.preload = "none";
     a.src = src;
     return a;
   }
@@ -775,44 +772,246 @@ function createGroundSpeckles(w: number): { row: number; col: number; dx: number
 function drawGround(
   ctx: CanvasRenderingContext2D,
   w: number,
+  h: number,
   groundY: number,
   time: number,
-  speckles: { row: number; col: number; dx: number; dy: number }[]
+  speckles: { row: number; col: number; dx: number; dy: number }[],
+  night: boolean
 ) {
   const cols = Math.ceil(w / GRID_SIZE) + 1;
-  for (let row = 0; row < GROUND_ROW_COUNT; row++) {
-    for (let col = 0; col < cols; col++) {
-      const x = col * GRID_SIZE;
-      const y = groundY + row * GRID_SIZE;
-      if (row === 0) {
-        drawGrassBlock(ctx, x, y, GRID_SIZE);
-      } else {
-        ctx.fillStyle = row < 2 ? PAL.dirt : PAL.stone;
-        ctx.fillRect(x, y, GRID_SIZE, GRID_SIZE);
-        ctx.fillStyle = row < 2 ? PAL.dirtDark : PAL.stoneDark;
-        ctx.fillRect(x, y + GRID_SIZE - 2, GRID_SIZE, 2);
-      }
+  const riverY = groundY + Math.max(38, h * 0.055);
+  const bankSteps = [0, 0, 2, 4, 4, 2, 0, -2, -2, 0, 2, 0];
+
+  // Deep, layered water replaces the old straight two-tile footer strip.
+  ctx.fillStyle = night ? "#071c3a" : "#2f79ad";
+  ctx.fillRect(0, riverY - 4, w, h - riverY + 4);
+  ctx.fillStyle = night ? "#0c2b53" : PAL.water;
+  ctx.fillRect(0, riverY + 16, w, h - riverY - 16);
+  ctx.fillStyle = night ? "#123c67" : PAL.waterLight;
+  ctx.fillRect(0, riverY + (h - riverY) * 0.48, w, 6);
+
+  // Sparse horizontal ripples make the water feel calm rather than noisy.
+  for (let row = 0; row < 7; row++) {
+    const y = riverY + 14 + row * Math.max(16, (h - riverY) / 8);
+    const offset = Math.floor((time * (0.012 + row * 0.002)) % 72);
+    ctx.fillStyle = night
+      ? `rgba(53, 160, 197, ${0.12 + row * 0.012})`
+      : `rgba(168, 224, 244, ${0.18 + row * 0.012})`;
+    for (let x = -offset; x < w; x += 86) {
+      const rippleWidth = 20 + ((row * 13 + x) % 24);
+      ctx.fillRect(x, y, rippleWidth, 3);
     }
+  }
+
+  // Warm lamp reflections connect the village lighting to the river.
+  const reflectionCount = Math.max(4, Math.floor(w / 250));
+  for (let index = 0; index < reflectionCount; index++) {
+    const x = ((index + 0.7) / reflectionCount) * w;
+    const width = 8 + (index % 3) * 4;
+    const pulse = 0.65 + Math.sin(time * 0.002 + index) * 0.18;
+    for (let line = 0; line < 7; line++) {
+      ctx.fillStyle = `rgba(245, 197, 66, ${pulse * (0.18 - line * 0.018)})`;
+      const spread = line * 5;
+      ctx.fillRect(x - width / 2 - spread / 2, riverY + 12 + line * 13, width + spread, 3);
+    }
+  }
+
+  // A stepped, living shoreline with grass, soil, stones, and small plants.
+  for (let col = 0; col < cols; col++) {
+    const x = col * GRID_SIZE;
+    const bankBottom = riverY + bankSteps[col % bankSteps.length] * 2;
+    ctx.fillStyle = night ? "#173f35" : PAL.dirt;
+    ctx.fillRect(x, groundY, GRID_SIZE + 1, bankBottom - groundY);
+    ctx.fillStyle = night ? "#245f48" : PAL.grassMid;
+    ctx.fillRect(x, groundY, GRID_SIZE + 1, 8);
+    ctx.fillStyle = night ? "#319066" : PAL.grassTop;
+    ctx.fillRect(x, groundY, GRID_SIZE + 1, 3);
+    ctx.fillStyle = night ? "#102f2b" : PAL.dirtDark;
+    ctx.fillRect(x, bankBottom - 5, GRID_SIZE + 1, 5);
+
+    if (col % 3 === 0) {
+      ctx.fillStyle = night ? "#55747a" : PAL.stone;
+      ctx.fillRect(x + 8, bankBottom - 8, 7, 5);
+    }
+    if (col % 5 === 1) {
+      ctx.fillStyle = night ? "#2f7559" : "#5aa96f";
+      ctx.fillRect(x + 21, groundY - 8, 3, 8);
+      ctx.fillStyle = col % 10 === 1 ? "#e98073" : "#f2c85d";
+      ctx.fillRect(x + 18, groundY - 10, 8, 4);
+    }
+  }
+
+  // A short pixel path widens toward the bridge, guiding the eye to booking.
+  for (let step = 0; step < 6; step++) {
+    const progress = step / 5;
+    const y = groundY + 5 + progress * Math.max(20, riverY - groundY - 13);
+    const pathCenter = w / 2 + Math.sin((1 - progress) * Math.PI) * w * 0.018;
+    const pathWidth = 18 + progress * Math.min(78, w * 0.09);
+    ctx.fillStyle = night ? "#7f6848" : "#c5a56b";
+    ctx.fillRect(pathCenter - pathWidth / 2, y, pathWidth, 5);
   }
 
   for (const sp of speckles) {
     const x = sp.col * GRID_SIZE;
-    const y = groundY + sp.row * GRID_SIZE;
-    ctx.fillStyle = sp.row < 2 ? PAL.dirtDark : PAL.stoneDark;
-    ctx.fillRect(x + sp.dx, y + sp.dy, 3, 3);
+    const y = groundY + sp.row * 18;
+    ctx.fillStyle = night ? "#326554" : PAL.dirtDark;
+    ctx.fillRect(x + sp.dx, y + (sp.dy % 12), 3, 3);
   }
 
-  const waterY = groundY + GROUND_ROW_COUNT * GRID_SIZE;
-  for (let row = 0; row < WATER_ROW_COUNT; row++) {
-    for (let col = 0; col < cols; col++) {
-      drawWaterTile(
-        ctx,
-        col * GRID_SIZE,
-        waterY + row * GRID_SIZE,
-        GRID_SIZE,
-        time,
-        col
-      );
+  drawDock(ctx, w, h, riverY, night, time);
+  drawBridge(ctx, w, h, riverY, night, time);
+  drawForegroundPlants(ctx, w, h, night, time);
+}
+
+function drawDock(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  riverY: number,
+  night: boolean,
+  time: number
+) {
+  const dockX = w * 0.06;
+  const dockY = riverY + Math.min(60, (h - riverY) * 0.3);
+  const dockW = Math.min(210, w * 0.2);
+  const plankH = Math.max(10, h * 0.014);
+
+  ctx.fillStyle = "#2a170e";
+  ctx.fillRect(dockX - 5, dockY - 5, dockW + 10, plankH + 10);
+  ctx.fillStyle = "#80502e";
+  ctx.fillRect(dockX, dockY, dockW, plankH);
+  ctx.fillStyle = "#aa7040";
+  for (let x = dockX + 5; x < dockX + dockW; x += 22) {
+    ctx.fillRect(x, dockY + 2, 3, plankH - 4);
+  }
+  ctx.fillStyle = "#352116";
+  ctx.fillRect(dockX + 8, dockY + plankH, 8, 32);
+  ctx.fillRect(dockX + dockW - 16, dockY + plankH, 8, 32);
+
+  // A small moored pixel boat and its gentle ripple.
+  const boatX = dockX + dockW * 0.55;
+  const boatY = dockY + 34 + Math.sin(time * 0.002) * 2;
+  ctx.fillStyle = "#25140d";
+  ctx.fillRect(boatX, boatY, 54, 7);
+  ctx.fillStyle = "#9a5630";
+  ctx.fillRect(boatX + 7, boatY + 7, 40, 6);
+  ctx.fillStyle = night ? "rgba(90, 211, 214, 0.32)" : "rgba(220, 247, 255, 0.4)";
+  ctx.fillRect(boatX - 7, boatY + 18, 68, 3);
+
+  if (night) {
+    drawRiverLantern(ctx, dockX + 12, dockY - 5, 1, time);
+  }
+}
+
+function drawBridge(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  riverY: number,
+  night: boolean,
+  time: number
+) {
+  const centerX = w / 2;
+  const topY = riverY - 8;
+  const bottomY = h + 18;
+  const topHalf = Math.max(30, Math.min(62, w * 0.055));
+  const bottomHalf = Math.max(90, Math.min(260, w * 0.22));
+
+  ctx.fillStyle = "#1d120d";
+  ctx.beginPath();
+  ctx.moveTo(centerX - topHalf - 7, topY);
+  ctx.lineTo(centerX + topHalf + 7, topY);
+  ctx.lineTo(centerX + bottomHalf + 12, bottomY);
+  ctx.lineTo(centerX - bottomHalf - 12, bottomY);
+  ctx.closePath();
+  ctx.fill();
+
+  const plankCount = 12;
+  for (let index = 0; index < plankCount; index++) {
+    const t0 = index / plankCount;
+    const t1 = (index + 1) / plankCount;
+    const y0 = topY + (bottomY - topY) * t0;
+    const y1 = topY + (bottomY - topY) * t1 - 2;
+    const half0 = topHalf + (bottomHalf - topHalf) * t0;
+    const half1 = topHalf + (bottomHalf - topHalf) * t1;
+    ctx.fillStyle = index % 2 === 0 ? "#6f4328" : "#825033";
+    ctx.beginPath();
+    ctx.moveTo(centerX - half0, y0);
+    ctx.lineTo(centerX + half0, y0);
+    ctx.lineTo(centerX + half1, y1);
+    ctx.lineTo(centerX - half1, y1);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = "rgba(235, 164, 83, 0.2)";
+    ctx.fillRect(centerX - half0 + 7, y0 + 3, Math.max(4, half0 * 0.28), 2);
+  }
+
+  // Rails and posts exaggerate the perspective toward the foreground.
+  for (const side of [-1, 1]) {
+    ctx.strokeStyle = "#24140d";
+    ctx.lineWidth = Math.max(5, w * 0.006);
+    ctx.beginPath();
+    ctx.moveTo(centerX + side * (topHalf + 8), topY - 14);
+    ctx.lineTo(centerX + side * (bottomHalf + 18), bottomY - 28);
+    ctx.stroke();
+
+    for (let index = 0; index < 5; index++) {
+      const t = index / 4;
+      const y = topY + (bottomY - topY) * t;
+      const half = topHalf + (bottomHalf - topHalf) * t;
+      const postW = 5 + t * 8;
+      const postH = 18 + t * 32;
+      ctx.fillStyle = "#2b190f";
+      ctx.fillRect(centerX + side * (half + 5) - postW / 2, y - postH, postW, postH + 8);
+      ctx.fillStyle = "#8e5730";
+      ctx.fillRect(centerX + side * (half + 5) - postW / 2 + 2, y - postH + 3, Math.max(2, postW - 4), postH - 2);
+    }
+  }
+
+  if (night) {
+    drawRiverLantern(ctx, centerX - topHalf - 8, topY - 22, 0.9, time);
+    drawRiverLantern(ctx, centerX + topHalf + 8, topY - 22, 0.9, time + 400);
+  }
+}
+
+function drawRiverLantern(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  scale: number,
+  time: number
+) {
+  const glow = 0.18 + (Math.sin(time * 0.005) + 1) * 0.04;
+  ctx.fillStyle = `rgba(245, 197, 66, ${glow})`;
+  ctx.fillRect(x - 18 * scale, y - 18 * scale, 36 * scale, 36 * scale);
+  ctx.fillStyle = "#2a170e";
+  ctx.fillRect(x - 7 * scale, y - 8 * scale, 14 * scale, 18 * scale);
+  ctx.fillStyle = "#f5c542";
+  ctx.fillRect(x - 4 * scale, y - 5 * scale, 8 * scale, 10 * scale);
+  ctx.fillStyle = "#fff1a8";
+  ctx.fillRect(x - 2 * scale, y - 3 * scale, 3 * scale, 5 * scale);
+}
+
+function drawForegroundPlants(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  night: boolean,
+  _time: number
+) {
+  for (const side of [-1, 1]) {
+    const baseX = side === -1 ? 18 : w - 18;
+    for (let index = 0; index < 8; index++) {
+      const direction = side === -1 ? 1 : -1;
+      const x = baseX + direction * index * 13;
+      const stemH = 20 + (index % 4) * 9;
+      ctx.fillStyle = night ? "#17483f" : "#2d7b55";
+      ctx.fillRect(x, h - stemH, 4, stemH);
+      ctx.fillRect(x + direction * 4, h - stemH + 5, 8 * direction, 4);
+      if (index % 3 === 0) {
+        ctx.fillStyle = night ? "#d7aa4a" : "#f1ce69";
+        ctx.fillRect(x - 2, h - stemH - 4, 8, 5);
+      }
     }
   }
 }
@@ -1142,7 +1341,7 @@ export function initWorld(canvas: HTMLCanvasElement): WorldState | null {
   canvas.style.width = window.innerWidth + "px";
   canvas.style.height = window.innerHeight + "px";
 
-  const groundY = h * 0.72;
+  const groundY = h * 0.67;
   const shops = createShops(w);
 
   const state: WorldState = {
@@ -1171,7 +1370,7 @@ export function initWorld(canvas: HTMLCanvasElement): WorldState | null {
     scrollY: 0,
     nightMode: isNightTime(),
     performanceMode: false,
-    soundEnabled: true,
+    soundEnabled: false,
     animFrame: 0,
     detach: null,
     musicPlayer: null,
@@ -1180,36 +1379,8 @@ export function initWorld(canvas: HTMLCanvasElement): WorldState | null {
   const noop = () => {};
   const detachInput = attachInputHandlers(canvas, state.input, noop, noop);
 
-  const startMusicOnGesture = () => {
-    if (state.soundEnabled) {
-      if (!state.musicPlayer) {
-        state.musicPlayer = new MusicPlayer();
-      }
-      if (!state.musicPlayer.playing) {
-        state.musicPlayer.start();
-      }
-    }
-    removeGestureListeners();
-  };
-
-  const GESTURE_EVENTS = [
-    "click", "keydown", "touchstart", "touchmove",
-    "scroll", "wheel", "mousemove", "pointerdown",
-  ] as const;
-
-  const removeGestureListeners = () => {
-    for (const evt of GESTURE_EVENTS) {
-      document.removeEventListener(evt, startMusicOnGesture);
-    }
-  };
-
-  for (const evt of GESTURE_EVENTS) {
-    document.addEventListener(evt, startMusicOnGesture, { once: true, passive: true });
-  }
-
   state.detach = () => {
     detachInput();
-    removeGestureListeners();
   };
 
   return state;
@@ -1226,7 +1397,7 @@ export function resizeWorld(state: WorldState) {
   state.width = w;
   state.height = h;
   state.dpr = dpr;
-  state.groundY = h * 0.72;
+  state.groundY = h * 0.67;
   state.clouds = createClouds(w, h);
   state.stars = createStars(w, h);
   state.birds = createBirds(w, h);
@@ -1307,7 +1478,7 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
     drawTreeByType(ctx, tree, groundY);
   }
 
-  drawGround(ctx, w, groundY, time, state.groundSpeckles);
+  drawGround(ctx, w, h, groundY, time, state.groundSpeckles, state.nightMode);
 
   for (const shop of state.shops) {
     drawShop(ctx, shop.x, groundY, shop.variant, shop.scale);
@@ -1406,5 +1577,15 @@ export function destroyWorld(state: WorldState) {
   if (state.musicPlayer) {
     state.musicPlayer.destroy();
     state.musicPlayer = null;
+  }
+}
+
+export function setWorldSoundEnabled(state: WorldState, enabled: boolean) {
+  state.soundEnabled = enabled;
+  if (enabled) {
+    if (!state.musicPlayer) state.musicPlayer = new MusicPlayer();
+    state.musicPlayer.start();
+  } else if (state.musicPlayer?.playing) {
+    state.musicPlayer.stop();
   }
 }

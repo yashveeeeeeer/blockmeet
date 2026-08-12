@@ -17,18 +17,17 @@ const item = {
 };
 
 const BASE = import.meta.env.BASE_URL;
-
-const GIF_FILES = [
-  "hibike-euphonium-kumiko-oumae.gif",
-  "anime-fri.gif",
-  "anime-friere.gif",
-  "anime-frieren.gif",
-  "anime-frieren-2.gif",
-  "anime-one-punch-man.gif",
-  "black-clover-anime.gif",
-  "black-clover-anime2.gif",
-  "hanamaru-kindergarten-anime.gif",
-  "natusko-hirose-hirose-natsuko.gif",
+const READING_WEBPS = [
+  "hibike-euphonium-kumiko-oumae.webp",
+  "anime-fri.webp",
+  "anime-friere.webp",
+  "anime-frieren.webp",
+  "anime-frieren-2.webp",
+  "anime-one-punch-man.webp",
+  "black-clover-anime.webp",
+  "black-clover-anime2.webp",
+  "hanamaru-kindergarten-anime.webp",
+  "natusko-hirose-hirose-natsuko.webp",
 ];
 
 function ToggleButton({
@@ -46,7 +45,9 @@ function ToggleButton({
     <button
       onClick={onClick}
       title={title}
-      className={`font-pixel text-[6px] sm:text-[7px] px-2 py-1.5 border-2 transition-all duration-150 cursor-pointer select-none
+      aria-label={title}
+      aria-pressed={active}
+      className={`font-pixel text-[8px] sm:text-[9px] px-2 py-2 border-2 transition-all duration-150 cursor-pointer select-none
         ${
           active
             ? "bg-pixel-green/30 border-pixel-green text-pixel-green"
@@ -68,7 +69,7 @@ export default function WritingsPage() {
   const [nightMode, setNightMode] = useState(true);
   const [crtOn, setCrtOn] = useState(false);
   const [einkOn, setEinkOn] = useState(false);
-  const [gifIdx, setGifIdx] = useState(0);
+  const [readingImage, setReadingImage] = useState(0);
 
   const bgClass = nightMode ? "bg-pixel-dark" : "bg-[#e8e0d0]";
   const textClass = nightMode ? "text-gray-200" : "text-[#2a2a2a]";
@@ -119,7 +120,7 @@ export default function WritingsPage() {
           initial={{ opacity: 0, x: -12 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4 }}
-          className={`font-pixel text-[8px] sm:text-[9px] text-pixel-green hover:text-pixel-gold transition-colors mb-10 sm:mb-14 cursor-pointer flex items-center gap-2 ${
+          className={`font-pixel text-[10px] sm:text-xs text-pixel-green hover:text-pixel-gold transition-colors mb-10 sm:mb-14 cursor-pointer flex items-center gap-2 ${
             !nightMode ? "text-[#2a6a4a] hover:text-[#8a6a20]" : ""
           }`}
         >
@@ -140,7 +141,7 @@ export default function WritingsPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.6 }}
           transition={{ delay: 0.3 }}
-          className={`font-pixel text-[7px] sm:text-[8px] mb-12 sm:mb-16 ${mutedClass}`}
+          className={`text-sm sm:text-base mb-12 sm:mb-16 ${mutedClass}`}
         >
           Writings &amp; personal views
         </motion.p>
@@ -162,14 +163,14 @@ export default function WritingsPage() {
               className={`pixel-card p-4 sm:p-6 block no-underline group cursor-pointer ${cardBorder} ${cardBg}`}
             >
               <span
-                className={`font-pixel text-[7px] block mb-2 ${
+                className={`font-pixel text-[9px] block mb-2 ${
                   nightMode ? "text-pixel-green/70" : "text-[#4a8a5a]"
                 }`}
               >
                 {w.date.replace(/-/g, ".")}
               </span>
               <span
-                className={`font-pixel text-[10px] sm:text-xs group-hover:text-white transition-colors block mb-2 ${
+                className={`font-pixel text-xs sm:text-sm leading-relaxed group-hover:text-white transition-colors block mb-3 ${
                   nightMode
                     ? "text-pixel-gold"
                     : "text-[#6a5020] group-hover:text-[#2a2a2a]"
@@ -178,7 +179,7 @@ export default function WritingsPage() {
                 {w.title}
               </span>
               <span
-                className={`font-pixel text-[7px] sm:text-[8px] leading-relaxed block ${subTextClass}`}
+                className={`text-sm sm:text-base leading-relaxed block ${subTextClass}`}
               >
                 {w.oneLiner}
               </span>
@@ -192,30 +193,45 @@ export default function WritingsPage() {
           </p>
         )}
 
-        {/* GIF carousel */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45, duration: 0.5 }}
+          className="mt-14 flex flex-col items-center"
+        >
+          <button
+            type="button"
+            className={`pixel-card p-2 cursor-pointer ${cardBorder} ${cardBg}`}
+            onClick={() =>
+              setReadingImage((current) => (current + 1) % READING_WEBPS.length)
+            }
+            aria-label="Show another reading animation"
+          >
+            <img
+              src={`${BASE}gifs/${READING_WEBPS[readingImage]}`}
+              alt="Animated reading scene"
+              loading="lazy"
+              decoding="async"
+              className="w-48 h-48 sm:w-56 sm:h-56 object-cover pixel-art"
+            />
+          </button>
+          <p className={`mt-3 text-xs ${mutedClass}`}>Click for another</p>
+        </motion.div>
+
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.6 }}
-          className="mt-16 sm:mt-20 flex flex-col items-center"
+          className="athenaeum-return mt-16 sm:mt-20"
         >
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => setGifIdx((i) => (i + 1) % GIF_FILES.length)}
-            className={`pixel-card p-2 cursor-pointer select-none ${cardBorder} ${cardBg}`}
-            title="Click for next"
-          >
-            <img
-              src={`${BASE}gifs/${GIF_FILES[gifIdx]}`}
-              alt="Anime reading GIF"
-              className="w-48 h-48 sm:w-56 sm:h-56 object-cover"
-              draggable={false}
-            />
-          </motion.div>
-          <p className={`font-pixel text-[6px] mt-3 ${mutedClass}`}>
-            CLICK TO CHANGE
-          </p>
+          <span aria-hidden="true">✦</span>
+          <div>
+            <p className="font-pixel">READY TO TALK?</p>
+            <strong>Return to the riverside village and choose a meeting.</strong>
+          </div>
+          <button type="button" onClick={() => navigate("/")}>
+            Back to BLOCKMeet
+          </button>
         </motion.div>
       </div>
     </div>

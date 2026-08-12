@@ -28,14 +28,14 @@ export default function Hud({
       initial={{ y: -60, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-end gap-3 px-3 py-2 pointer-events-none"
+      className="world-hud fixed top-0 left-0 right-0 z-50 flex items-center justify-end gap-3 px-3 py-2 pointer-events-none"
     >
       <div className="flex items-center gap-1 sm:gap-2 pointer-events-auto">
         <HudButton
           active={soundOn}
           onClick={onToggleSound}
-          label={soundOn ? "♪ ON" : "♪ OFF"}
-          title="Toggle music"
+          label={soundOn ? "SOUND ON" : "SOUND OFF"}
+          title="Toggle ambient music"
         />
         <HudButton
           active={nightMode}
@@ -89,7 +89,9 @@ function HudButton({
     <button
       onClick={onClick}
       title={title}
-      className={`font-pixel text-[6px] sm:text-[7px] px-2 py-1.5 border-2 transition-all duration-150 cursor-pointer select-none
+      aria-label={title}
+      aria-pressed={active}
+      className={`font-pixel text-[7px] sm:text-[8px] px-2 py-2 border-2 transition-all duration-150 cursor-pointer select-none
         ${
           active
             ? "bg-pixel-green/30 border-pixel-green text-pixel-green"
