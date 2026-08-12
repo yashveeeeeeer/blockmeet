@@ -1279,3 +1279,89 @@ export function drawNPC(
 
   ctx.restore();
 }
+
+export function drawNPCOnBridge(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  scale: number,
+  walkFrame: number,
+  skinColor: string,
+  shirtColor: string,
+  towardCamera: boolean
+) {
+  const s = Math.max(2, Math.floor(3 * scale));
+  const step = Math.sin(walkFrame * 0.12);
+  const bob = Math.abs(step) * s * 0.35;
+
+  ctx.save();
+  ctx.translate(Math.floor(x), Math.floor(y - bob));
+
+  ctx.fillStyle = "rgba(24, 13, 8, 0.25)";
+  ctx.fillRect(-s * 2, s * 1.8, s * 4, Math.max(2, s * 0.55));
+
+  ctx.fillStyle = "#30355f";
+  ctx.fillRect(-s * 1.25, -s + step * s * 0.45, s, s * 2.8);
+  ctx.fillRect(s * 0.25, -s - step * s * 0.45, s, s * 2.8);
+
+  ctx.fillStyle = shirtColor;
+  ctx.fillRect(-s * 1.7, -s * 4.3, s * 3.4, s * 3.6);
+  ctx.fillRect(-s * 2.7, -s * 4 + step * s * 0.35, s, s * 2.8);
+  ctx.fillRect(s * 1.7, -s * 4 - step * s * 0.35, s, s * 2.8);
+
+  ctx.fillStyle = skinColor;
+  ctx.fillRect(-s * 1.55, -s * 7.2, s * 3.1, s * 3);
+
+  if (towardCamera) {
+    ctx.fillStyle = "#17130f";
+    ctx.fillRect(-s * 0.75, -s * 6.15, Math.max(2, s * 0.55), Math.max(2, s * 0.55));
+    ctx.fillRect(s * 0.25, -s * 6.15, Math.max(2, s * 0.55), Math.max(2, s * 0.55));
+  } else {
+    ctx.fillStyle = "#4b3026";
+    ctx.fillRect(-s * 1.55, -s * 7.2, s * 3.1, s);
+    ctx.fillRect(-s * 1.55, -s * 6.3, s * 0.7, s * 1.8);
+    ctx.fillRect(s * 0.85, -s * 6.3, s * 0.7, s * 1.8);
+  }
+
+  ctx.restore();
+}
+
+export function drawDogOnBridge(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  scale: number,
+  color: string,
+  walkFrame: number,
+  towardCamera: boolean
+) {
+  const p = Math.max(2, Math.floor(2 * scale));
+  const step = Math.sin(walkFrame * 0.15);
+  const bob = Math.abs(step) * p * 0.3;
+
+  ctx.save();
+  ctx.translate(Math.floor(x), Math.floor(y - bob));
+  ctx.fillStyle = "rgba(24, 13, 8, 0.2)";
+  ctx.fillRect(-p * 2.5, p * 0.8, p * 5, Math.max(2, p * 0.5));
+
+  ctx.fillStyle = color;
+  ctx.fillRect(-p * 1.8, -p * 4.2, p * 3.6, p * 3.8);
+  ctx.fillRect(-p * 2.2, -p + step * p * 0.35, p, p * 2);
+  ctx.fillRect(p * 1.2, -p - step * p * 0.35, p, p * 2);
+
+  if (towardCamera) {
+    ctx.fillRect(-p * 2.5, -p * 7, p * 5, p * 3.2);
+    ctx.fillStyle = color === "#c48440" ? "#9f642f" : "#5e4228";
+    ctx.fillRect(-p * 3.1, -p * 6.7, p, p * 2.6);
+    ctx.fillRect(p * 2.1, -p * 6.7, p, p * 2.6);
+    ctx.fillStyle = "#17130f";
+    ctx.fillRect(-p * 1.25, -p * 5.9, Math.max(2, p * 0.55), Math.max(2, p * 0.55));
+    ctx.fillRect(p * 0.7, -p * 5.9, Math.max(2, p * 0.55), Math.max(2, p * 0.55));
+    ctx.fillRect(-p * 0.55, -p * 4.8, p * 1.1, p * 0.7);
+  } else {
+    const wag = Math.sin(walkFrame * 0.2) * p;
+    ctx.fillRect(-p * 0.5 + wag, -p * 6.2, p, p * 2.4);
+  }
+
+  ctx.restore();
+}

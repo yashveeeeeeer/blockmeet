@@ -19,6 +19,8 @@ import {
   drawLightGlow,
   drawHorseWithRider,
   drawNPC,
+  drawNPCOnBridge,
+  drawDogOnBridge,
 } from "./sprites";
 import { InputState, createInputState, attachInputHandlers, getCanvasDpr } from "./input";
 
@@ -174,6 +176,15 @@ interface ReactionData {
   kind: "heart" | "spark" | "note";
 }
 
+interface BridgeVisitorData {
+  phase: "waiting" | "approaching" | "pausing" | "returning";
+  progress: number;
+  timer: number;
+  withDog: boolean;
+  dogIndex: number;
+  lane: -1 | 1;
+}
+
 export interface WorldState {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
@@ -196,6 +207,7 @@ export interface WorldState {
   horses: HorseRiderData[];
   streetLights: StreetLightData[];
   reactions: ReactionData[];
+  bridgeVisitor: BridgeVisitorData;
   groundSpeckles: { row: number; col: number; dx: number; dy: number }[];
   groundY: number;
   scrollY: number;
@@ -568,27 +580,111 @@ function createDogs(width: number, groundY: number, npcCount: number): DogData[]
       speed: 0.45 + Math.random() * 0.25,
       idleTimer: 0,
       followOffset: (Math.random() - 0.5) * 22,
-      followTargetIdx: npcCount > 0 ? Math.floor(Math.random() * npcCount) : 0,
+      followTargetIdx:
+        npcCount > 2 ? 2 + Math.floor(Math.random() * (npcCount - 2)) : 0,
       retargetCooldown: 8000 + Math.random() * 12000,
     });
   }
   return dogs;
 }
 
-function updateDogs(state: WorldState, dt: number) {
-  const npcCount = state.npcs.length;
-  if (!npcCount) return;
+function createBridgeVisitor(): BridgeVisitorData {
+  return {
+    phase: "waiting",
+    progress: 0,
+    timer: 3500 + Math.random() * 4500,
+    withDog: false,
+    dogIndex: 0,
+    lane: Math.random() > 0.5 ? 1 : -1,
+  };
+}
 
-  for (const dog of state.dogs) {
+function getBridgeVisitorPosition(state: WorldState) {
+  const visitor = state.bridgeVisitor;
+  if (visitor.phase === "waiting") return null;
+
+  const riverY = getRiverY(state.groundY, state.height);
+  const progress = visitor.progress;
+  const topY = riverY + 4;
+  const bottomY = state.height - Math.max(56, state.height * 0.075);
+  const topHalf = Math.max(30, Math.min(62, state.width * 0.055));
+  const bottomHalf = Math.max(90, Math.min(260, state.width * 0.22));
+  const bridgeHalf = topHalf + (bottomHalf - topHalf) * progress;
+  const laneOffset = bridgeHalf * 0.3 * visitor.lane;
+
+  return {
+    x: state.width * 0.5 + laneOffset,
+    y: topY + (bottomY - topY) * progress,
+    scale: 0.58 + progress * 1.05,
+  };
+}
+
+function updateBridgeVisitor(state: WorldState, dt: number) {
+  const visitor = state.bridgeVisitor;
+  const npc = state.npcs.find((candidate) => candidate.activity === "bridge");
+  if (npc && visitor.phase !== "waiting") npc.walkFrame += dt * 0.012;
+
+  if (visitor.phase === "waiting") {
+    visitor.timer -= dt;
+    if (visitor.timer <= 0) {
+      visitor.phase = "approaching";
+      visitor.progress = 0;
+      visitor.withDog = state.dogs.length > 0 && Math.random() < 0.58;
+      visitor.dogIndex = state.dogs.length
+        ? Math.floor(Math.random() * state.dogs.length)
+        : 0;
+      visitor.lane = Math.random() > 0.5 ? 1 : -1;
+    }
+    return;
+  }
+
+  if (visitor.phase === "approaching") {
+    visitor.progress = Math.min(0.72, visitor.progress + dt * 0.0001);
+    if (visitor.progress >= 0.72) {
+      visitor.phase = "pausing";
+      visitor.timer = 1400 + Math.random() * 1600;
+    }
+    return;
+  }
+
+  if (visitor.phase === "pausing") {
+    visitor.timer -= dt;
+    if (visitor.timer <= 0) visitor.phase = "returning";
+    return;
+  }
+
+  visitor.progress = Math.max(0, visitor.progress - dt * 0.00009);
+  if (visitor.progress <= 0) {
+    visitor.phase = "waiting";
+    visitor.timer = 5500 + Math.random() * 7500;
+    visitor.withDog = false;
+  }
+}
+
+function updateDogs(state: WorldState, dt: number) {
+  const villageNpcIndices = state.npcs
+    .map((npc, index) => (npc.activity === "village" ? index : -1))
+    .filter((index) => index >= 0);
+  if (!villageNpcIndices.length) return;
+  const chooseVillageNpc = () =>
+    villageNpcIndices[Math.floor(Math.random() * villageNpcIndices.length)];
+
+  const bridgeDogIndex =
+    state.bridgeVisitor.phase !== "waiting" && state.bridgeVisitor.withDog
+      ? state.bridgeVisitor.dogIndex
+      : -1;
+
+  for (const [index, dog] of state.dogs.entries()) {
+    if (index === bridgeDogIndex) continue;
     dog.tailPhase += dt * 0.008;
 
-    if (dog.followTargetIdx >= npcCount) {
-      dog.followTargetIdx = Math.floor(Math.random() * npcCount);
+    if (!villageNpcIndices.includes(dog.followTargetIdx)) {
+      dog.followTargetIdx = chooseVillageNpc();
     }
 
     dog.retargetCooldown -= dt;
     if (dog.retargetCooldown <= 0) {
-      dog.followTargetIdx = Math.floor(Math.random() * npcCount);
+      dog.followTargetIdx = chooseVillageNpc();
       dog.retargetCooldown = 8000 + Math.random() * 12000;
     }
 
@@ -1043,17 +1139,37 @@ function updateInteractionCursor(state: WorldState) {
   }
 
   const riverY = getRiverY(state.groundY, state.height);
+  const visitorPosition = getBridgeVisitorPosition(state);
   const nearNpc = state.npcs.some((npc) => {
-    const npcY = npc.activity === "bridge"
-      ? riverY + Math.min(42, (state.height - riverY) * 0.16)
-      : npc.activity === "dock"
+    if (npc.activity === "bridge") {
+      return visitorPosition
+        ? Math.abs(x - visitorPosition.x) < 46 &&
+            y > visitorPosition.y - 86 * visitorPosition.scale &&
+            y < visitorPosition.y + 20
+        : false;
+    }
+    const npcY = npc.activity === "dock"
         ? riverY + Math.min(60, (state.height - riverY) * 0.3)
         : state.groundY;
     return Math.abs(x - npc.x) < 42 && y > npcY - 76 && y < npcY + 18;
   });
+  const bridgeDogIndex =
+    visitorPosition && state.bridgeVisitor.withDog
+      ? state.bridgeVisitor.dogIndex
+      : -1;
+  const nearBridgeDog =
+    bridgeDogIndex >= 0 && visitorPosition
+      ? Math.abs(x - visitorPosition.x) < 58 &&
+        y > visitorPosition.y - 64 * visitorPosition.scale &&
+        y < visitorPosition.y + 22
+      : false;
   const nearAnimal =
     state.cats.some((cat) => Math.abs(x - cat.x) < 32 && Math.abs(y - cat.y) < 38) ||
-    state.dogs.some((dog) => Math.abs(x - dog.x) < 38 && Math.abs(y - dog.y) < 42) ||
+    nearBridgeDog ||
+    state.dogs.some(
+      (dog, index) =>
+        index !== bridgeDogIndex && Math.abs(x - dog.x) < 38 && Math.abs(y - dog.y) < 42,
+    ) ||
     state.horses.some((horse) => Math.abs(x - horse.x) < 58 && Math.abs(y - state.groundY) < 72);
   const nearShop = state.shops.some((shop) => {
     if (shop.variant !== 3) return false;
@@ -1181,28 +1297,44 @@ function drawForegroundPlants(
 function drawRiverMoments(
   ctx: CanvasRenderingContext2D,
   state: WorldState,
-  time: number
+  time: number,
+  dt: number
 ) {
   const riverY = getRiverY(state.groundY, state.height);
   const bridgeNpc = state.npcs.find((npc) => npc.activity === "bridge");
   const dockNpc = state.npcs.find((npc) => npc.activity === "dock");
 
-  if (bridgeNpc) {
-    const sway = Math.sin(time * 0.001 + bridgeNpc.momentPhase) * state.width * 0.025;
-    const y = riverY + Math.min(42, (state.height - riverY) * 0.16);
-    const perspective = Math.min(1.15, Math.max(0.78, state.width / 1100));
-    bridgeNpc.x = state.width * 0.5 + sway;
-    drawNPC(
+  updateBridgeVisitor(state, dt);
+  const visitorPosition = getBridgeVisitorPosition(state);
+  if (bridgeNpc && visitorPosition) {
+    bridgeNpc.x = visitorPosition.x;
+    const towardCamera = state.bridgeVisitor.phase !== "returning";
+    drawNPCOnBridge(
       ctx,
-      bridgeNpc.x,
-      y,
-      bridgeNpc.scale * perspective,
-      Math.sin(time * 0.0007) > 0 ? 1 : -1,
+      visitorPosition.x,
+      visitorPosition.y,
+      bridgeNpc.scale * visitorPosition.scale,
       bridgeNpc.walkFrame,
       bridgeNpc.skinColor,
       bridgeNpc.shirtColor,
-      "wave"
+      towardCamera
     );
+
+    if (state.bridgeVisitor.withDog) {
+      const dog = state.dogs[state.bridgeVisitor.dogIndex];
+      if (dog) {
+        const dogX = visitorPosition.x - state.bridgeVisitor.lane * (12 + visitorPosition.scale * 8);
+        drawDogOnBridge(
+          ctx,
+          dogX,
+          visitorPosition.y + 5 * visitorPosition.scale,
+          dog.scale * visitorPosition.scale * 0.86,
+          dog.color,
+          bridgeNpc.walkFrame,
+          towardCamera
+        );
+      }
+    }
   }
 
   if (dockNpc) {
@@ -1590,6 +1722,7 @@ export function initWorld(canvas: HTMLCanvasElement): WorldState | null {
     horses: createHorses(w),
     streetLights: createStreetLights(w, shops),
     reactions: [],
+    bridgeVisitor: createBridgeVisitor(),
     groundSpeckles: createGroundSpeckles(w),
     groundY,
     scrollY: 0,
@@ -1638,6 +1771,7 @@ export function resizeWorld(state: WorldState) {
   state.streetLights = createStreetLights(w, state.shops);
   state.groundSpeckles = createGroundSpeckles(w);
   state.reactions = [];
+  state.bridgeVisitor = createBridgeVisitor();
 }
 
 export function renderFrame(state: WorldState, time: number, dt: number) {
@@ -1736,18 +1870,46 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
 
     if (!handled) {
       for (const npc of state.npcs) {
-        const npcY = npc.activity === "bridge"
-          ? riverY + Math.min(42, (h - riverY) * 0.16)
-          : npc.activity === "dock"
+        const visitorPosition =
+          npc.activity === "bridge" ? getBridgeVisitorPosition(state) : null;
+        if (npc.activity === "bridge" && !visitorPosition) continue;
+        const npcX = visitorPosition?.x ?? npc.x;
+        const npcY = visitorPosition?.y ?? (npc.activity === "dock"
             ? riverY + Math.min(60, (h - riverY) * 0.3)
-            : groundY;
-        if (Math.abs(cx - npc.x) < 38 && cy > npcY - 68 && cy < npcY + 16) {
+            : groundY);
+        const hitScale = visitorPosition?.scale ?? 1;
+        if (
+          Math.abs(cx - npcX) < 38 * hitScale &&
+          cy > npcY - 72 * hitScale &&
+          cy < npcY + 18
+        ) {
           npc.idleTimer = 1800;
           npc.atLamp = true;
           npc.facing = cx >= npc.x ? 1 : -1;
-          addReaction(state, npc.x, npcY - 78, "spark");
+          addReaction(state, npcX, npcY - 78 * hitScale, "spark");
           handled = true;
           break;
+        }
+      }
+    }
+
+    if (!handled) {
+      const visitorPosition = getBridgeVisitorPosition(state);
+      if (visitorPosition && state.bridgeVisitor.withDog) {
+        const dog = state.dogs[state.bridgeVisitor.dogIndex];
+        if (
+          dog &&
+          Math.abs(cx - visitorPosition.x) < 52 * visitorPosition.scale &&
+          cy > visitorPosition.y - 58 * visitorPosition.scale &&
+          cy < visitorPosition.y + 22
+        ) {
+          addReaction(
+            state,
+            visitorPosition.x,
+            visitorPosition.y - 64 * visitorPosition.scale,
+            "heart",
+          );
+          handled = true;
         }
       }
     }
@@ -1765,7 +1927,14 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
 
     if (!handled) {
       const dog = state.dogs.find(
-        (candidate) => Math.abs(cx - candidate.x) < 34 && Math.abs(cy - candidate.y) < 38
+        (candidate, index) =>
+          !(
+            state.bridgeVisitor.phase !== "waiting" &&
+            state.bridgeVisitor.withDog &&
+            index === state.bridgeVisitor.dogIndex
+          ) &&
+          Math.abs(cx - candidate.x) < 34 &&
+          Math.abs(cy - candidate.y) < 38,
       );
       if (dog) {
         dog.idleTimer = 1800;
@@ -1813,7 +1982,7 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
     );
   }
 
-  drawRiverMoments(ctx, state, time);
+  drawRiverMoments(ctx, state, time, dt);
 
   // cats keep existing behavior; only eye glow changes at night.
   for (const cat of state.cats) {
@@ -1830,7 +1999,12 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
   }
 
   updateDogs(state, dt);
-  for (const dog of state.dogs) {
+  const bridgeDogIndex =
+    state.bridgeVisitor.phase !== "waiting" && state.bridgeVisitor.withDog
+      ? state.bridgeVisitor.dogIndex
+      : -1;
+  for (const [index, dog] of state.dogs.entries()) {
+    if (index === bridgeDogIndex) continue;
     drawDog(ctx, dog.x, dog.y, dog.scale, dog.color, dog.facing, dog.tailPhase);
   }
 
