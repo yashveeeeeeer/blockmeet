@@ -820,11 +820,21 @@
 
 @media (max-width: 640px) {
   .world-hud {
-    justify-content: center !important;
+    justify-content: space-between !important;
+    gap: 0.35rem !important;
+    padding-right: 0.4rem !important;
+    padding-left: 0.4rem !important;
   }
 
-  .world-hud > div:last-child {
-    display: none;
+  .world-hud > div:first-child {
+    gap: 0.25rem;
+  }
+
+  .world-hud .hud-xp {
+    display: flex;
+    min-width: 54px;
+    max-width: 66px;
+    gap: 0.3rem;
   }
 
   .village-hero {

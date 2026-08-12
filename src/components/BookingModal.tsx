@@ -13,25 +13,48 @@ interface BookingModalProps {
 
 export default function BookingModal({ booking, onClose }: BookingModalProps) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLElement>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
   const [calendarReady, setCalendarReady] = useState(false);
 
   useEffect(() => {
     if (!booking) return;
 
     setCalendarReady(false);
+    openerRef.current = document.activeElement as HTMLElement | null;
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     closeRef.current?.focus();
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (event.key !== "Tab" || !dialogRef.current) return;
+
+      const focusable = Array.from(
+        dialogRef.current.querySelectorAll<HTMLElement>(
+          'button, a[href], iframe, [tabindex]:not([tabindex="-1"])',
+        ),
+      );
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first?.focus();
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
 
     return () => {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", handleKeyDown);
+      window.setTimeout(() => openerRef.current?.focus(), 0);
     };
   }, [booking, onClose]);
 
@@ -49,6 +72,7 @@ export default function BookingModal({ booking, onClose }: BookingModalProps) {
       }}
     >
       <section
+        ref={dialogRef}
         className="booking-dialog"
         role="dialog"
         aria-modal="true"

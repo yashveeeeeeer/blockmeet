@@ -57,8 +57,8 @@ export default function Hud({
         />
       </div>
 
-      <div className="flex items-center gap-2 min-w-[80px] sm:min-w-[120px] pointer-events-auto">
-        <span className="text-[7px] sm:text-[8px] font-pixel text-pixel-green">
+      <div className="hud-xp flex items-center gap-2 min-w-[80px] sm:min-w-[120px] pointer-events-auto">
+        <span className="text-[9px] sm:text-[10px] font-pixel text-pixel-green">
           XP
         </span>
         <div className="xp-bar-bg flex-1">
@@ -91,7 +91,7 @@ function HudButton({
       title={title}
       aria-label={title}
       aria-pressed={active}
-      className={`font-pixel text-[7px] sm:text-[8px] px-2 py-2 border-2 transition-all duration-150 cursor-pointer select-none
+      className={`font-pixel text-[9px] sm:text-[10px] px-2 py-2 border-2 transition-all duration-150 cursor-pointer select-none
         ${
           active
             ? "bg-pixel-green/30 border-pixel-green text-pixel-green"

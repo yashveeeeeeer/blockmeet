@@ -167,6 +167,13 @@ interface HorseRiderData {
   idleTimer: number;
 }
 
+interface ReactionData {
+  x: number;
+  y: number;
+  life: number;
+  kind: "heart" | "spark" | "note";
+}
+
 export interface WorldState {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
@@ -188,6 +195,7 @@ export interface WorldState {
   dogs: DogData[];
   horses: HorseRiderData[];
   streetLights: StreetLightData[];
+  reactions: ReactionData[];
   groundSpeckles: { row: number; col: number; dx: number; dy: number }[];
   groundY: number;
   scrollY: number;
@@ -198,6 +206,15 @@ export interface WorldState {
   detach: (() => void) | null;
   musicPlayer: MusicPlayer | null;
   onShopClick?: (variant: number) => void;
+}
+
+function getGroundY(height: number): number {
+  const ratio = window.innerWidth <= 640 ? 0.58 : window.innerWidth <= 900 ? 0.61 : 0.63;
+  return height * ratio;
+}
+
+function getCharacterScale(): number {
+  return window.innerWidth >= 900 ? 1.28 : window.innerWidth >= 641 ? 1.14 : 1;
 }
 
 // ── AMBIENT MUSIC PLAYER ─────────────────────────────────────────
@@ -434,6 +451,7 @@ function createShops(width: number): ShopData[] {
 
 function createNPCs(width: number, shops: ShopData[]): NPCData[] {
   const npcs: NPCData[] = [];
+  const scaleBoost = getCharacterScale();
   for (let i = 0; i < NPC_COUNT; i++) {
     const activity = i === 0 ? "bridge" : i === 1 ? "dock" : "village";
     const x =
@@ -450,7 +468,7 @@ function createNPCs(width: number, shops: ShopData[]): NPCData[] {
       speed: 0.3 + Math.random() * 0.4,
       facing: Math.random() > 0.5 ? 1 : -1,
       walkFrame: Math.random() * 100,
-      scale: 1.2 + Math.random() * 0.6,
+      scale: (1.2 + Math.random() * 0.6) * scaleBoost,
       skinColor:
         NPC_SKIN_COLORS[Math.floor(Math.random() * NPC_SKIN_COLORS.length)],
       shirtColor:
@@ -496,7 +514,7 @@ function createWitches(_width: number, height: number): WitchData[] {
       cooldown: 6000 + Math.random() * 10000 + i * 8000,
       state: "flying",
       targetShopX: 0,
-      landY: height * 0.72,
+      landY: getGroundY(height),
       idleTimer: 0,
       flyY,
     });
@@ -506,12 +524,13 @@ function createWitches(_width: number, height: number): WitchData[] {
 
 function createCats(shops: ShopData[], groundY: number): CatData[] {
   const cats: CatData[] = [];
+  const scaleBoost = getCharacterScale();
   for (const shop of shops) {
     // sleeping cat near each shop
     cats.push({
       x: shop.x - 20 + Math.random() * 30,
       y: groundY,
-      scale: 1.2 + Math.random() * 0.4,
+      scale: (1.2 + Math.random() * 0.4) * scaleBoost,
       color: CAT_COLORS[Math.floor(Math.random() * CAT_COLORS.length)],
       sleeping: true,
       facing: Math.random() > 0.5 ? 1 : -1,
@@ -524,7 +543,7 @@ function createCats(shops: ShopData[], groundY: number): CatData[] {
       cats.push({
         x: shop.centerX + (Math.random() - 0.5) * 100,
         y: groundY,
-        scale: 1.0 + Math.random() * 0.5,
+        scale: (1.0 + Math.random() * 0.5) * scaleBoost,
         color: CAT_COLORS[Math.floor(Math.random() * CAT_COLORS.length)],
         sleeping: false,
         facing: Math.random() > 0.5 ? 1 : -1,
@@ -536,12 +555,13 @@ function createCats(shops: ShopData[], groundY: number): CatData[] {
 
 function createDogs(width: number, groundY: number, npcCount: number): DogData[] {
   const dogs: DogData[] = [];
+  const scaleBoost = getCharacterScale();
   const count = 3 + Math.floor(Math.random() * 2);
   for (let i = 0; i < count; i++) {
     dogs.push({
       x: Math.random() * width * 0.8 + width * 0.1,
       y: groundY,
-      scale: 1.2 + Math.random() * 0.5,
+      scale: (1.2 + Math.random() * 0.5) * scaleBoost,
       color: DOG_COLORS[Math.floor(Math.random() * DOG_COLORS.length)],
       facing: Math.random() > 0.5 ? 1 : -1,
       tailPhase: Math.random() * Math.PI * 2,
@@ -624,13 +644,14 @@ const HORSE_RIDER_COUNT = 2;
 
 function createHorses(width: number): HorseRiderData[] {
   const horses: HorseRiderData[] = [];
+  const scaleBoost = getCharacterScale();
   for (let i = 0; i < HORSE_RIDER_COUNT; i++) {
     horses.push({
       x: Math.random() * width * 0.6 + width * 0.2,
       speed: 0.5 + Math.random() * 0.3,
       facing: Math.random() > 0.5 ? 1 : -1,
       walkFrame: Math.random() * 100,
-      scale: 1.3 + Math.random() * 0.3,
+      scale: (1.3 + Math.random() * 0.3) * scaleBoost,
       horseColor: HORSE_COLORS[Math.floor(Math.random() * HORSE_COLORS.length)],
       riderShirt:
         NPC_SHIRT_COLORS[Math.floor(Math.random() * NPC_SHIRT_COLORS.length)],
@@ -795,11 +816,11 @@ function drawGround(
   const bankSteps = [0, 0, 2, 4, 4, 2, 0, -2, -2, 0, 2, 0];
 
   // Deep, layered water replaces the old straight two-tile footer strip.
-  ctx.fillStyle = night ? "#071c3a" : "#2f79ad";
+  ctx.fillStyle = night ? "#071c3a" : "#438fbe";
   ctx.fillRect(0, riverY - 4, w, h - riverY + 4);
-  ctx.fillStyle = night ? "#0c2b53" : PAL.water;
+  ctx.fillStyle = night ? "#0c2b53" : "#529ed0";
   ctx.fillRect(0, riverY + 16, w, h - riverY - 16);
-  ctx.fillStyle = night ? "#123c67" : PAL.waterLight;
+  ctx.fillStyle = night ? "#123c67" : "#79c3e3";
   ctx.fillRect(0, riverY + (h - riverY) * 0.48, w, 6);
 
   // Sparse horizontal ripples make the water feel calm rather than noisy.
@@ -815,30 +836,17 @@ function drawGround(
     }
   }
 
-  // Warm lamp reflections connect the village lighting to the river.
-  const reflectionCount = Math.max(4, Math.floor(w / 250));
-  for (let index = 0; index < reflectionCount; index++) {
-    const x = ((index + 0.7) / reflectionCount) * w;
-    const width = 8 + (index % 3) * 4;
-    const pulse = 0.65 + Math.sin(time * 0.002 + index) * 0.18;
-    for (let line = 0; line < 7; line++) {
-      ctx.fillStyle = `rgba(245, 197, 66, ${pulse * (0.18 - line * 0.018)})`;
-      const spread = line * 5;
-      ctx.fillRect(x - width / 2 - spread / 2, riverY + 12 + line * 13, width + spread, 3);
-    }
-  }
-
   // A stepped, living shoreline with grass, soil, stones, and small plants.
   for (let col = 0; col < cols; col++) {
     const x = col * GRID_SIZE;
     const bankBottom = riverY + bankSteps[col % bankSteps.length] * 2;
-    ctx.fillStyle = night ? "#173f35" : PAL.dirt;
+    ctx.fillStyle = night ? "#173f35" : "#5d8f48";
     ctx.fillRect(x, groundY, GRID_SIZE + 1, bankBottom - groundY);
-    ctx.fillStyle = night ? "#245f48" : PAL.grassMid;
+    ctx.fillStyle = night ? "#245f48" : "#73ae54";
     ctx.fillRect(x, groundY, GRID_SIZE + 1, 8);
-    ctx.fillStyle = night ? "#319066" : PAL.grassTop;
+    ctx.fillStyle = night ? "#319066" : "#a0cd68";
     ctx.fillRect(x, groundY, GRID_SIZE + 1, 3);
-    ctx.fillStyle = night ? "#102f2b" : PAL.dirtDark;
+    ctx.fillStyle = night ? "#102f2b" : "#76543b";
     ctx.fillRect(x, bankBottom - 5, GRID_SIZE + 1, 5);
 
     if (col % 3 === 0) {
@@ -866,7 +874,7 @@ function drawGround(
   for (const sp of speckles) {
     const x = sp.col * GRID_SIZE;
     const y = groundY + sp.row * 18;
-    ctx.fillStyle = night ? "#326554" : PAL.dirtDark;
+    ctx.fillStyle = night ? "#326554" : "#49753d";
     ctx.fillRect(x + sp.dx, y + (sp.dy % 12), 3, 3);
   }
 
@@ -968,14 +976,92 @@ function drawSceneReflections(
   };
 
   for (const light of state.streetLights) {
-    reflect(light.x, "#f6ca58", state.nightMode ? 0.45 : 0.12, light.x);
+    reflect(light.x, "#f6ca58", state.nightMode ? 0.52 : 0.18, light.x);
   }
   for (const npc of state.npcs) {
     if (npc.activity === "village") {
-      reflect(npc.x, npc.shirtColor, state.nightMode ? 0.14 : 0.1, npc.momentPhase);
+      reflect(npc.x, npc.shirtColor, state.nightMode ? 0.18 : 0.13, npc.momentPhase);
     }
   }
   ctx.globalAlpha = 1;
+}
+
+function addReaction(
+  state: WorldState,
+  x: number,
+  y: number,
+  kind: ReactionData["kind"]
+) {
+  state.reactions.push({ x, y, life: 0, kind });
+  if (state.reactions.length > 12) state.reactions.shift();
+}
+
+function drawReactions(state: WorldState, dt: number) {
+  const { ctx } = state;
+  for (let index = state.reactions.length - 1; index >= 0; index--) {
+    const reaction = state.reactions[index];
+    reaction.life += dt;
+    if (reaction.life > 1400) {
+      state.reactions.splice(index, 1);
+      continue;
+    }
+
+    const y = reaction.y - reaction.life * 0.018;
+    const pulse = reaction.life < 180 ? 1.25 : 1;
+    const p = Math.max(3, Math.round(3 * state.dpr * pulse));
+    ctx.globalAlpha = Math.min(1, (1400 - reaction.life) / 350);
+
+    if (reaction.kind === "heart") {
+      ctx.fillStyle = "#ff718c";
+      ctx.fillRect(reaction.x - p * 2, y, p * 2, p);
+      ctx.fillRect(reaction.x + p, y, p * 2, p);
+      ctx.fillRect(reaction.x - p * 3, y + p, p * 6, p * 2);
+      ctx.fillRect(reaction.x - p * 2, y + p * 3, p * 4, p);
+      ctx.fillRect(reaction.x - p, y + p * 4, p * 2, p);
+    } else if (reaction.kind === "note") {
+      ctx.fillStyle = "#f5c542";
+      ctx.fillRect(reaction.x, y, p, p * 5);
+      ctx.fillRect(reaction.x, y, p * 3, p);
+      ctx.fillRect(reaction.x + p * 2, y, p, p * 3);
+      ctx.fillRect(reaction.x - p, y + p * 4, p * 2, p * 2);
+    } else {
+      ctx.fillStyle = "#fff1a8";
+      ctx.fillRect(reaction.x - p * 3, y + p, p * 7, p);
+      ctx.fillRect(reaction.x, y - p * 2, p, p * 7);
+      ctx.fillStyle = "#f5c542";
+      ctx.fillRect(reaction.x - p, y, p * 3, p * 3);
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+
+function updateInteractionCursor(state: WorldState) {
+  const { mouseX: x, mouseY: y } = state.input;
+  if (x < 0 || y < 0) {
+    state.canvas.style.cursor = "default";
+    return;
+  }
+
+  const riverY = getRiverY(state.groundY, state.height);
+  const nearNpc = state.npcs.some((npc) => {
+    const npcY = npc.activity === "bridge"
+      ? riverY + Math.min(42, (state.height - riverY) * 0.16)
+      : npc.activity === "dock"
+        ? riverY + Math.min(60, (state.height - riverY) * 0.3)
+        : state.groundY;
+    return Math.abs(x - npc.x) < 42 && y > npcY - 76 && y < npcY + 18;
+  });
+  const nearAnimal =
+    state.cats.some((cat) => Math.abs(x - cat.x) < 32 && Math.abs(y - cat.y) < 38) ||
+    state.dogs.some((dog) => Math.abs(x - dog.x) < 38 && Math.abs(y - dog.y) < 42) ||
+    state.horses.some((horse) => Math.abs(x - horse.x) < 58 && Math.abs(y - state.groundY) < 72);
+  const nearShop = state.shops.some((shop) => {
+    if (shop.variant !== 3) return false;
+    const s = Math.floor(4 * shop.scale);
+    return x >= shop.x && x <= shop.x + s * 14 && y >= state.groundY - s * 12 && y <= state.groundY;
+  });
+
+  state.canvas.style.cursor = nearNpc || nearAnimal || nearShop ? "pointer" : "default";
 }
 
 function drawBridge(
@@ -1479,7 +1565,7 @@ export function initWorld(canvas: HTMLCanvasElement): WorldState | null {
   canvas.style.width = window.innerWidth + "px";
   canvas.style.height = window.innerHeight + "px";
 
-  const groundY = h * 0.67;
+  const groundY = getGroundY(h);
   const shops = createShops(w);
 
   const state: WorldState = {
@@ -1503,6 +1589,7 @@ export function initWorld(canvas: HTMLCanvasElement): WorldState | null {
     dogs: createDogs(w, groundY, NPC_COUNT),
     horses: createHorses(w),
     streetLights: createStreetLights(w, shops),
+    reactions: [],
     groundSpeckles: createGroundSpeckles(w),
     groundY,
     scrollY: 0,
@@ -1535,7 +1622,7 @@ export function resizeWorld(state: WorldState) {
   state.width = w;
   state.height = h;
   state.dpr = dpr;
-  state.groundY = h * 0.67;
+  state.groundY = getGroundY(h);
   state.clouds = createClouds(w, h);
   state.stars = createStars(w, h);
   state.birds = createBirds(w, h);
@@ -1550,6 +1637,7 @@ export function resizeWorld(state: WorldState) {
   state.horses = createHorses(w);
   state.streetLights = createStreetLights(w, state.shops);
   state.groundSpeckles = createGroundSpeckles(w);
+  state.reactions = [];
 }
 
 export function renderFrame(state: WorldState, time: number, dt: number) {
@@ -1627,11 +1715,14 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
     drawShop(ctx, shop.x, groundY, shop.variant, shop.scale);
   }
 
+  updateInteractionCursor(state);
+
   if (state.input.clickFired && state.onShopClick) {
     const cx = state.input.lastClickX;
     const cy = state.input.lastClickY;
     let handled = false;
     for (const shop of state.shops) {
+      if (shop.variant !== 3) continue;
       const s = Math.floor(4 * shop.scale);
       const shopW = s * 14;
       const shopH = s * 12;
@@ -1645,7 +1736,6 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
 
     if (!handled) {
       for (const npc of state.npcs) {
-        const riverY = getRiverY(groundY, h);
         const npcY = npc.activity === "bridge"
           ? riverY + Math.min(42, (h - riverY) * 0.16)
           : npc.activity === "dock"
@@ -1655,6 +1745,7 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
           npc.idleTimer = 1800;
           npc.atLamp = true;
           npc.facing = cx >= npc.x ? 1 : -1;
+          addReaction(state, npc.x, npcY - 78, "spark");
           handled = true;
           break;
         }
@@ -1667,6 +1758,7 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
       );
       if (cat) {
         cat.sleeping = !cat.sleeping;
+        addReaction(state, cat.x, cat.y - 44, "heart");
         handled = true;
       }
     }
@@ -1678,6 +1770,7 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
       if (dog) {
         dog.idleTimer = 1800;
         dog.tailPhase += Math.PI;
+        addReaction(state, dog.x, dog.y - 52, "heart");
         handled = true;
       }
     }
@@ -1686,7 +1779,10 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
       const horse = state.horses.find(
         (candidate) => Math.abs(cx - candidate.x) < 54 && Math.abs(cy - groundY) < 66
       );
-      if (horse) horse.idleTimer = 1800;
+      if (horse) {
+        horse.idleTimer = 1800;
+        addReaction(state, horse.x, groundY - 78, "note");
+      }
     }
     state.input.clickFired = false;
   }
@@ -1759,6 +1855,8 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
       drawLightGlow(ctx, sl.x, groundY, sl.scale, time);
     }
   }
+
+  drawReactions(state, dt);
 
   if (!state.performanceMode) {
     updateParticles(state, dt);
