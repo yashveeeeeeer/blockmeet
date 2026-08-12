@@ -206,21 +206,7 @@ export default function WorldPage() {
             <h1 id="hero-title" className="hero-brand">
               {SITE.title}
             </h1>
-            <p className="hero-intro">{SITE.subtitle}</p>
-
             <CTAButtons onBook={setBooking} />
-
-            <p className="meeting-details">
-              {SITE.meetingLocation} · {SITE.timezoneLabel} · Instant confirmation
-            </p>
-
-            <button
-              type="button"
-              className="read-work-link"
-              onClick={() => navigate("/athenaeum")}
-            >
-              Read my work →
-            </button>
           </motion.article>
         </section>
       </main>
