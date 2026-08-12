@@ -162,66 +162,82 @@ export function drawPassengerPlane(
   x: number,
   y: number,
   scale: number,
-  time: number
+  time: number,
+  facing: number,
+  flightProgress: number
 ) {
-  const p = Math.max(2, Math.floor(2 * scale));
-  const bob = Math.sin(time * 0.002) * p * 0.2;
-  const pxX = Math.floor(x);
-  const pxY = Math.floor(y + bob);
+  const p = Math.max(2, Math.floor(2.2 * scale));
+  const pulse = 0.65 + Math.sin(time * 0.008) * 0.2;
 
   ctx.save();
-  ctx.translate(pxX, pxY);
+  ctx.translate(Math.floor(x), Math.floor(y));
+  if (facing < 0) ctx.scale(-1, 1);
 
-  const body = "#f3f5f8";
-  const bodyShade = "#d9dee5";
-  const stripe = "#cf3a3a";
-  const wing = "#b5bcc7";
-  const tailWing = "#a8b0bc";
-  const windowColor = "#5e89c9";
-  const engine = "#7f8896";
-
-  // fuselage
-  ctx.fillStyle = body;
-  ctx.fillRect(-p * 16, -p * 2, p * 30, p * 4);
-  ctx.fillRect(-p * 18, -p, p * 2, p * 2); // nose cap
-  ctx.fillRect(p * 14, -p * 1.5, p * 3, p * 3); // tail cone
-  ctx.fillStyle = bodyShade;
-  ctx.fillRect(-p * 15, p, p * 29, p);
-
-  // red livery stripe
-  ctx.fillStyle = stripe;
-  ctx.fillRect(-p * 14, -p * 0.4, p * 25, p * 0.8);
-
-  // wings
-  ctx.fillStyle = wing;
-  ctx.fillRect(-p * 2, -p * 1.2, p * 11, p * 1.2);
-  ctx.fillRect(-p * 4, p * 0.2, p * 12, p * 1.3);
-  ctx.fillStyle = "rgba(0,0,0,0.16)";
-  ctx.fillRect(-p * 2, -p * 0.2, p * 11, p * 0.4);
-
-  // engines (under wing)
-  ctx.fillStyle = engine;
-  ctx.fillRect(p * 1, p * 1.5, p * 2.3, p * 1.5);
-  ctx.fillRect(p * 5, p * 1.6, p * 2.3, p * 1.5);
-
-  // tail fin + stabilizer
-  ctx.fillStyle = tailWing;
-  ctx.fillRect(p * 11.5, -p * 4.2, p * 2.5, p * 3.4);
-  ctx.fillRect(p * 10.8, -p * 1.3, p * 4.2, p * 1.1);
-
-  // cockpit glass
-  ctx.fillStyle = "#7fa2d9";
-  ctx.fillRect(-p * 17.2, -p * 0.8, p * 1.3, p * 1.6);
-
-  // passenger windows
-  ctx.fillStyle = windowColor;
-  for (let i = 0; i < 8; i++) {
-    ctx.fillRect(-p * 11 + i * p * 2.8, -p * 0.7, p * 0.9, p * 0.9);
+  // A thin, broken contrail keeps the flight atmospheric rather than dominant.
+  const trailOpacity = Math.min(0.3, flightProgress * 0.7, (1 - flightProgress) * 0.7);
+  ctx.fillStyle = `rgba(235, 244, 248, ${trailOpacity})`;
+  for (let segment = 0; segment < 5; segment++) {
+    const width = p * (5 + segment * 2);
+    const offset = p * (21 + segment * 12);
+    ctx.fillRect(-offset, p * 0.2 + (segment % 2), width, Math.max(1, p * 0.55));
   }
 
-  // subtle shadow under aircraft
-  ctx.fillStyle = "rgba(0,0,0,0.1)";
-  ctx.fillRect(-p * 10, p * 3.2, p * 22, p * 0.8);
+  const outline = "#4b5361";
+  const body = "#f0f1ec";
+  const highlight = "#ffffff";
+  const shade = "#b9c2ca";
+  const stripe = "#5d87a8";
+  const wing = "#8794a2";
+  const dark = "#3e4c59";
+
+  // Dark pixel outline and tapered fuselage; nose points in the travel direction.
+  ctx.fillStyle = outline;
+  ctx.fillRect(-p * 16, -p * 2.5, p * 29, p * 5);
+  ctx.fillRect(p * 13, -p * 1.5, p * 3, p * 3);
+  ctx.fillRect(p * 16, -p * 0.5, p * 2, p);
+  ctx.fillStyle = body;
+  ctx.fillRect(-p * 15.5, -p * 1.8, p * 28.5, p * 3.6);
+  ctx.fillRect(p * 13, -p, p * 3, p * 2);
+  ctx.fillRect(p * 16, -p * 0.25, p * 1.5, p * 0.5);
+  ctx.fillStyle = highlight;
+  ctx.fillRect(-p * 12, -p * 1.5, p * 24, Math.max(1, p * 0.55));
+  ctx.fillStyle = shade;
+  ctx.fillRect(-p * 15, p * 0.8, p * 28, p);
+
+  // Restrained livery stripe and windows.
+  ctx.fillStyle = stripe;
+  ctx.fillRect(-p * 11, p * 0.05, p * 23, Math.max(1, p * 0.55));
+  ctx.fillStyle = dark;
+  ctx.fillRect(p * 13.8, -p * 0.7, p * 1.6, p * 0.8);
+  for (let windowIndex = 0; windowIndex < 7; windowIndex++) {
+    ctx.fillRect(-p * 9 + windowIndex * p * 2.7, -p * 0.95, p * 0.8, p * 0.65);
+  }
+
+  // Swept wings use stepped pixels instead of rectangular slabs.
+  ctx.fillStyle = wing;
+  ctx.fillRect(-p * 3, -p * 4.6, p * 5, p * 3.2);
+  ctx.fillRect(-p, -p * 3.2, p * 7, p * 2);
+  ctx.fillRect(-p * 4, p * 1.2, p * 9, p * 1.4);
+  ctx.fillRect(-p * 2, p * 2.5, p * 5, p * 1.2);
+
+  // Tail, stabilizer, and two compact engine pods.
+  ctx.fillStyle = stripe;
+  ctx.fillRect(-p * 14, -p * 5.2, p * 2.8, p * 3.8);
+  ctx.fillRect(-p * 13, -p * 3.8, p * 2.6, p * 2.8);
+  ctx.fillStyle = wing;
+  ctx.fillRect(-p * 15.5, -p * 2.8, p * 6, p * 1.2);
+  ctx.fillStyle = dark;
+  ctx.fillRect(-p, p * 2, p * 2.3, p * 1.5);
+  ctx.fillRect(p * 3.5, p * 1.7, p * 2.3, p * 1.5);
+  ctx.fillStyle = "#9ea9b2";
+  ctx.fillRect(-p * 0.6, p * 2.2, p * 1.4, p * 0.7);
+  ctx.fillRect(p * 3.9, p * 1.9, p * 1.4, p * 0.7);
+
+  // Tiny navigation light makes the silhouette readable without shouting.
+  ctx.globalAlpha = pulse;
+  ctx.fillStyle = "#f5c542";
+  ctx.fillRect(p * 16.5, -p * 0.5, Math.max(2, p * 0.55), Math.max(2, p * 0.55));
+  ctx.globalAlpha = 1;
 
   ctx.restore();
 }

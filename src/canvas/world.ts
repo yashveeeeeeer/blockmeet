@@ -67,9 +67,14 @@ interface BirdData {
 interface AirplaneData {
   x: number;
   y: number;
-  speed: number;
+  baseY: number;
   scale: number;
   bobPhase: number;
+  active: boolean;
+  cooldown: number;
+  progress: number;
+  duration: number;
+  facing: 1 | -1;
 }
 
 interface ShopData {
@@ -414,18 +419,20 @@ function createBirds(width: number, height: number): BirdData[] {
 }
 
 function createAirplanes(width: number, height: number): AirplaneData[] {
-  const planes: AirplaneData[] = [];
-  const count = 2;
-  for (let i = 0; i < count; i++) {
-    planes.push({
-      x: Math.random() * width,
-      y: height * (0.15 + Math.random() * 0.14),
-      speed: 0.75 + Math.random() * 0.45,
-      scale: 1.15 + Math.random() * 0.35,
-      bobPhase: Math.random() * Math.PI * 2,
-    });
-  }
-  return planes;
+  const facing: 1 | -1 = Math.random() > 0.5 ? 1 : -1;
+  const baseY = height * (0.17 + Math.random() * 0.08);
+  return [{
+    x: facing > 0 ? -220 : width + 220,
+    y: baseY,
+    baseY,
+    scale: 1.05 + Math.random() * 0.18,
+    bobPhase: Math.random() * Math.PI * 2,
+    active: false,
+    cooldown: 4500 + Math.random() * 6500,
+    progress: 0,
+    duration: 18000 + Math.random() * 6000,
+    facing,
+  }];
 }
 
 function createTrees(width: number): TreeData[] {
@@ -1373,6 +1380,7 @@ function updateBirds(
 
     // Hard bird-avoidance: enforce a strict no-fly buffer around each airplane.
     for (const plane of airplanes) {
+      if (!plane.active) continue;
       const planeHalfW = planeHalfWBase * plane.scale;
       const planeHalfH = planeHalfHBase * plane.scale;
       const safeX = planeHalfW + 42 + b.scale * 10;
@@ -1412,14 +1420,32 @@ function updateBirds(
 
 function updateAirplanes(state: WorldState, dt: number, time: number) {
   for (const plane of state.airplanes) {
-    plane.x += plane.speed * dt * 0.05;
-    plane.y += Math.sin(time * 0.0006 + plane.bobPhase) * 0.08;
-    if (plane.x > state.width + 220) {
-      plane.x = -220;
-      plane.y = state.height * (0.14 + Math.random() * 0.16);
-      plane.speed = 0.75 + Math.random() * 0.45;
-      plane.scale = 1.15 + Math.random() * 0.35;
-      plane.bobPhase = Math.random() * Math.PI * 2;
+    if (!plane.active) {
+      plane.cooldown -= dt;
+      if (plane.cooldown <= 0) {
+        plane.active = true;
+        plane.progress = 0;
+        plane.facing = Math.random() > 0.5 ? 1 : -1;
+        plane.baseY = state.height * (0.17 + Math.random() * 0.08);
+        plane.duration = 18000 + Math.random() * 6000;
+        plane.scale = 1.05 + Math.random() * 0.18;
+        plane.bobPhase = Math.random() * Math.PI * 2;
+      }
+      continue;
+    }
+
+    plane.progress = Math.min(1, plane.progress + dt / plane.duration);
+    const eased = plane.progress * plane.progress * (3 - 2 * plane.progress);
+    const startX = plane.facing > 0 ? -220 : state.width + 220;
+    const endX = plane.facing > 0 ? state.width + 220 : -220;
+    plane.x = startX + (endX - startX) * eased;
+    const gentleArc = Math.sin(plane.progress * Math.PI) * state.height * 0.018;
+    const airDrift = Math.sin(time * 0.0009 + plane.bobPhase) * 3 * state.dpr;
+    plane.y = plane.baseY - gentleArc + airDrift;
+
+    if (plane.progress >= 1) {
+      plane.active = false;
+      plane.cooldown = 22000 + Math.random() * 28000;
     }
   }
 }
@@ -1793,7 +1819,17 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
 
     updateAirplanes(state, dt, time);
     for (const plane of state.airplanes) {
-      drawPassengerPlane(ctx, plane.x, plane.y, plane.scale, time);
+      if (plane.active) {
+        drawPassengerPlane(
+          ctx,
+          plane.x,
+          plane.y,
+          plane.scale,
+          time,
+          plane.facing,
+          plane.progress,
+        );
+      }
     }
 
     updateBirds(state.birds, state.airplanes, w, h, dt, time);
