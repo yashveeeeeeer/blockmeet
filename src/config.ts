@@ -12,8 +12,8 @@ export const SITE = {
   owner: "Yashveer Singh",
   timezone: "Asia/Kolkata",
   links: {
-    min15: "https://cal.com/yashveer/15min",
-    min30: "https://cal.com/yashveer/30min",
+    min15: "https://cal.com/yashveeer/15min",
+    min30: "https://cal.com/yashveeer/30min",
   },
   socials: {
     twitter: "https://x.com/yashv_r",
