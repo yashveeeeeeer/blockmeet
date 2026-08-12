@@ -1235,11 +1235,11 @@ export function drawNPC(
   walkFrame: number,
   skinColor: string,
   shirtColor: string,
-  isIdle: boolean
+  pose: "walk" | "idle" | "sit" | "wave"
 ) {
   const s = Math.floor(3 * scale);
   const flip = facing < 0 ? -1 : 1;
-  const bobble = isIdle ? 0 : Math.abs(Math.sin(walkFrame * 0.1)) * s * 0.4;
+  const bobble = pose === "walk" ? Math.abs(Math.sin(walkFrame * 0.1)) * s * 0.4 : 0;
 
   ctx.save();
   ctx.translate(Math.floor(x), Math.floor(y - bobble));
@@ -1252,10 +1252,21 @@ export function drawNPC(
   ctx.fillRect(s * 0.5, -s * 6, s * 0.7, s * 0.7);
   ctx.fillStyle = shirtColor;
   ctx.fillRect(-s * 1.5, -s * 4, s * 3, s * 3);
-  ctx.fillRect(-s * 2.5, -s * 4, s, s * 2.5);
-  ctx.fillRect(s * 1.5, -s * 4, s, s * 2.5);
+  if (pose === "wave") {
+    ctx.fillRect(-s * 2.5, -s * 4, s, s * 2.5);
+    ctx.fillRect(s * 1.5, -s * 6.5, s, s * 3.5);
+    ctx.fillStyle = skinColor;
+    ctx.fillRect(s * 1.5, -s * 7.5, s, s);
+  } else {
+    ctx.fillRect(-s * 2.5, -s * 4, s, s * 2.5);
+    ctx.fillRect(s * 1.5, -s * 4, s, s * 2.5);
+  }
 
-  if (isIdle) {
+  if (pose === "sit") {
+    ctx.fillStyle = "#3a3a6e";
+    ctx.fillRect(-s, -s, s, s * 1.5);
+    ctx.fillRect(0, 0, s * 2.5, s);
+  } else if (pose !== "walk") {
     ctx.fillStyle = "#3a3a6e";
     ctx.fillRect(-s, -s, s * 0.9, s * 2.5);
     ctx.fillRect(0.1, -s, s * 0.9, s * 2.5);

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { animate, motion, useMotionValue } from "framer-motion";
 import { SITE } from "../config";
 import {
   destroyWorld,
@@ -58,6 +58,8 @@ export default function WorldPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [booking, setBooking] = useState<BookingSelection | null>(null);
   const [nightMode, setNightMode] = useState(() => isNightTime());
+  const boardX = useMotionValue(0);
+  const boardY = useMotionValue(0);
 
   const konamiRef = useRef<string[]>([]);
   const spawnBufRef = useRef("");
@@ -76,6 +78,44 @@ export default function WorldPage() {
       setCrtOn(false);
     }
   }, []);
+
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.hidden && worldRef.current?.animFrame) {
+        cancelAnimationFrame(worldRef.current.animFrame);
+        worldRef.current.animFrame = 0;
+      } else if (!document.hidden && worldRef.current && !worldRef.current.animFrame) {
+        const world = worldRef.current;
+        lastTimeRef.current = 0;
+        const loop = (time: number) => {
+          if (document.hidden || worldRef.current !== world) return;
+          const dt = lastTimeRef.current ? time - lastTimeRef.current : 16;
+          lastTimeRef.current = time;
+          renderFrame(world, time, Math.min(dt, 50));
+          world.animFrame = requestAnimationFrame(loop);
+        };
+        world.animFrame = requestAnimationFrame(loop);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, []);
+
+  useEffect(() => {
+    let lastTap = 0;
+    const handleTouchEnd = (event: TouchEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest("#booking")) return;
+      const now = Date.now();
+      if (now - lastTap < 350 && !target.closest("button")) {
+        animate(boardX, 0, { type: "spring", stiffness: 360, damping: 30 });
+        animate(boardY, 0, { type: "spring", stiffness: 360, damping: 30 });
+      }
+      lastTap = now;
+    };
+    document.addEventListener("touchend", handleTouchEnd, { passive: true });
+    return () => document.removeEventListener("touchend", handleTouchEnd);
+  }, [boardX, boardY]);
 
   useEffect(() => {
     const interval = setInterval(() => setXp(getTimeOfDayXp()), 60_000);
@@ -211,6 +251,7 @@ export default function WorldPage() {
             dragElastic={0.08}
             dragMomentum={false}
             whileDrag={{ scale: 1.015 }}
+            style={{ x: boardX, y: boardY }}
             className="village-board pointer-events-auto"
           >
             <h1 id="hero-title" className="hero-brand">

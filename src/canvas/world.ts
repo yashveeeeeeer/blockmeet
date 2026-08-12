@@ -20,7 +20,7 @@ import {
   drawHorseWithRider,
   drawNPC,
 } from "./sprites";
-import { InputState, createInputState, attachInputHandlers } from "./input";
+import { InputState, createInputState, attachInputHandlers, getCanvasDpr } from "./input";
 
 const MAX_PARTICLES = 60;
 const GRID_SIZE = 32;
@@ -88,6 +88,9 @@ interface NPCData {
   targetX: number;
   idleTimer: number;
   atShop: boolean;
+  atLamp: boolean;
+  activity: "village" | "bridge" | "dock";
+  momentPhase: number;
 }
 
 interface DragonData {
@@ -197,11 +200,11 @@ export interface WorldState {
   onShopClick?: (variant: number) => void;
 }
 
-// ── MP3 MUSIC PLAYER ─────────────────────────────────────────────
+// ── AMBIENT MUSIC PLAYER ─────────────────────────────────────────
 
 const TRACK_URLS = [
-  import.meta.env.BASE_URL + "music/1.mp3",
-  import.meta.env.BASE_URL + "music/2.mp3",
+  import.meta.env.BASE_URL + "music/1.opus",
+  import.meta.env.BASE_URL + "music/2.opus",
 ];
 
 const FADE_MS = 3000;
@@ -432,7 +435,13 @@ function createShops(width: number): ShopData[] {
 function createNPCs(width: number, shops: ShopData[]): NPCData[] {
   const npcs: NPCData[] = [];
   for (let i = 0; i < NPC_COUNT; i++) {
-    const x = Math.random() * width * 0.8 + width * 0.1;
+    const activity = i === 0 ? "bridge" : i === 1 ? "dock" : "village";
+    const x =
+      activity === "bridge"
+        ? width * 0.5
+        : activity === "dock"
+          ? width * 0.13
+          : Math.random() * width * 0.8 + width * 0.1;
     const targetShop = shops.length
       ? shops[Math.floor(Math.random() * shops.length)]
       : null;
@@ -451,6 +460,9 @@ function createNPCs(width: number, shops: ShopData[]): NPCData[] {
         : Math.random() * width * 0.8 + width * 0.1,
       idleTimer: 0,
       atShop: false,
+      atLamp: false,
+      activity,
+      momentPhase: Math.random() * Math.PI * 2,
     });
   }
   return npcs;
@@ -858,9 +870,10 @@ function drawGround(
     ctx.fillRect(x + sp.dx, y + (sp.dy % 12), 3, 3);
   }
 
-  drawDock(ctx, w, h, riverY, night, time);
-  drawBridge(ctx, w, h, riverY, night, time);
-  drawForegroundPlants(ctx, w, h, night, time);
+}
+
+function getRiverY(groundY: number, height: number): number {
+  return groundY + Math.max(38, height * 0.055);
 }
 
 function drawDock(
@@ -888,6 +901,11 @@ function drawDock(
   ctx.fillRect(dockX + 8, dockY + plankH, 8, 32);
   ctx.fillRect(dockX + dockW - 16, dockY + plankH, 8, 32);
 
+  // Rope knots and a slack mooring line make the dock feel occupied.
+  ctx.fillStyle = "#d0aa6d";
+  ctx.fillRect(dockX + 8, dockY - 4, 8, 5);
+  ctx.fillRect(dockX + dockW - 16, dockY - 4, 8, 5);
+
   // A small moored pixel boat and its gentle ripple.
   const boatX = dockX + dockW * 0.55;
   const boatY = dockY + 34 + Math.sin(time * 0.002) * 2;
@@ -895,12 +913,69 @@ function drawDock(
   ctx.fillRect(boatX, boatY, 54, 7);
   ctx.fillStyle = "#9a5630";
   ctx.fillRect(boatX + 7, boatY + 7, 40, 6);
+  ctx.strokeStyle = "#c8a36b";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(dockX + dockW - 12, dockY + 2);
+  ctx.quadraticCurveTo(boatX + 48, boatY - 9, boatX + 45, boatY + 5);
+  ctx.stroke();
   ctx.fillStyle = night ? "rgba(90, 211, 214, 0.32)" : "rgba(220, 247, 255, 0.4)";
   ctx.fillRect(boatX - 7, boatY + 18, 68, 3);
 
   if (night) {
     drawRiverLantern(ctx, dockX + 12, dockY - 5, 1, time);
   }
+
+  drawWaterRings(ctx, boatX + 28, boatY + 17, time, night, 1.1);
+}
+
+function drawWaterRings(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  time: number,
+  night: boolean,
+  scale = 1
+) {
+  const phase = (time * 0.025) % 26;
+  ctx.fillStyle = night ? "rgba(92, 205, 224, 0.28)" : "rgba(225, 248, 255, 0.45)";
+  for (let ring = 0; ring < 3; ring++) {
+    const radius = (phase + ring * 9) % 27;
+    const width = Math.max(5, radius * 1.8 * scale);
+    ctx.globalAlpha = 1 - radius / 31;
+    ctx.fillRect(x - width / 2, y + ring * 5, width, 2);
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawSceneReflections(
+  ctx: CanvasRenderingContext2D,
+  state: WorldState,
+  time: number
+) {
+  const riverY = getRiverY(state.groundY, state.height);
+  const depth = Math.max(50, state.height - riverY);
+
+  const reflect = (x: number, color: string, strength: number, seed: number) => {
+    for (let row = 0; row < 7; row++) {
+      const y = riverY + 10 + row * Math.max(8, depth * 0.06);
+      const shimmer = Math.sin(time * 0.003 + seed + row) * 4;
+      const width = 7 + row * 5 + shimmer;
+      ctx.fillStyle = color;
+      ctx.globalAlpha = strength * (1 - row / 8);
+      ctx.fillRect(x - width / 2, y, width, 2 + (row % 2));
+    }
+  };
+
+  for (const light of state.streetLights) {
+    reflect(light.x, "#f6ca58", state.nightMode ? 0.45 : 0.12, light.x);
+  }
+  for (const npc of state.npcs) {
+    if (npc.activity === "village") {
+      reflect(npc.x, npc.shirtColor, state.nightMode ? 0.14 : 0.1, npc.momentPhase);
+    }
+  }
+  ctx.globalAlpha = 1;
 }
 
 function drawBridge(
@@ -997,13 +1072,14 @@ function drawForegroundPlants(
   w: number,
   h: number,
   night: boolean,
-  _time: number
+  time: number
 ) {
   for (const side of [-1, 1]) {
     const baseX = side === -1 ? 18 : w - 18;
     for (let index = 0; index < 8; index++) {
       const direction = side === -1 ? 1 : -1;
-      const x = baseX + direction * index * 13;
+      const sway = Math.round(Math.sin(time * 0.0018 + index * 0.75) * 2);
+      const x = baseX + direction * index * 13 + sway;
       const stemH = 20 + (index % 4) * 9;
       ctx.fillStyle = night ? "#17483f" : "#2d7b55";
       ctx.fillRect(x, h - stemH, 4, stemH);
@@ -1013,6 +1089,52 @@ function drawForegroundPlants(
         ctx.fillRect(x - 2, h - stemH - 4, 8, 5);
       }
     }
+  }
+}
+
+function drawRiverMoments(
+  ctx: CanvasRenderingContext2D,
+  state: WorldState,
+  time: number
+) {
+  const riverY = getRiverY(state.groundY, state.height);
+  const bridgeNpc = state.npcs.find((npc) => npc.activity === "bridge");
+  const dockNpc = state.npcs.find((npc) => npc.activity === "dock");
+
+  if (bridgeNpc) {
+    const sway = Math.sin(time * 0.001 + bridgeNpc.momentPhase) * state.width * 0.025;
+    const y = riverY + Math.min(42, (state.height - riverY) * 0.16);
+    const perspective = Math.min(1.15, Math.max(0.78, state.width / 1100));
+    bridgeNpc.x = state.width * 0.5 + sway;
+    drawNPC(
+      ctx,
+      bridgeNpc.x,
+      y,
+      bridgeNpc.scale * perspective,
+      Math.sin(time * 0.0007) > 0 ? 1 : -1,
+      bridgeNpc.walkFrame,
+      bridgeNpc.skinColor,
+      bridgeNpc.shirtColor,
+      "wave"
+    );
+  }
+
+  if (dockNpc) {
+    const dockX = state.width * 0.06;
+    const dockY = riverY + Math.min(60, (state.height - riverY) * 0.3);
+    dockNpc.x = dockX + Math.min(210, state.width * 0.2) * 0.35;
+    drawNPC(
+      ctx,
+      dockNpc.x,
+      dockY - 2,
+      dockNpc.scale * 0.92,
+      1,
+      dockNpc.walkFrame,
+      dockNpc.skinColor,
+      dockNpc.shirtColor,
+      "sit"
+    );
+    drawWaterRings(ctx, dockNpc.x + 14, dockY + 26, time + 900, state.nightMode, 0.8);
   }
 }
 
@@ -1209,12 +1331,17 @@ function updateWitches(state: WorldState, dt: number, time: number) {
 
 function updateNPCs(state: WorldState, dt: number) {
   for (const npc of state.npcs) {
+    if (npc.activity !== "village") {
+      npc.walkFrame += dt * 0.002;
+      continue;
+    }
+
     if (npc.idleTimer > 0) {
       npc.idleTimer -= dt;
-      npc.atShop = true;
       continue;
     }
     npc.atShop = false;
+    npc.atLamp = false;
 
     const dx = npc.targetX - npc.x;
     const dist = Math.abs(dx);
@@ -1223,20 +1350,31 @@ function updateNPCs(state: WorldState, dt: number) {
       const nearShop = state.shops.find(
         (s) => Math.abs(s.centerX - npc.x) < 60
       );
-      if (nearShop && Math.random() > 0.3) {
+      const nearLamp = state.streetLights.find(
+        (light) => Math.abs(light.x - npc.x) < 42
+      );
+      if (nearLamp) {
+        npc.idleTimer = 3000 + Math.random() * 4500;
+        npc.atLamp = true;
+      } else if (nearShop && Math.random() > 0.3) {
         npc.idleTimer = 2000 + Math.random() * 4000;
         npc.atShop = true;
       } else {
         npc.idleTimer = 500 + Math.random() * 1500;
       }
 
-      const nextShop =
-        state.shops.length && Math.random() > 0.3
+      const visitLamp = state.streetLights.length && Math.random() < 0.35;
+      const nextLamp = visitLamp
+        ? state.streetLights[Math.floor(Math.random() * state.streetLights.length)]
+        : null;
+      const nextShop = !nextLamp && state.shops.length && Math.random() > 0.3
           ? state.shops[Math.floor(Math.random() * state.shops.length)]
           : null;
-      npc.targetX = nextShop
-        ? nextShop.centerX + (Math.random() - 0.5) * 40
-        : Math.random() * state.width * 0.8 + state.width * 0.1;
+      npc.targetX = nextLamp
+        ? nextLamp.x + (Math.random() - 0.5) * 24
+        : nextShop
+          ? nextShop.centerX + (Math.random() - 0.5) * 40
+          : Math.random() * state.width * 0.8 + state.width * 0.1;
       npc.facing = npc.targetX > npc.x ? 1 : -1;
       continue;
     }
@@ -1333,7 +1471,7 @@ export function initWorld(canvas: HTMLCanvasElement): WorldState | null {
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
 
-  const dpr = window.devicePixelRatio || 1;
+  const dpr = getCanvasDpr();
   const w = window.innerWidth * dpr;
   const h = window.innerHeight * dpr;
   canvas.width = w;
@@ -1387,7 +1525,7 @@ export function initWorld(canvas: HTMLCanvasElement): WorldState | null {
 }
 
 export function resizeWorld(state: WorldState) {
-  const dpr = window.devicePixelRatio || 1;
+  const dpr = getCanvasDpr();
   const w = window.innerWidth * dpr;
   const h = window.innerHeight * dpr;
   state.canvas.width = w;
@@ -1479,6 +1617,11 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
   }
 
   drawGround(ctx, w, h, groundY, time, state.groundSpeckles, state.nightMode);
+  drawSceneReflections(ctx, state, time);
+  const riverY = getRiverY(groundY, h);
+  drawDock(ctx, w, h, riverY, state.nightMode, time);
+  drawBridge(ctx, w, h, riverY, state.nightMode, time);
+  drawForegroundPlants(ctx, w, h, state.nightMode, time);
 
   for (const shop of state.shops) {
     drawShop(ctx, shop.x, groundY, shop.variant, shop.scale);
@@ -1487,6 +1630,7 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
   if (state.input.clickFired && state.onShopClick) {
     const cx = state.input.lastClickX;
     const cy = state.input.lastClickY;
+    let handled = false;
     for (const shop of state.shops) {
       const s = Math.floor(4 * shop.scale);
       const shopW = s * 14;
@@ -1494,8 +1638,55 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
       const baseY = groundY - shopH;
       if (cx >= shop.x && cx <= shop.x + shopW && cy >= baseY && cy <= groundY) {
         state.onShopClick(shop.variant);
+        handled = true;
         break;
       }
+    }
+
+    if (!handled) {
+      for (const npc of state.npcs) {
+        const riverY = getRiverY(groundY, h);
+        const npcY = npc.activity === "bridge"
+          ? riverY + Math.min(42, (h - riverY) * 0.16)
+          : npc.activity === "dock"
+            ? riverY + Math.min(60, (h - riverY) * 0.3)
+            : groundY;
+        if (Math.abs(cx - npc.x) < 38 && cy > npcY - 68 && cy < npcY + 16) {
+          npc.idleTimer = 1800;
+          npc.atLamp = true;
+          npc.facing = cx >= npc.x ? 1 : -1;
+          handled = true;
+          break;
+        }
+      }
+    }
+
+    if (!handled) {
+      const cat = state.cats.find(
+        (candidate) => Math.abs(cx - candidate.x) < 30 && Math.abs(cy - candidate.y) < 34
+      );
+      if (cat) {
+        cat.sleeping = !cat.sleeping;
+        handled = true;
+      }
+    }
+
+    if (!handled) {
+      const dog = state.dogs.find(
+        (candidate) => Math.abs(cx - candidate.x) < 34 && Math.abs(cy - candidate.y) < 38
+      );
+      if (dog) {
+        dog.idleTimer = 1800;
+        dog.tailPhase += Math.PI;
+        handled = true;
+      }
+    }
+
+    if (!handled) {
+      const horse = state.horses.find(
+        (candidate) => Math.abs(cx - candidate.x) < 54 && Math.abs(cy - groundY) < 66
+      );
+      if (horse) horse.idleTimer = 1800;
     }
     state.input.clickFired = false;
   }
@@ -1507,6 +1698,12 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
 
   updateNPCs(state, dt);
   for (const npc of state.npcs) {
+    if (npc.activity !== "village") continue;
+    const pose = npc.atLamp
+      ? "wave"
+      : npc.atShop || npc.idleTimer > 0
+        ? "idle"
+        : "walk";
     drawNPC(
       ctx,
       npc.x,
@@ -1516,9 +1713,11 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
       npc.walkFrame,
       npc.skinColor,
       npc.shirtColor,
-      npc.atShop || npc.idleTimer > 0
+      pose
     );
   }
+
+  drawRiverMoments(ctx, state, time);
 
   // cats keep existing behavior; only eye glow changes at night.
   for (const cat of state.cats) {

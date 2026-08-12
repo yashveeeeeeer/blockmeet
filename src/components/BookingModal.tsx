@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export interface BookingSelection {
   minutes: 15 | 30;
@@ -13,9 +13,12 @@ interface BookingModalProps {
 
 export default function BookingModal({ booking, onClose }: BookingModalProps) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const [calendarReady, setCalendarReady] = useState(false);
 
   useEffect(() => {
     if (!booking) return;
+
+    setCalendarReady(false);
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -67,12 +70,25 @@ export default function BookingModal({ booking, onClose }: BookingModalProps) {
           </button>
         </header>
 
-        <iframe
-          className="booking-frame"
-          src={embedUrl}
-          title={`${booking.minutes} minute BLOCKMeet booking calendar`}
-          allow="camera; microphone; fullscreen; payment"
-        />
+        <div className="booking-frame-wrap">
+          {!calendarReady && (
+            <div className="booking-loader" role="status">
+              <span className="pixel-calendar" aria-hidden="true">
+                <i />
+                <i />
+                <i />
+              </span>
+              <span>Opening calendar…</span>
+            </div>
+          )}
+          <iframe
+            className={`booking-frame ${calendarReady ? "is-ready" : ""}`}
+            src={embedUrl}
+            title={`${booking.minutes} minute BLOCKMeet booking calendar`}
+            allow="camera; microphone; fullscreen; payment"
+            onLoad={() => setCalendarReady(true)}
+          />
+        </div>
 
         <p className="booking-fallback">
           Calendar not loading?{" "}

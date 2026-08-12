@@ -10,6 +10,10 @@ export interface InputState {
   longPressTimer: number | null;
 }
 
+export function getCanvasDpr(): number {
+  return Math.min(window.devicePixelRatio || 1, 2);
+}
+
 export function createInputState(): InputState {
   return {
     mouseX: -1,
@@ -32,7 +36,7 @@ export function attachInputHandlers(
 ) {
   const getPos = (e: MouseEvent | Touch) => {
     const rect = canvas.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = getCanvasDpr();
     return {
       x: (e.clientX - rect.left) * dpr,
       y: (e.clientY - rect.top) * dpr,
@@ -72,6 +76,8 @@ export function attachInputHandlers(
       const pos = getPos(e.touches[0]);
       state.mouseX = pos.x;
       state.mouseY = pos.y;
+      state.lastClickX = pos.x;
+      state.lastClickY = pos.y;
       state.isMouseDown = true;
 
       state.longPressTimer = window.setTimeout(() => {

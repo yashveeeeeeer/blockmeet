@@ -17,17 +17,17 @@ const item = {
 };
 
 const BASE = import.meta.env.BASE_URL;
-const READING_WEBPS = [
-  "hibike-euphonium-kumiko-oumae.webp",
-  "anime-fri.webp",
-  "anime-friere.webp",
-  "anime-frieren.webp",
-  "anime-frieren-2.webp",
-  "anime-one-punch-man.webp",
-  "black-clover-anime.webp",
-  "black-clover-anime2.webp",
-  "hanamaru-kindergarten-anime.webp",
-  "natusko-hirose-hirose-natsuko.webp",
+const READING_VIDEOS = [
+  "hibike-euphonium-kumiko-oumae.webm",
+  "anime-fri.webm",
+  "anime-friere.webm",
+  "anime-frieren.webm",
+  "anime-frieren-2.webm",
+  "anime-one-punch-man.webm",
+  "black-clover-anime.webm",
+  "black-clover-anime2.webm",
+  "hanamaru-kindergarten-anime.webm",
+  "natusko-hirose-hirose-natsuko.webm",
 ];
 
 function ToggleButton({
@@ -203,15 +203,19 @@ export default function WritingsPage() {
             type="button"
             className={`pixel-card p-2 cursor-pointer ${cardBorder} ${cardBg}`}
             onClick={() =>
-              setReadingImage((current) => (current + 1) % READING_WEBPS.length)
+              setReadingImage((current) => (current + 1) % READING_VIDEOS.length)
             }
             aria-label="Show another reading animation"
           >
-            <img
-              src={`${BASE}gifs/${READING_WEBPS[readingImage]}`}
-              alt="Animated reading scene"
-              loading="lazy"
-              decoding="async"
+            <video
+              key={READING_VIDEOS[readingImage]}
+              src={`${BASE}gifs/${READING_VIDEOS[readingImage]}`}
+              aria-label="Animated reading scene"
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
               className="w-48 h-48 sm:w-56 sm:h-56 object-cover pixel-art"
             />
           </button>
