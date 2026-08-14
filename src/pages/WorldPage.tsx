@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { animate, motion, useMotionValue } from "framer-motion";
+import { motion } from "framer-motion";
 import { SITE } from "../config";
 import {
   destroyWorld,
@@ -47,7 +47,6 @@ function getTimeOfDayXp(): number {
 
 export default function WorldPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const dragAreaRef = useRef<HTMLElement>(null);
   const worldRef = useRef<WorldState | null>(null);
   const lastTimeRef = useRef(0);
   const navigate = useNavigate();
@@ -59,8 +58,6 @@ export default function WorldPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [booking, setBooking] = useState<BookingSelection | null>(null);
   const [nightMode, setNightMode] = useState(() => isNightTime());
-  const boardX = useMotionValue(0);
-  const boardY = useMotionValue(0);
 
   const konamiRef = useRef<string[]>([]);
   const spawnBufRef = useRef("");
@@ -101,22 +98,6 @@ export default function WorldPage() {
     document.addEventListener("visibilitychange", handleVisibility);
     return () => document.removeEventListener("visibilitychange", handleVisibility);
   }, []);
-
-  useEffect(() => {
-    let lastTap = 0;
-    const handleTouchEnd = (event: TouchEvent) => {
-      const target = event.target as HTMLElement;
-      if (!target.closest("#booking")) return;
-      const now = Date.now();
-      if (now - lastTap < 350 && !target.closest("button")) {
-        animate(boardX, 0, { type: "spring", stiffness: 360, damping: 30 });
-        animate(boardY, 0, { type: "spring", stiffness: 360, damping: 30 });
-      }
-      lastTap = now;
-    };
-    document.addEventListener("touchend", handleTouchEnd, { passive: true });
-    return () => document.removeEventListener("touchend", handleTouchEnd);
-  }, [boardX, boardY]);
 
   useEffect(() => {
     const interval = setInterval(() => setXp(getTimeOfDayXp()), 60_000);
@@ -240,7 +221,6 @@ export default function WorldPage() {
 
       <main className="relative z-10 pointer-events-none">
         <section
-          ref={dragAreaRef}
           className="village-hero"
           aria-labelledby="hero-title"
         >
@@ -249,12 +229,6 @@ export default function WorldPage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            drag
-            dragConstraints={dragAreaRef}
-            dragElastic={0.08}
-            dragMomentum={false}
-            whileDrag={{ scale: 1.015 }}
-            style={{ x: boardX, y: boardY }}
             className="village-board pointer-events-auto"
           >
             <h1 id="hero-title" className="hero-brand">

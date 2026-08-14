@@ -185,46 +185,27 @@
   min-height: 100svh;
   align-items: flex-end;
   justify-content: flex-start;
-  padding: clamp(5.25rem, 11vh, 7.5rem) 1rem clamp(3.75rem, 7vh, 5.5rem) clamp(1rem, 6vw, 5.5rem);
+  padding: clamp(5.25rem, 11vh, 7.5rem) 1rem 0.5rem clamp(1rem, 6vw, 5.5rem);
 }
 
 .village-board {
   position: relative;
   display: grid;
   width: min(100%, clamp(480px, 36vw, 540px));
-  height: 270px;
+  height: 240px;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr);
   grid-template-rows: 1fr;
   align-items: start;
-  cursor: grab;
-  touch-action: none;
+  cursor: default;
+  touch-action: auto;
   user-select: none;
   text-align: center;
   filter: drop-shadow(8px 9px 0 rgba(0, 0, 0, 0.34));
 }
 
-.village-board:active {
-  cursor: grabbing;
-}
-
 .village-board::before,
 .village-board::after {
-  position: absolute;
-  z-index: -1;
-  bottom: 0.35rem;
-  height: 3px;
-  background: rgba(177, 226, 239, 0.42);
-  content: "";
-}
-
-.village-board::before {
-  left: 6%;
-  width: 36%;
-}
-
-.village-board::after {
-  right: 3%;
-  width: 43%;
+  display: none;
 }
 
 .hero-eyebrow,
@@ -241,7 +222,7 @@
 .hero-brand {
   position: relative;
   z-index: 2;
-  width: 260px;
+  width: 280px;
   max-width: none;
   grid-column: 2;
   grid-row: 1;
@@ -254,7 +235,7 @@
   color: var(--gold);
   padding: 1.1rem 1.15rem 0.9rem;
   font-family: "Press Start 2P", monospace;
-  font-size: clamp(1.25rem, 2.3vw, 1.75rem);
+  font-size: clamp(1.15rem, 2vw, 1.55rem);
   line-height: 1.15;
   box-shadow:
     5px 5px 0 rgba(0, 0, 0, 0.52),
@@ -281,7 +262,7 @@
   top: 100%;
   left: calc(50% - 8px);
   width: 16px;
-  height: 190px;
+  height: 150px;
   border-right: 3px solid #2a170e;
   border-left: 3px solid #2a170e;
   background:
@@ -432,10 +413,10 @@
 .meeting-sign::after {
   position: absolute;
   z-index: -1;
-  bottom: -45px;
+  bottom: -40px;
   left: calc(50% - 8px);
   width: 16px;
-  height: 45px;
+  height: 40px;
   border-right: 3px solid #2a170e;
   border-left: 3px solid #2a170e;
   background:
@@ -459,7 +440,7 @@
   grid-column: 1;
   grid-row: 1;
   justify-self: start;
-  margin-top: 124px;
+  margin-top: 90px;
   background: #ef7585;
   rotate: -1deg;
 }
@@ -468,15 +449,15 @@
   grid-column: 3;
   grid-row: 1;
   justify-self: end;
-  margin-top: 84px;
+  margin-top: 50px;
   background: #7bd4b1;
   rotate: 1deg;
   translate: -60px 0;
 }
 
 .meeting-sign-30::after {
-  bottom: -85px;
-  height: 85px;
+  bottom: -80px;
+  height: 80px;
 }
 
 .meeting-sign-time,
@@ -1007,7 +988,7 @@
   .village-board {
     display: block;
     width: 220px;
-    height: 270px;
+    height: 250px;
     filter: drop-shadow(5px 6px 0 rgba(0, 0, 0, 0.34));
   }
 
