@@ -17,6 +17,7 @@ import Modal from "../components/Modal";
 import BookingModal, {
   type BookingSelection,
 } from "../components/BookingModal";
+import SignGarland from "../components/SignGarland";
 
 const KONAMI = [
   "ArrowUp",
@@ -257,7 +258,7 @@ export default function WorldPage() {
             className="village-board pointer-events-auto"
           >
             <h1 id="hero-title" className="hero-brand">
-              <span className="sign-lights" aria-hidden="true" />
+              <SignGarland />
               {SITE.title}
             </h1>
             <CTAButtons onBook={setBooking} />
