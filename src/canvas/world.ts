@@ -201,6 +201,15 @@ interface JumpingFishData {
   fin: string;
 }
 
+interface ShootingStarData {
+  progress: number;
+  duration: number;
+  startX: number;
+  startY: number;
+  travelX: number;
+  travelY: number;
+}
+
 export interface WorldState {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
@@ -226,6 +235,8 @@ export interface WorldState {
   bridgeVisitor: BridgeVisitorData;
   jumpingFish: JumpingFishData | null;
   nextFishJumpAt: number;
+  shootingStar: ShootingStarData | null;
+  nextShootingStarAt: number;
   groundSpeckles: { row: number; col: number; dx: number; dy: number }[];
   groundY: number;
   scrollY: number;
@@ -813,18 +824,25 @@ function updateHorses(state: WorldState, dt: number) {
 }
 
 function spawnParticle(state: WorldState): Particle | null {
-  const maxP = state.performanceMode ? MAX_PARTICLES / 3 : MAX_PARTICLES;
-  if (state.particles.length >= maxP) return null;
   const isNight = state.nightMode;
+  const maxP = isNight ? 28 : MAX_PARTICLES;
+  if (state.particles.length >= maxP) return null;
+  const cluster = [0.12, 0.3, 0.65, 0.84][Math.floor(Math.random() * 4)];
   return {
-    x: Math.random() * state.width,
-    y: Math.random() * state.groundY,
-    vx: (Math.random() - 0.5) * 0.3,
-    vy: -0.2 - Math.random() * 0.3,
+    x: isNight
+      ? Math.max(12, Math.min(state.width - 12, state.width * cluster + (Math.random() - 0.5) * state.width * 0.12))
+      : Math.random() * state.width,
+    y: isNight
+      ? state.groundY - 18 - Math.random() * Math.min(105 * state.dpr, state.groundY * 0.2)
+      : Math.random() * state.groundY,
+    vx: isNight ? (Math.random() - 0.5) * 0.12 : (Math.random() - 0.5) * 0.3,
+    vy: isNight ? (Math.random() - 0.5) * 0.08 : -0.2 - Math.random() * 0.3,
     life: 0,
-    maxLife: 2000 + Math.random() * 3000,
+    maxLife: isNight ? 5000 + Math.random() * 5000 : 2000 + Math.random() * 3000,
     size: isNight ? 2 + Math.random() * 2 : 1 + Math.random() * 2,
-    color: isNight ? PAL.gold : "rgba(255,255,255,0.5)",
+    color: isNight
+      ? Math.random() > 0.38 ? "#f6d365" : "#79ead3"
+      : "rgba(255,255,255,0.5)",
   };
 }
 
@@ -858,21 +876,21 @@ function drawMountains(
 ) {
   const layers = [
     {
-      color: night ? "#1a1a3a" : PAL.mountainFar,
+      color: night ? "#171832" : PAL.mountainFar,
       y: groundY - 80,
       amp: 60,
       freq: 0.003,
       parallax: 0.1,
     },
     {
-      color: night ? "#222244" : PAL.mountainMid,
+      color: night ? "#222044" : PAL.mountainMid,
       y: groundY - 40,
       amp: 45,
       freq: 0.005,
       parallax: 0.2,
     },
     {
-      color: night ? "#2a2a4e" : PAL.mountainNear,
+      color: night ? "#312751" : PAL.mountainNear,
       y: groundY - 10,
       amp: 30,
       freq: 0.008,
@@ -996,6 +1014,37 @@ function drawGround(
 
 function getRiverY(groundY: number, height: number): number {
   return groundY + Math.max(38, height * 0.055);
+}
+
+function drawEnchantedBankDetails(
+  ctx: CanvasRenderingContext2D,
+  state: WorldState,
+  time: number,
+) {
+  if (!state.nightMode) return;
+
+  const { width: w, groundY, dpr } = state;
+  const p = Math.max(2, Math.round(1.5 * dpr));
+  const clusters = [0.09, 0.22, 0.72, 0.88];
+
+  for (const [index, ratio] of clusters.entries()) {
+    const x = w * ratio;
+    const pulse = 0.68 + (Math.sin(time * 0.0014 + index * 1.7) + 1) * 0.14;
+    const cap = index % 2 === 0 ? "#78ead2" : "#a995ff";
+    ctx.save();
+    ctx.globalAlpha = pulse * 0.14;
+    ctx.fillStyle = cap;
+    ctx.fillRect(x - p * 4, groundY - p * 7, p * 9, p * 8);
+    ctx.globalAlpha = pulse;
+    ctx.fillStyle = "#c8e9df";
+    ctx.fillRect(x, groundY - p * 4, p, p * 4);
+    ctx.fillStyle = cap;
+    ctx.fillRect(x - p * 2, groundY - p * 5, p * 5, p * 2);
+    ctx.fillRect(x - p, groundY - p * 6, p * 3, p);
+    ctx.fillStyle = "rgba(255,255,255,0.72)";
+    ctx.fillRect(x, groundY - p * 5, p, p);
+    ctx.restore();
+  }
 }
 
 function drawDock(
@@ -1172,6 +1221,83 @@ function drawJumpingFish(
   }
 }
 
+function drawEnchantedMist(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  groundY: number,
+  time: number,
+) {
+  const layers = [
+    { y: groundY - 112, speed: 0.0024, color: "rgba(123, 112, 190, 0.09)", direction: 1 },
+    { y: groundY - 62, speed: 0.0016, color: "rgba(103, 178, 190, 0.07)", direction: -1 },
+  ];
+
+  for (const [layerIndex, layer] of layers.entries()) {
+    const spacing = Math.max(150, w / 5);
+    const drift = (time * layer.speed * layer.direction) % spacing;
+    ctx.fillStyle = layer.color;
+    for (let index = -1; index < 7; index++) {
+      const x = index * spacing + drift;
+      const y = layer.y + Math.sin(index * 1.7 + layerIndex) * 9;
+      const width = spacing * (0.48 + ((index + layerIndex + 3) % 3) * 0.06);
+      ctx.fillRect(x, y, width, 4);
+      ctx.fillRect(x + width * 0.16, y + 4, width * 0.58, 3);
+      ctx.fillRect(x + width * 0.34, y + 7, width * 0.28, 2);
+    }
+  }
+}
+
+function updateAndDrawShootingStar(
+  ctx: CanvasRenderingContext2D,
+  state: WorldState,
+  time: number,
+  dt: number,
+) {
+  if (state.performanceMode) {
+    state.shootingStar = null;
+    return;
+  }
+
+  if (!state.shootingStar && time >= state.nextShootingStarAt) {
+    state.shootingStar = {
+      progress: 0,
+      duration: 720 + Math.random() * 380,
+      startX: state.width * (0.08 + Math.random() * 0.55),
+      startY: state.height * (0.07 + Math.random() * 0.18),
+      travelX: state.width * (0.12 + Math.random() * 0.08),
+      travelY: state.height * (0.07 + Math.random() * 0.045),
+    };
+  }
+
+  const star = state.shootingStar;
+  if (!star) return;
+  star.progress = Math.min(1, star.progress + dt / star.duration);
+  const eased = star.progress * star.progress * (3 - 2 * star.progress);
+  const x = star.startX + star.travelX * eased;
+  const y = star.startY + star.travelY * eased;
+  const tail = 32 * state.dpr * (1 - star.progress * 0.45);
+  const alpha = Math.sin(star.progress * Math.PI);
+
+  ctx.save();
+  ctx.globalAlpha = alpha * 0.28;
+  ctx.strokeStyle = "#8fdff1";
+  ctx.lineWidth = Math.max(2, state.dpr * 2);
+  ctx.beginPath();
+  ctx.moveTo(x - tail, y - tail * 0.55);
+  ctx.lineTo(x, y);
+  ctx.stroke();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = "#ffffff";
+  const p = Math.max(2, state.dpr * 2);
+  ctx.fillRect(x - p / 2, y - p / 2, p, p);
+  ctx.restore();
+
+  if (star.progress >= 1) {
+    state.shootingStar = null;
+    state.nextShootingStarAt = time + 45000 + Math.random() * 55000;
+  }
+}
+
 function drawSceneReflections(
   ctx: CanvasRenderingContext2D,
   state: WorldState,
@@ -1200,6 +1326,51 @@ function drawSceneReflections(
     }
   }
   ctx.globalAlpha = 1;
+}
+
+function drawMoonReflection(
+  ctx: CanvasRenderingContext2D,
+  state: WorldState,
+  time: number,
+) {
+  if (!state.nightMode) return;
+
+  const riverY = getRiverY(state.groundY, state.height);
+  const depth = state.height - riverY;
+  const moonX = state.width * 0.78;
+  const rows = state.performanceMode ? 7 : 12;
+
+  ctx.save();
+  for (let row = 0; row < rows; row++) {
+    const progress = row / Math.max(1, rows - 1);
+    const y = riverY + 12 + progress * depth * 0.72;
+    const sway = Math.sin(time * 0.0015 + row * 1.8) * (3 + progress * 8);
+    const width = 14 + progress * 48 + Math.sin(time * 0.0022 + row) * 5;
+    const alpha = (0.34 - progress * 0.18) * (0.78 + Math.sin(time * 0.001 + row) * 0.18);
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = row % 3 === 0 ? "#d7eaff" : "#8fcce2";
+    ctx.fillRect(moonX + sway - width / 2, y, width * 0.38, 2 + (row % 2));
+    ctx.fillRect(moonX + sway + width * 0.08, y, width * 0.42, 2 + (row % 2));
+  }
+  ctx.restore();
+}
+
+function drawCharacterRim(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  scale: number,
+  time: number,
+) {
+  const p = Math.max(2, Math.floor(2 * scale));
+  const shimmer = 0.12 + (Math.sin(time * 0.0017 + x * 0.02) + 1) * 0.035;
+  ctx.save();
+  ctx.globalAlpha = shimmer;
+  ctx.fillStyle = "#7ce7dc";
+  ctx.fillRect(x - p * 2.2, y - p * 9.2, p * 0.8, p * 8.7);
+  ctx.fillRect(x + p * 1.4, y - p * 8.2, p * 0.8, p * 7.7);
+  ctx.fillRect(x - p * 1.2, y - p * 10, p * 2.4, p * 0.7);
+  ctx.restore();
 }
 
 function addReaction(
@@ -1306,7 +1477,8 @@ function drawBridge(
   h: number,
   riverY: number,
   night: boolean,
-  time: number
+  time: number,
+  runesActive: boolean,
 ) {
   const centerX = w / 2;
   const topY = riverY - 8;
@@ -1341,6 +1513,32 @@ function drawBridge(
     ctx.fill();
     ctx.fillStyle = "rgba(235, 164, 83, 0.2)";
     ctx.fillRect(centerX - half0 + 7, y0 + 3, Math.max(4, half0 * 0.28), 2);
+  }
+
+  if (night) {
+    const runeRows = [0.3, 0.52, 0.72];
+    const activePulse = runesActive
+      ? 0.5 + (Math.sin(time * 0.0035) + 1) * 0.15
+      : 0.13;
+    ctx.save();
+    ctx.globalAlpha = activePulse;
+    ctx.fillStyle = "#6ee7d5";
+    for (const [index, progress] of runeRows.entries()) {
+      const y = topY + (bottomY - topY) * progress;
+      const half = topHalf + (bottomHalf - topHalf) * progress;
+      const p = Math.max(2, Math.round((2 + progress * 3) * (w / Math.max(w, 900))));
+      const side = index % 2 === 0 ? -1 : 1;
+      const x = centerX + side * half * 0.58;
+      ctx.fillRect(x, y - p * 2, p, p);
+      ctx.fillRect(x - p, y - p, p, p);
+      ctx.fillRect(x + p, y - p, p, p);
+      ctx.fillRect(x - p * 2, y, p, p);
+      ctx.fillRect(x + p * 2, y, p, p);
+      ctx.fillRect(x - p, y + p, p, p);
+      ctx.fillRect(x + p, y + p, p, p);
+      ctx.fillRect(x, y + p * 2, p, p);
+    }
+    ctx.restore();
   }
 
   // Rails and posts exaggerate the perspective toward the foreground.
@@ -1407,7 +1605,16 @@ function drawForegroundPlants(
       ctx.fillRect(x, h - stemH, 4, stemH);
       ctx.fillRect(x + direction * 4, h - stemH + 5, 8 * direction, 4);
       if (index % 3 === 0) {
-        ctx.fillStyle = night ? "#d7aa4a" : "#f1ce69";
+        if (night) {
+          ctx.save();
+          ctx.globalAlpha = 0.14 + (Math.sin(time * 0.0015 + index) + 1) * 0.025;
+          ctx.fillStyle = index % 2 === 0 ? "#72e5ce" : "#a792ff";
+          ctx.fillRect(x - 7, h - stemH - 9, 18, 14);
+          ctx.restore();
+        }
+        ctx.fillStyle = night
+          ? index % 2 === 0 ? "#72e5ce" : "#a792ff"
+          : "#f1ce69";
         ctx.fillRect(x - 2, h - stemH - 4, 8, 5);
       }
     }
@@ -1429,6 +1636,15 @@ function drawRiverMoments(
   if (bridgeNpc && visitorPosition) {
     bridgeNpc.x = visitorPosition.x;
     const towardCamera = state.bridgeVisitor.phase !== "returning";
+    if (state.nightMode) {
+      drawCharacterRim(
+        ctx,
+        visitorPosition.x,
+        visitorPosition.y,
+        bridgeNpc.scale * visitorPosition.scale,
+        time,
+      );
+    }
     drawNPCOnBridge(
       ctx,
       visitorPosition.x,
@@ -1462,6 +1678,9 @@ function drawRiverMoments(
     const dockX = state.width - state.width * 0.06 - dockW;
     const dockY = riverY + Math.min(60, (state.height - riverY) * 0.3);
     dockNpc.x = dockX + dockW * 0.65;
+    if (state.nightMode) {
+      drawCharacterRim(ctx, dockNpc.x, dockY - 2, dockNpc.scale * 0.92, time);
+    }
     drawNPC(
       ctx,
       dockNpc.x,
@@ -1779,7 +1998,7 @@ function updateParticles(state: WorldState, dt: number) {
     p.vy *= 0.99;
   }
 
-  if (Math.random() > 0.7) {
+  if (Math.random() > (state.nightMode ? 0.965 : 0.7)) {
     const np = spawnParticle(state);
     if (np) particles.push(np);
   }
@@ -1793,6 +2012,16 @@ function drawParticles(
   for (const p of particles) {
     const alpha = 1 - p.life / p.maxLife;
     const flicker = 0.6 + Math.sin(time * 0.005 + p.x) * 0.4;
+    if (!p.color.startsWith("rgba")) {
+      ctx.globalAlpha = alpha * flicker * 0.16;
+      ctx.fillStyle = p.color;
+      ctx.fillRect(
+        Math.floor(p.x - p.size * 2),
+        Math.floor(p.y - p.size * 2),
+        p.size * 5,
+        p.size * 5,
+      );
+    }
     ctx.globalAlpha = alpha * flicker;
     ctx.fillStyle = p.color;
     ctx.fillRect(Math.floor(p.x), Math.floor(p.y), p.size, p.size);
@@ -1865,6 +2094,8 @@ export function initWorld(canvas: HTMLCanvasElement): WorldState | null {
     bridgeVisitor: createBridgeVisitor(),
     jumpingFish: null,
     nextFishJumpAt: performance.now() + 700 + Math.random() * 2200,
+    shootingStar: null,
+    nextShootingStarAt: performance.now() + 3500 + Math.random() * 4500,
     groundSpeckles: createGroundSpeckles(w),
     groundY,
     scrollY: 0,
@@ -1916,6 +2147,8 @@ export function resizeWorld(state: WorldState) {
   state.bridgeVisitor = createBridgeVisitor();
   state.jumpingFish = null;
   state.nextFishJumpAt = performance.now() + 700 + Math.random() * 2200;
+  state.shootingStar = null;
+  state.nextShootingStarAt = performance.now() + 3500 + Math.random() * 4500;
 }
 
 export function renderFrame(state: WorldState, time: number, dt: number) {
@@ -1931,7 +2164,8 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
         Math.sin(time * star.twinkleSpeed + star.phase) * 0.5 + 0.5;
       drawStar(ctx, star.x, star.y, star.brightness * twinkle);
     }
-    drawMoon(ctx, w * 0.8, h * 0.12, 30);
+    updateAndDrawShootingStar(ctx, state, time, dt);
+    drawMoon(ctx, w * 0.8, h * 0.12, 30, time);
   } else {
     drawSun(ctx, w * 0.15, h * 0.12, 28, time);
 
@@ -1981,26 +2215,45 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
   }
 
   for (const cloud of state.clouds) {
-    cloud.x += cloud.speed * (dt * 0.05);
+    cloud.x += cloud.speed * (dt * (state.nightMode ? 0.018 : 0.05));
     if (cloud.x > w + 100) cloud.x = -200;
-    drawCloud(ctx, cloud.x, cloud.y - state.scrollY * 0.05, cloud.scale);
+    drawCloud(
+      ctx,
+      cloud.x,
+      cloud.y - state.scrollY * 0.05,
+      cloud.scale,
+      state.nightMode,
+    );
   }
 
   drawMountains(ctx, w, groundY, state.scrollY, state.nightMode);
+  if (state.nightMode && !state.performanceMode) {
+    drawEnchantedMist(ctx, w, groundY, time);
+  }
 
   for (const tree of state.trees) {
     drawTreeByType(ctx, tree, groundY);
   }
 
   drawGround(ctx, w, h, groundY, time, state.groundSpeckles, state.nightMode);
+  drawEnchantedBankDetails(ctx, state, time);
   drawSceneReflections(ctx, state, time);
+  drawMoonReflection(ctx, state, time);
   const riverY = getRiverY(groundY, h);
   drawDock(ctx, w, h, riverY, state.nightMode, time);
-  drawBridge(ctx, w, h, riverY, state.nightMode, time);
+  drawBridge(
+    ctx,
+    w,
+    h,
+    riverY,
+    state.nightMode,
+    time,
+    state.bridgeVisitor.phase !== "waiting",
+  );
   drawForegroundPlants(ctx, w, h, state.nightMode, time);
 
   for (const shop of state.shops) {
-    drawShop(ctx, shop.x, groundY, shop.variant, shop.scale);
+    drawShop(ctx, shop.x, groundY, shop.variant, shop.scale, state.nightMode);
   }
 
   updateInteractionCursor(state);
@@ -2123,6 +2376,9 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
       : npc.atShop || npc.idleTimer > 0
         ? "idle"
         : "walk";
+    if (state.nightMode) {
+      drawCharacterRim(ctx, npc.x, groundY, npc.scale, time);
+    }
     drawNPC(
       ctx,
       npc.x,

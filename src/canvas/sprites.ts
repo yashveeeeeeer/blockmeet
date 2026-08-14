@@ -38,33 +38,52 @@ export function drawMoon(
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
-  size: number
+  size: number,
+  time = 0,
 ) {
-  ctx.fillStyle = PAL.moonGlow;
-  ctx.beginPath();
-  ctx.arc(x, y, size + 8, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "#ddeeff";
-  ctx.fillRect(x - size / 2, y - size / 2, size, size);
-  ctx.fillStyle = "#bbccdd";
-  ctx.fillRect(x - size / 4, y - size / 4, size / 6, size / 6);
-  ctx.fillRect(x + size / 6, y, size / 5, size / 5);
-  ctx.fillRect(x - size / 6, y + size / 6, size / 8, size / 8);
+  const p = Math.max(2, Math.floor(size / 8));
+  const pulse = 0.82 + (Math.sin(time * 0.0007) + 1) * 0.06;
+
+  ctx.save();
+  const halo = ctx.createRadialGradient(x, y, p * 2, x, y, p * 8);
+  halo.addColorStop(0, `rgba(190, 220, 255, ${0.3 * pulse})`);
+  halo.addColorStop(0.46, `rgba(137, 166, 235, ${0.13 * pulse})`);
+  halo.addColorStop(1, "rgba(91, 89, 163, 0)");
+  ctx.fillStyle = halo;
+  ctx.fillRect(x - p * 8, y - p * 8, p * 16, p * 16);
+  ctx.restore();
+
+  const rows = [4, 6, 8, 8, 8, 8, 6, 4];
+  ctx.fillStyle = "#e8f2ff";
+  rows.forEach((width, row) => {
+    ctx.fillRect(x - (width * p) / 2, y + (row - 4) * p, width * p, p);
+  });
+  ctx.fillStyle = "#c5d7ed";
+  ctx.fillRect(x - p * 2, y - p * 2, p * 2, p);
+  ctx.fillRect(x + p, y, p * 2, p * 2);
+  ctx.fillRect(x - p, y + p * 2, p, p);
+  ctx.fillStyle = "rgba(255,255,255,0.72)";
+  ctx.fillRect(x - p * 2, y - p * 3, p * 3, p);
 }
 
 export function drawCloud(
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
-  scale: number
+  scale: number,
+  night = false,
 ) {
   const s = Math.floor(8 * scale);
-  ctx.fillStyle = PAL.cloud;
+  ctx.fillStyle = night ? "#292a54" : PAL.cloud;
   ctx.fillRect(x, y, s * 3, s);
   ctx.fillRect(x + s * 0.5, y - s * 0.6, s * 2, s);
   ctx.fillRect(x + s, y - s, s, s * 0.6);
-  ctx.fillStyle = PAL.cloudShadow;
-  ctx.fillRect(x, y + s - 2, s * 3, 2);
+  ctx.fillStyle = night ? "#17192f" : PAL.cloudShadow;
+  ctx.fillRect(x, y + s - Math.max(2, s * 0.24), s * 3, Math.max(2, s * 0.24));
+  if (night) {
+    ctx.fillStyle = "rgba(116, 110, 176, 0.22)";
+    ctx.fillRect(x + s * 0.65, y - s * 0.55, s * 1.35, Math.max(2, s * 0.22));
+  }
 }
 
 export function drawStar(
@@ -1031,7 +1050,8 @@ export function drawShop(
   x: number,
   groundY: number,
   variant: number,
-  scale: number
+  scale: number,
+  night = false,
 ) {
   const s = Math.floor(4 * scale);
   const w = s * 14;
@@ -1040,6 +1060,18 @@ export function drawShop(
   const wallColors = ["#c4956a", "#8b9dc3", "#c9a0dc", "#d4c4a8"];
   const roofColors = ["#e94560", "#4ecca3", "#f5c542", "#6a3d8a"];
   const vi = variant % wallColors.length;
+
+  if (night) {
+    const centerX = x + w / 2;
+    const centerY = baseY + h * 0.58;
+    const radius = w * 0.82;
+    const aura = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
+    aura.addColorStop(0, vi === 3 ? "rgba(173, 136, 255, 0.2)" : "rgba(246, 200, 95, 0.13)");
+    aura.addColorStop(0.55, vi === 3 ? "rgba(136, 103, 220, 0.08)" : "rgba(246, 200, 95, 0.045)");
+    aura.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = aura;
+    ctx.fillRect(centerX - radius, centerY - radius, radius * 2, radius * 2);
+  }
 
   ctx.fillStyle = "rgba(0,0,0,0.15)";
   ctx.fillRect(x + 3, groundY - 2, w, 4);
@@ -1052,10 +1084,10 @@ export function drawShop(
   ctx.fillRect(x, baseY, w, s * 1.5);
   ctx.fillStyle = "rgba(0,0,0,0.15)";
   ctx.fillRect(x - s, baseY + s * 3, w + s * 2, s * 0.5);
-  ctx.fillStyle = "#6ec6ff";
+  ctx.fillStyle = night ? (vi === 3 ? "#bba5ff" : "#f6c85f") : "#6ec6ff";
   ctx.fillRect(x + s * 2, baseY + s * 5, s * 3.5, s * 3.5);
   ctx.fillRect(x + s * 8, baseY + s * 5, s * 3.5, s * 3.5);
-  ctx.fillStyle = "rgba(255,255,255,0.25)";
+  ctx.fillStyle = night ? "rgba(255,247,204,0.46)" : "rgba(255,255,255,0.25)";
   ctx.fillRect(x + s * 2, baseY + s * 5, s * 1.5, s * 1.5);
   ctx.fillRect(x + s * 8, baseY + s * 5, s * 1.5, s * 1.5);
   ctx.fillStyle = "#5a3a1a";
