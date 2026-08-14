@@ -29,6 +29,7 @@ export default function CTAButtons({ onBook }: CTAButtonsProps) {
           onClick={() => onBook(option)}
           aria-label={`Book a ${option.minutes} minute ${option.label.toLowerCase()} with ${SITE.owner}`}
         >
+          <span className="sign-lights" aria-hidden="true" />
           <span className="meeting-sign-time">{option.minutes} min</span>
           <span className="meeting-sign-label">{option.label}</span>
         </button>

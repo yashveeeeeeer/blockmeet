@@ -211,7 +211,9 @@ export default function WorldPage() {
   }, []);
 
   return (
-    <div className={crtOn ? "crt-effect" : ""}>
+    <div
+      className={`${crtOn ? "crt-effect " : ""}${nightMode ? "scene-night" : "scene-day"}`}
+    >
       <a className="skip-link" href="#booking">
         Skip to booking
       </a>
@@ -255,6 +257,7 @@ export default function WorldPage() {
             className="village-board pointer-events-auto"
           >
             <h1 id="hero-title" className="hero-brand">
+              <span className="sign-lights" aria-hidden="true" />
               {SITE.title}
             </h1>
             <CTAButtons onBook={setBooking} />

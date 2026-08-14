@@ -173,13 +173,19 @@
   transform: translateY(0);
 }
 
+.scene-night,
+.scene-day {
+  height: 100svh;
+  overflow: hidden;
+}
+
 .village-hero {
   position: relative;
   display: flex;
   min-height: 100svh;
   align-items: flex-end;
-  justify-content: flex-end;
-  padding: clamp(5.25rem, 11vh, 7.5rem) clamp(1.25rem, 10vw, 13rem) clamp(3.75rem, 7vh, 5.5rem) 1rem;
+  justify-content: flex-start;
+  padding: clamp(5.25rem, 11vh, 7.5rem) 1rem clamp(3.75rem, 7vh, 5.5rem) clamp(1.25rem, 10vw, 13rem);
 }
 
 .village-board {
@@ -234,7 +240,7 @@
 .hero-brand {
   position: relative;
   z-index: 2;
-  width: fit-content;
+  width: min(100%, 390px);
   max-width: calc(100% - 3rem);
   margin: 0 auto;
   border: 4px solid #2a170e;
@@ -270,7 +276,7 @@
   top: 100%;
   left: calc(50% - 8px);
   width: 16px;
-  height: 60px;
+  height: 156px;
   border-right: 3px solid #2a170e;
   border-left: 3px solid #2a170e;
   background:
@@ -310,7 +316,43 @@
   width: 100%;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: clamp(1rem, 3vw, 1.6rem);
-  margin-top: 1.55rem;
+  margin-top: 2.2rem;
+}
+
+.sign-lights {
+  position: absolute;
+  z-index: 3;
+  inset: 4px;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle, #ffe66f 0 2px, transparent 2.6px),
+    radial-gradient(circle, #ff9f43 0 2px, transparent 2.6px),
+    radial-gradient(circle, #7cf6d4 0 2px, transparent 2.6px),
+    radial-gradient(circle, #ffd0e0 0 2px, transparent 2.6px);
+  background-position: top left, bottom left, top left, top right;
+  background-size: 22px 7px, 22px 7px, 7px 22px, 7px 22px;
+  background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
+  filter: drop-shadow(0 0 3px #ffd95a) drop-shadow(0 0 6px rgba(255, 196, 64, 0.72));
+  opacity: 0;
+  transition: opacity 320ms ease;
+}
+
+.scene-night .sign-lights {
+  opacity: 0.92;
+  animation: sign-light-twinkle 2.4s steps(2, end) infinite;
+}
+
+@keyframes sign-light-twinkle {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 2px #ffd95a) drop-shadow(0 0 5px rgba(255, 196, 64, 0.6));
+    opacity: 0.72;
+  }
+
+  50% {
+    filter: drop-shadow(0 0 4px #fff0a1) drop-shadow(0 0 8px rgba(255, 196, 64, 0.88));
+    opacity: 1;
+  }
 }
 
 .meeting-sign {
@@ -887,14 +929,14 @@
 
   .village-board {
     width: 190px;
-    align-items: flex-end;
+    align-items: flex-start;
     padding-bottom: 1rem;
     filter: drop-shadow(5px 6px 0 rgba(0, 0, 0, 0.34));
   }
 
   .hero-brand {
     max-width: 100%;
-    margin-right: 0;
+    margin-left: 0;
     border-width: 3px;
     padding: 0.85rem 1rem 0.75rem;
     font-size: 0.9rem;
@@ -906,7 +948,7 @@
   .hero-brand::after {
     left: calc(50% - 7px);
     width: 14px;
-    height: 42px;
+    height: 250px;
   }
 
   .meeting-signs {
@@ -925,12 +967,12 @@
 
   .meeting-sign-15 {
     width: calc(100% - 10px);
-    justify-self: start;
+    justify-self: end;
   }
 
   .meeting-sign-30 {
     width: calc(100% - 10px);
-    justify-self: end;
+    justify-self: start;
   }
 
   .meeting-sign::after {

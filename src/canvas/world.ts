@@ -477,7 +477,7 @@ function createNPCs(width: number, shops: ShopData[]): NPCData[] {
       activity === "bridge"
         ? width * 0.5
         : activity === "dock"
-          ? width * 0.13
+          ? width * 0.87
           : Math.random() * width * 0.8 + width * 0.1;
     const targetShop = shops.length
       ? shops[Math.floor(Math.random() * shops.length)]
@@ -995,9 +995,9 @@ function drawDock(
   night: boolean,
   time: number
 ) {
-  const dockX = w * 0.06;
-  const dockY = riverY + Math.min(60, (h - riverY) * 0.3);
   const dockW = Math.min(210, w * 0.2);
+  const dockX = w - w * 0.06 - dockW;
+  const dockY = riverY + Math.min(60, (h - riverY) * 0.3);
   const plankH = Math.max(10, h * 0.014);
 
   ctx.fillStyle = "#2a170e";
@@ -1345,9 +1345,10 @@ function drawRiverMoments(
   }
 
   if (dockNpc) {
-    const dockX = state.width * 0.06;
+    const dockW = Math.min(210, state.width * 0.2);
+    const dockX = state.width - state.width * 0.06 - dockW;
     const dockY = riverY + Math.min(60, (state.height - riverY) * 0.3);
-    dockNpc.x = dockX + Math.min(210, state.width * 0.2) * 0.35;
+    dockNpc.x = dockX + dockW * 0.65;
     drawNPC(
       ctx,
       dockNpc.x,
