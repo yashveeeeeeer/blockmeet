@@ -190,6 +190,17 @@ interface BridgeVisitorData {
   lane: -1 | 1;
 }
 
+interface JumpingFishData {
+  progress: number;
+  duration: number;
+  startXRatio: number;
+  endXRatio: number;
+  depthRatio: number;
+  jumpHeight: number;
+  body: string;
+  fin: string;
+}
+
 export interface WorldState {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
@@ -213,6 +224,8 @@ export interface WorldState {
   streetLights: StreetLightData[];
   reactions: ReactionData[];
   bridgeVisitor: BridgeVisitorData;
+  jumpingFish: JumpingFishData | null;
+  nextFishJumpAt: number;
   groundSpeckles: { row: number; col: number; dx: number; dy: number }[];
   groundY: number;
   scrollY: number;
@@ -923,8 +936,6 @@ function drawGround(
   ctx.fillRect(0, riverY - 4, w, h - riverY + 4);
   ctx.fillStyle = night ? "#0c2b53" : "#529ed0";
   ctx.fillRect(0, riverY + 16, w, h - riverY - 16);
-  ctx.fillStyle = night ? "#123c67" : "#79c3e3";
-  ctx.fillRect(0, riverY + (h - riverY) * 0.48, w, 6);
 
   // Sparse horizontal ripples make the water feel calm rather than noisy.
   for (let row = 0; row < 7; row++) {
@@ -1057,6 +1068,108 @@ function drawWaterRings(
     ctx.fillRect(x - width / 2, y + ring * 5, width, 2);
   }
   ctx.globalAlpha = 1;
+}
+
+const FISH_COLORS = [
+  { body: "#f2a442", fin: "#d87932" },
+  { body: "#8fd9d7", fin: "#4d9fa8" },
+  { body: "#e68170", fin: "#ad4f55" },
+] as const;
+
+function getNextFishDelay() {
+  return 1600 + Math.random() * 4600;
+}
+
+function createJumpingFish(): JumpingFishData {
+  const color = FISH_COLORS[Math.floor(Math.random() * FISH_COLORS.length)];
+  const startXRatio = 0.81 + Math.random() * 0.035;
+  return {
+    progress: 0,
+    duration: 1350 + Math.random() * 850,
+    startXRatio,
+    endXRatio: Math.min(0.975, startXRatio + 0.105 + Math.random() * 0.035),
+    depthRatio: 0.79 + Math.random() * 0.12,
+    jumpHeight: 25 + Math.random() * 13,
+    body: color.body,
+    fin: color.fin,
+  };
+}
+
+function drawJumpingFish(
+  ctx: CanvasRenderingContext2D,
+  state: WorldState,
+  time: number,
+  dt: number,
+) {
+  if (state.performanceMode) {
+    state.jumpingFish = null;
+    state.nextFishJumpAt = time + getNextFishDelay();
+    return;
+  }
+
+  if (!state.jumpingFish && time >= state.nextFishJumpAt) {
+    state.jumpingFish = createJumpingFish();
+  }
+
+  const swimmer = state.jumpingFish;
+  if (!swimmer) return;
+
+  swimmer.progress = Math.min(1, swimmer.progress + dt / swimmer.duration);
+  const progress = swimmer.progress;
+
+  const { width: w, height: h, dpr } = state;
+  const riverY = getRiverY(state.groundY, h);
+  const startX = w * swimmer.startXRatio;
+  const endX = w * swimmer.endXRatio;
+  const baseY = Math.min(
+    riverY + (h - riverY) * swimmer.depthRatio,
+    h - 25 * dpr,
+  );
+  const jumpHeight = Math.min(swimmer.jumpHeight * dpr, (h - riverY) * 0.18);
+  const pixel = Math.max(2, Math.round(1.5 * dpr));
+  const x = startX + (endX - startX) * progress;
+  const y = baseY - Math.sin(progress * Math.PI) * jumpHeight;
+  const angle = -0.58 + progress * 1.16;
+  const splashStrength =
+    progress < 0.13
+      ? 1 - progress / 0.13
+      : progress > 0.87
+        ? (progress - 0.87) / 0.13
+        : 0;
+
+  if (splashStrength > 0) {
+    ctx.save();
+    ctx.globalAlpha = splashStrength * 0.66;
+    ctx.fillStyle = state.nightMode ? "#69cfe2" : "#d5f5ff";
+    ctx.fillRect(x - 8 * pixel, baseY + pixel, 16 * pixel, pixel);
+    ctx.fillRect(x - 4 * pixel, baseY - 2 * pixel, 2 * pixel, 2 * pixel);
+    ctx.fillRect(x + 3 * pixel, baseY - 3 * pixel, 2 * pixel, 2 * pixel);
+    ctx.restore();
+  }
+
+  ctx.save();
+  ctx.translate(Math.round(x), Math.round(y));
+  ctx.rotate(angle);
+
+  ctx.fillStyle = swimmer.fin;
+  ctx.fillRect(-5 * pixel, -2 * pixel, 2 * pixel, 4 * pixel);
+  ctx.fillRect(-4 * pixel, -3 * pixel, 2 * pixel, 2 * pixel);
+  ctx.fillRect(-4 * pixel, pixel, 2 * pixel, 2 * pixel);
+
+  ctx.fillStyle = swimmer.body;
+  ctx.fillRect(-3 * pixel, -2 * pixel, 5 * pixel, 4 * pixel);
+  ctx.fillRect(2 * pixel, -pixel, 2 * pixel, 2 * pixel);
+  ctx.fillStyle = "rgba(255, 255, 255, 0.72)";
+  ctx.fillRect(-2 * pixel, -2 * pixel, 3 * pixel, pixel);
+  ctx.fillStyle = "#13243a";
+  ctx.fillRect(2 * pixel, -pixel, pixel, pixel);
+
+  ctx.restore();
+
+  if (progress >= 1) {
+    state.jumpingFish = null;
+    state.nextFishJumpAt = time + getNextFishDelay();
+  }
 }
 
 function drawSceneReflections(
@@ -1750,6 +1863,8 @@ export function initWorld(canvas: HTMLCanvasElement): WorldState | null {
     streetLights: createStreetLights(w, shops),
     reactions: [],
     bridgeVisitor: createBridgeVisitor(),
+    jumpingFish: null,
+    nextFishJumpAt: performance.now() + 700 + Math.random() * 2200,
     groundSpeckles: createGroundSpeckles(w),
     groundY,
     scrollY: 0,
@@ -1799,6 +1914,8 @@ export function resizeWorld(state: WorldState) {
   state.groundSpeckles = createGroundSpeckles(w);
   state.reactions = [];
   state.bridgeVisitor = createBridgeVisitor();
+  state.jumpingFish = null;
+  state.nextFishJumpAt = performance.now() + 700 + Math.random() * 2200;
 }
 
 export function renderFrame(state: WorldState, time: number, dt: number) {
@@ -2020,6 +2137,7 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
   }
 
   drawRiverMoments(ctx, state, time, dt);
+  drawJumpingFish(ctx, state, time, dt);
 
   // cats keep existing behavior; only eye glow changes at night.
   for (const cat of state.cats) {

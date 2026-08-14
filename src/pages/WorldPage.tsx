@@ -18,6 +18,7 @@ import BookingModal, {
   type BookingSelection,
 } from "../components/BookingModal";
 import SignGarland from "../components/SignGarland";
+import HdrStarfield from "../components/HdrStarfield";
 
 const KONAMI = [
   "ArrowUp",
@@ -206,6 +207,8 @@ export default function WorldPage() {
         style={{ touchAction: "pan-y" }}
         aria-hidden="true"
       />
+
+      <HdrStarfield />
 
       <Hud
         soundOn={soundOn}

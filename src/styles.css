@@ -179,6 +179,94 @@
   overflow: hidden;
 }
 
+.hdr-starfield {
+  position: fixed;
+  z-index: 1;
+  inset: 0 0 40% 0;
+  overflow: hidden;
+  pointer-events: none;
+  transition: opacity 500ms ease;
+}
+
+.scene-day .hdr-starfield {
+  opacity: 0;
+}
+
+.hdr-star {
+  position: absolute;
+  top: var(--star-y);
+  left: var(--star-x);
+  width: var(--star-size);
+  height: var(--star-size);
+  color: rgba(232, 239, 255, 0.92);
+  filter: drop-shadow(0 0 2px rgba(205, 220, 255, 0.58));
+  opacity: 0.68;
+  animation: hdr-star-twinkle var(--star-duration) ease-in-out var(--star-delay) infinite;
+}
+
+.hdr-star::before,
+.hdr-star::after {
+  position: absolute;
+  content: "";
+}
+
+.hdr-star::before {
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  transform: translateY(-50%);
+  background: linear-gradient(90deg, transparent, currentColor 32% 68%, transparent);
+}
+
+.hdr-star::after {
+  top: 0;
+  left: 50%;
+  width: 1px;
+  height: 100%;
+  transform: translateX(-50%);
+  background: linear-gradient(transparent, currentColor 32% 68%, transparent);
+  box-shadow: 0 0 3px rgba(232, 239, 255, 0.8);
+}
+
+@keyframes hdr-star-twinkle {
+  0%,
+  100% {
+    scale: 0.72;
+    opacity: 0.42;
+  }
+
+  46% {
+    scale: 1;
+    opacity: 0.82;
+  }
+
+  52% {
+    scale: 1.12;
+    opacity: 1;
+  }
+
+  58% {
+    scale: 0.92;
+    opacity: 0.72;
+  }
+}
+
+/* On an HDR-capable output, replace the CSS-drawn star with a transparent
+   Rec.2020/PQ sprite. Its 1000-nit neutral-white core is decoded by the image
+   pipeline; non-HDR routes keep the pixel-star fallback above. */
+@media (dynamic-range: high) {
+  .hdr-star {
+    background: url("./assets/hdr-star-1000nit.png") center / contain no-repeat;
+    filter: none;
+  }
+
+  .hdr-star::before,
+  .hdr-star::after {
+    opacity: 0;
+  }
+}
+
 .village-hero {
   position: relative;
   display: flex;
