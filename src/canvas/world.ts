@@ -201,6 +201,13 @@ interface JumpingFishData {
   fin: string;
 }
 
+interface SkyTransitionData {
+  from: number;
+  to: number;
+  startedAt: number;
+  duration: number;
+}
+
 export interface WorldState {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
@@ -230,6 +237,7 @@ export interface WorldState {
   groundY: number;
   scrollY: number;
   nightMode: boolean;
+  skyTransition: SkyTransitionData | null;
   performanceMode: boolean;
   soundEnabled: boolean;
   animFrame: number;
@@ -837,15 +845,50 @@ function spawnParticle(state: WorldState): Particle | null {
 
 // ── DRAWING ──────────────────────────────────────────────────────
 
+function mixHexColor(day: string, night: string, amount: number): string {
+  const channel = (color: string, offset: number) =>
+    Number.parseInt(color.slice(offset, offset + 2), 16);
+  const mix = (start: number, end: number) =>
+    Math.round(start + (end - start) * amount)
+      .toString(16)
+      .padStart(2, "0");
+
+  return `#${mix(channel(day, 1), channel(night, 1))}${mix(
+    channel(day, 3),
+    channel(night, 3),
+  )}${mix(channel(day, 5), channel(night, 5))}`;
+}
+
+function mixSkyColor(
+  day: string,
+  twilight: string,
+  night: string,
+  amount: number,
+): string {
+  return amount < 0.5
+    ? mixHexColor(day, twilight, amount * 2)
+    : mixHexColor(twilight, night, (amount - 0.5) * 2);
+}
+
+function getSkyNightAmount(state: WorldState, time: number): number {
+  const transition = state.skyTransition;
+  if (!transition) return state.nightMode ? 1 : 0;
+
+  const progress = Math.min(1, (time - transition.startedAt) / transition.duration);
+  const eased = progress * progress * (3 - 2 * progress);
+  if (progress >= 1) state.skyTransition = null;
+  return transition.from + (transition.to - transition.from) * eased;
+}
+
 function drawSkyGradient(
   ctx: CanvasRenderingContext2D,
   w: number,
   h: number,
-  night: boolean
+  nightAmount: number,
 ) {
-  const top = night ? PAL.nightSkyTop : PAL.skyTop;
-  const mid = night ? PAL.nightSkyMid : PAL.skyMid;
-  const bottom = night ? PAL.nightSkyBottom : PAL.skyBottom;
+  const top = mixSkyColor(PAL.skyTop, "#26365f", PAL.nightSkyTop, nightAmount);
+  const mid = mixSkyColor(PAL.skyMid, "#65749c", PAL.nightSkyMid, nightAmount);
+  const bottom = mixSkyColor(PAL.skyBottom, "#c47b88", PAL.nightSkyBottom, nightAmount);
 
   const skyH = h * 0.7;
   const grad = ctx.createLinearGradient(0, 0, 0, skyH);
@@ -1403,7 +1446,6 @@ function drawBridge(
   riverY: number,
   night: boolean,
   time: number,
-  runesActive: boolean,
 ) {
   const centerX = w / 2;
   const topY = riverY - 8;
@@ -1438,32 +1480,6 @@ function drawBridge(
     ctx.fill();
     ctx.fillStyle = "rgba(235, 164, 83, 0.2)";
     ctx.fillRect(centerX - half0 + 7, y0 + 3, Math.max(4, half0 * 0.28), 2);
-  }
-
-  if (night) {
-    const runeRows = [0.3, 0.52, 0.72];
-    const activePulse = runesActive
-      ? 0.5 + (Math.sin(time * 0.0035) + 1) * 0.15
-      : 0.13;
-    ctx.save();
-    ctx.globalAlpha = activePulse;
-    ctx.fillStyle = "#6ee7d5";
-    for (const [index, progress] of runeRows.entries()) {
-      const y = topY + (bottomY - topY) * progress;
-      const half = topHalf + (bottomHalf - topHalf) * progress;
-      const p = Math.max(2, Math.round((2 + progress * 3) * (w / Math.max(w, 900))));
-      const side = index % 2 === 0 ? -1 : 1;
-      const x = centerX + side * half * 0.58;
-      ctx.fillRect(x, y - p * 2, p, p);
-      ctx.fillRect(x - p, y - p, p, p);
-      ctx.fillRect(x + p, y - p, p, p);
-      ctx.fillRect(x - p * 2, y, p, p);
-      ctx.fillRect(x + p * 2, y, p, p);
-      ctx.fillRect(x - p, y + p, p, p);
-      ctx.fillRect(x + p, y + p, p, p);
-      ctx.fillRect(x, y + p * 2, p, p);
-    }
-    ctx.restore();
   }
 
   // Rails and posts exaggerate the perspective toward the foreground.
@@ -2023,6 +2039,7 @@ export function initWorld(canvas: HTMLCanvasElement): WorldState | null {
     groundY,
     scrollY: 0,
     nightMode: isNightTime(),
+    skyTransition: null,
     performanceMode: false,
     soundEnabled: false,
     animFrame: 0,
@@ -2072,22 +2089,55 @@ export function resizeWorld(state: WorldState) {
   state.nextFishJumpAt = performance.now() + 700 + Math.random() * 2200;
 }
 
+export function setWorldNightMode(state: WorldState, nightMode: boolean) {
+  const now = performance.now();
+  const target = nightMode ? 1 : 0;
+  const current = getSkyNightAmount(state, now);
+
+  state.nightMode = nightMode;
+  if (state.performanceMode || Math.abs(current - target) < 0.001) {
+    state.skyTransition = null;
+    return;
+  }
+
+  state.skyTransition = {
+    from: current,
+    to: target,
+    startedAt: now,
+    duration: 1250,
+  };
+}
+
 export function renderFrame(state: WorldState, time: number, dt: number) {
   const { ctx, width: w, height: h, groundY } = state;
 
   ctx.clearRect(0, 0, w, h);
 
-  drawSkyGradient(ctx, w, h, state.nightMode);
+  const nightAmount = getSkyNightAmount(state, time);
+  const dayAmount = 1 - nightAmount;
+  const skyArc = Math.sin(Math.PI * nightAmount) * h * 0.08;
+  drawSkyGradient(ctx, w, h, nightAmount);
 
-  if (state.nightMode) {
+  if (nightAmount > 0.01) {
+    ctx.save();
+    ctx.globalAlpha = nightAmount;
     for (const star of state.stars) {
       const twinkle =
         Math.sin(time * star.twinkleSpeed + star.phase) * 0.5 + 0.5;
       drawStar(ctx, star.x, star.y, star.brightness * twinkle);
     }
-    drawMoon(ctx, w * 0.8, h * 0.12, 30, time);
-  } else {
-    drawSun(ctx, w * 0.15, h * 0.12, 28, time);
+    const moonX = w * (1.08 + (0.8 - 1.08) * nightAmount);
+    const moonY = h * (0.72 + (0.12 - 0.72) * nightAmount) - skyArc;
+    drawMoon(ctx, moonX, moonY, 30, time);
+    ctx.restore();
+  }
+
+  if (dayAmount > 0.01) {
+    ctx.save();
+    ctx.globalAlpha = dayAmount;
+    const sunX = w * (0.15 + (-0.08 - 0.15) * nightAmount);
+    const sunY = h * (0.12 + (0.72 - 0.12) * nightAmount) - skyArc;
+    drawSun(ctx, sunX, sunY, 28, time);
 
     updateAirplanes(state, dt, time);
     for (const plane of state.airplanes) {
@@ -2108,6 +2158,7 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
     for (const bird of state.birds) {
       drawBird(ctx, bird.x, bird.y, bird.flapPhase, bird.scale);
     }
+    ctx.restore();
   }
 
   // Night flyers update here; witches are drawn after the mountains so the
@@ -2175,7 +2226,6 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
     riverY,
     state.nightMode,
     time,
-    state.bridgeVisitor.phase !== "waiting",
   );
   drawForegroundPlants(ctx, w, h, state.nightMode, time);
 

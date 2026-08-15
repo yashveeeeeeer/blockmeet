@@ -8,6 +8,7 @@ import {
   isNightTime,
   renderFrame,
   resizeWorld,
+  setWorldNightMode,
   setWorldSoundEnabled,
   type WorldState,
 } from "../canvas/world";
@@ -143,7 +144,7 @@ export default function WorldPage() {
 
   useEffect(() => {
     if (worldRef.current) {
-      worldRef.current.nightMode = nightMode;
+      setWorldNightMode(worldRef.current, nightMode);
       worldRef.current.particles = [];
     }
   }, [nightMode]);
