@@ -27,9 +27,9 @@ export const PAL = {
   white: "#ffffff",
   black: "#000000",
 
-  nightSkyTop: "#070819",
-  nightSkyMid: "#11112f",
-  nightSkyBottom: "#28204b",
+  nightSkyTop: "#050817",
+  nightSkyMid: "#101a36",
+  nightSkyBottom: "#2d4266",
   star: "#ffffff",
   starDim: "#b4b6de",
   moonGlow: "#b8d8ff38",

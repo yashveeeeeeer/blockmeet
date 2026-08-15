@@ -145,8 +145,6 @@ export default function WorldPage() {
     if (worldRef.current) {
       worldRef.current.nightMode = nightMode;
       worldRef.current.particles = [];
-      worldRef.current.shootingStar = null;
-      worldRef.current.nextShootingStarAt = performance.now() + 3500 + Math.random() * 4500;
     }
   }, [nightMode]);
 
@@ -213,7 +211,7 @@ export default function WorldPage() {
         aria-hidden="true"
       />
 
-      <HdrStarfield />
+      <HdrStarfield performanceMode={perfMode} />
 
       <Hud
         soundOn={soundOn}

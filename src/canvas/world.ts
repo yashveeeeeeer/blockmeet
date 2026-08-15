@@ -201,15 +201,6 @@ interface JumpingFishData {
   fin: string;
 }
 
-interface ShootingStarData {
-  progress: number;
-  duration: number;
-  startX: number;
-  startY: number;
-  travelX: number;
-  travelY: number;
-}
-
 export interface WorldState {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
@@ -235,8 +226,6 @@ export interface WorldState {
   bridgeVisitor: BridgeVisitorData;
   jumpingFish: JumpingFishData | null;
   nextFishJumpAt: number;
-  shootingStar: ShootingStarData | null;
-  nextShootingStarAt: number;
   groundSpeckles: { row: number; col: number; dx: number; dy: number }[];
   groundY: number;
   scrollY: number;
@@ -874,47 +863,131 @@ function drawMountains(
   scrollY: number,
   night: boolean
 ) {
+  type MountainLayer = {
+    color: string;
+    shadow: string;
+    edge: string;
+    height: number;
+    parallax: number;
+    profile: readonly (readonly [number, number])[];
+    peaks: readonly number[];
+    snow?: readonly number[];
+  };
+
+  const rangeHeight = Math.min(groundY * 0.34, w * 0.32);
   const layers = [
     {
-      color: night ? "#171832" : PAL.mountainFar,
-      y: groundY - 80,
-      amp: 60,
-      freq: 0.003,
+      color: night ? "#46557f" : "#a2b7cf",
+      shadow: night ? "rgba(24, 31, 62, 0.22)" : "rgba(91, 116, 151, 0.2)",
+      edge: night ? "rgba(176, 194, 238, 0.42)" : "rgba(230, 240, 248, 0.66)",
+      height: 1,
       parallax: 0.1,
+      profile: [
+        [0, 0.34], [0.08, 0.52], [0.16, 0.4], [0.28, 1],
+        [0.38, 0.54], [0.5, 0.27], [0.61, 0.48], [0.75, 0.84],
+        [0.84, 0.46], [0.94, 0.64], [1, 0.42],
+      ],
+      peaks: [3, 7],
+      snow: [3, 7],
     },
     {
-      color: night ? "#222044" : PAL.mountainMid,
-      y: groundY - 40,
-      amp: 45,
-      freq: 0.005,
+      color: night ? "#34466c" : "#7e99b7",
+      shadow: night ? "rgba(16, 28, 53, 0.24)" : "rgba(68, 96, 128, 0.2)",
+      edge: night ? "rgba(130, 157, 210, 0.3)" : "rgba(186, 207, 226, 0.5)",
+      height: 0.72,
       parallax: 0.2,
+      profile: [
+        [0, 0.38], [0.1, 0.64], [0.19, 0.36], [0.36, 0.78],
+        [0.5, 0.2], [0.63, 0.62], [0.72, 0.42], [0.87, 0.74], [1, 0.35],
+      ],
+      peaks: [1, 3, 5, 7],
     },
     {
-      color: night ? "#312751" : PAL.mountainNear,
-      y: groundY - 10,
-      amp: 30,
-      freq: 0.008,
+      color: night ? "#263b59" : "#5e7f9c",
+      shadow: night ? "rgba(11, 29, 45, 0.25)" : "rgba(53, 82, 108, 0.22)",
+      edge: night ? "rgba(93, 134, 174, 0.23)" : "rgba(145, 176, 202, 0.42)",
+      height: 0.46,
       parallax: 0.3,
+      profile: [
+        [0, 0.32], [0.12, 0.64], [0.24, 0.3], [0.39, 0.7],
+        [0.5, 0.16], [0.6, 0.56], [0.74, 0.3], [0.9, 0.66], [1, 0.28],
+      ],
+      peaks: [1, 3, 5, 7],
     },
-  ];
+  ] satisfies MountainLayer[];
 
   for (const layer of layers) {
-    const offset = scrollY * layer.parallax;
+    const verticalOffset = scrollY * layer.parallax;
+    const ridge = layer.profile.map(([ratio, height]) => ({
+      x: ratio * w,
+      y: groundY - height * rangeHeight * layer.height - verticalOffset,
+    }));
+
     ctx.fillStyle = layer.color;
     ctx.beginPath();
     ctx.moveTo(0, groundY);
-    for (let x = 0; x <= w; x += 4) {
-      const y =
-        layer.y -
-        Math.abs(Math.sin((x + offset) * layer.freq)) * layer.amp -
-        Math.abs(Math.sin((x + offset) * layer.freq * 2.3 + 1)) *
-          layer.amp *
-          0.5;
-      ctx.lineTo(x, y);
+    for (const point of ridge) {
+      ctx.lineTo(point.x, point.y);
     }
     ctx.lineTo(w, groundY);
     ctx.closePath();
     ctx.fill();
+
+    for (const peakIndex of layer.peaks) {
+      const peak = ridge[peakIndex];
+      const shadowNeighbor = ridge[peakIndex + (night ? -1 : 1)];
+      const lightNeighbor = ridge[peakIndex + (night ? 1 : -1)];
+      if (!peak || !shadowNeighbor || !lightNeighbor) continue;
+
+      ctx.fillStyle = layer.shadow;
+      const facetBottomX = peak.x + (shadowNeighbor.x - peak.x) * 0.42;
+      const facetBottomY = Math.min(
+        groundY - 2,
+        Math.max(
+          shadowNeighbor.y + 10,
+          peak.y + (groundY - peak.y) * 0.72,
+        ),
+      );
+      ctx.beginPath();
+      ctx.moveTo(peak.x, peak.y);
+      ctx.lineTo(shadowNeighbor.x, shadowNeighbor.y);
+      ctx.lineTo(facetBottomX, facetBottomY);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = layer.edge;
+      for (let step = 0; step <= 0.52; step += 0.08) {
+        const x = peak.x + (lightNeighbor.x - peak.x) * step;
+        const y = peak.y + (lightNeighbor.y - peak.y) * step;
+        ctx.fillRect(Math.round(x), Math.round(y), 5, 2);
+      }
+    }
+
+    for (const snowIndex of layer.snow ?? []) {
+      const peak = ridge[snowIndex];
+      if (!peak) continue;
+      const capWidth = rangeHeight * 0.16;
+      const capHeight = rangeHeight * 0.105;
+      ctx.fillStyle = night ? "#aebcdb" : "#e7eef4";
+      ctx.beginPath();
+      ctx.moveTo(peak.x, peak.y);
+      ctx.lineTo(peak.x - capWidth * 0.52, peak.y + capHeight);
+      ctx.lineTo(peak.x - capWidth * 0.18, peak.y + capHeight * 0.7);
+      ctx.lineTo(peak.x, peak.y + capHeight * 0.92);
+      ctx.lineTo(peak.x + capWidth * 0.16, peak.y + capHeight * 0.58);
+      ctx.lineTo(peak.x + capWidth * 0.52, peak.y + capHeight);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = night ? "rgba(92, 114, 161, 0.52)" : "rgba(145, 167, 192, 0.42)";
+      ctx.beginPath();
+      ctx.moveTo(peak.x, peak.y);
+      ctx.lineTo(peak.x + capWidth * 0.52, peak.y + capHeight);
+      ctx.lineTo(peak.x + capWidth * 0.16, peak.y + capHeight * 0.58);
+      ctx.lineTo(peak.x, peak.y + capHeight * 0.92);
+      ctx.closePath();
+      ctx.fill();
+    }
   }
 }
 
@@ -1218,83 +1291,6 @@ function drawJumpingFish(
   if (progress >= 1) {
     state.jumpingFish = null;
     state.nextFishJumpAt = time + getNextFishDelay();
-  }
-}
-
-function drawEnchantedMist(
-  ctx: CanvasRenderingContext2D,
-  w: number,
-  groundY: number,
-  time: number,
-) {
-  const layers = [
-    { y: groundY - 112, speed: 0.0024, color: "rgba(123, 112, 190, 0.09)", direction: 1 },
-    { y: groundY - 62, speed: 0.0016, color: "rgba(103, 178, 190, 0.07)", direction: -1 },
-  ];
-
-  for (const [layerIndex, layer] of layers.entries()) {
-    const spacing = Math.max(150, w / 5);
-    const drift = (time * layer.speed * layer.direction) % spacing;
-    ctx.fillStyle = layer.color;
-    for (let index = -1; index < 7; index++) {
-      const x = index * spacing + drift;
-      const y = layer.y + Math.sin(index * 1.7 + layerIndex) * 9;
-      const width = spacing * (0.48 + ((index + layerIndex + 3) % 3) * 0.06);
-      ctx.fillRect(x, y, width, 4);
-      ctx.fillRect(x + width * 0.16, y + 4, width * 0.58, 3);
-      ctx.fillRect(x + width * 0.34, y + 7, width * 0.28, 2);
-    }
-  }
-}
-
-function updateAndDrawShootingStar(
-  ctx: CanvasRenderingContext2D,
-  state: WorldState,
-  time: number,
-  dt: number,
-) {
-  if (state.performanceMode) {
-    state.shootingStar = null;
-    return;
-  }
-
-  if (!state.shootingStar && time >= state.nextShootingStarAt) {
-    state.shootingStar = {
-      progress: 0,
-      duration: 720 + Math.random() * 380,
-      startX: state.width * (0.08 + Math.random() * 0.55),
-      startY: state.height * (0.07 + Math.random() * 0.18),
-      travelX: state.width * (0.12 + Math.random() * 0.08),
-      travelY: state.height * (0.07 + Math.random() * 0.045),
-    };
-  }
-
-  const star = state.shootingStar;
-  if (!star) return;
-  star.progress = Math.min(1, star.progress + dt / star.duration);
-  const eased = star.progress * star.progress * (3 - 2 * star.progress);
-  const x = star.startX + star.travelX * eased;
-  const y = star.startY + star.travelY * eased;
-  const tail = 32 * state.dpr * (1 - star.progress * 0.45);
-  const alpha = Math.sin(star.progress * Math.PI);
-
-  ctx.save();
-  ctx.globalAlpha = alpha * 0.28;
-  ctx.strokeStyle = "#8fdff1";
-  ctx.lineWidth = Math.max(2, state.dpr * 2);
-  ctx.beginPath();
-  ctx.moveTo(x - tail, y - tail * 0.55);
-  ctx.lineTo(x, y);
-  ctx.stroke();
-  ctx.globalAlpha = alpha;
-  ctx.fillStyle = "#ffffff";
-  const p = Math.max(2, state.dpr * 2);
-  ctx.fillRect(x - p / 2, y - p / 2, p, p);
-  ctx.restore();
-
-  if (star.progress >= 1) {
-    state.shootingStar = null;
-    state.nextShootingStarAt = time + 45000 + Math.random() * 55000;
   }
 }
 
@@ -2094,8 +2090,6 @@ export function initWorld(canvas: HTMLCanvasElement): WorldState | null {
     bridgeVisitor: createBridgeVisitor(),
     jumpingFish: null,
     nextFishJumpAt: performance.now() + 700 + Math.random() * 2200,
-    shootingStar: null,
-    nextShootingStarAt: performance.now() + 3500 + Math.random() * 4500,
     groundSpeckles: createGroundSpeckles(w),
     groundY,
     scrollY: 0,
@@ -2147,8 +2141,6 @@ export function resizeWorld(state: WorldState) {
   state.bridgeVisitor = createBridgeVisitor();
   state.jumpingFish = null;
   state.nextFishJumpAt = performance.now() + 700 + Math.random() * 2200;
-  state.shootingStar = null;
-  state.nextShootingStarAt = performance.now() + 3500 + Math.random() * 4500;
 }
 
 export function renderFrame(state: WorldState, time: number, dt: number) {
@@ -2164,7 +2156,6 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
         Math.sin(time * star.twinkleSpeed + star.phase) * 0.5 + 0.5;
       drawStar(ctx, star.x, star.y, star.brightness * twinkle);
     }
-    updateAndDrawShootingStar(ctx, state, time, dt);
     drawMoon(ctx, w * 0.8, h * 0.12, 30, time);
   } else {
     drawSun(ctx, w * 0.15, h * 0.12, 28, time);
@@ -2227,10 +2218,6 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
   }
 
   drawMountains(ctx, w, groundY, state.scrollY, state.nightMode);
-  if (state.nightMode && !state.performanceMode) {
-    drawEnchantedMist(ctx, w, groundY, time);
-  }
-
   for (const tree of state.trees) {
     drawTreeByType(ctx, tree, groundY);
   }

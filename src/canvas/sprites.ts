@@ -1057,8 +1057,8 @@ export function drawShop(
   const w = s * 14;
   const h = s * 12;
   const baseY = groundY - h;
-  const wallColors = ["#c4956a", "#8b9dc3", "#c9a0dc", "#d4c4a8"];
-  const roofColors = ["#e94560", "#4ecca3", "#f5c542", "#6a3d8a"];
+  const wallColors = ["#c4956a", "#e5b56d", "#c9a0dc", "#d4c4a8"];
+  const roofColors = ["#e94560", "#7048a8", "#f5c542", "#6a3d8a"];
   const vi = variant % wallColors.length;
 
   if (night) {
