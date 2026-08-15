@@ -112,6 +112,9 @@ interface NPCData {
   atShop: boolean;
   atLamp: boolean;
   activity: "village" | "bridge" | "dock";
+  routine: "bridge" | "dock" | "shopkeeper" | "lamplighter" | "promenade" | "visitor";
+  homeX: number;
+  routineStep: number;
   momentPhase: number;
 }
 
@@ -216,6 +219,22 @@ interface JumpingFishData {
   fin: string;
 }
 
+interface RiverLeafData {
+  x: number;
+  depthRatio: number;
+  speed: number;
+  phase: number;
+  size: number;
+  color: string;
+}
+
+interface AmbientRippleData {
+  xRatio: number;
+  depthRatio: number;
+  startedAt: number;
+  nextAt: number;
+}
+
 interface SkyTransitionData {
   from: number;
   to: number;
@@ -248,6 +267,8 @@ export interface WorldState {
   bridgeVisitor: BridgeVisitorData;
   jumpingFish: JumpingFishData | null;
   nextFishJumpAt: number;
+  riverLeaves: RiverLeafData[];
+  ambientRipples: AmbientRippleData[];
   groundSpeckles: { row: number; col: number; dx: number; dy: number }[];
   groundY: number;
   scrollY: number;
@@ -463,7 +484,7 @@ function createAirplanes(width: number, height: number): AirplaneData[] {
     scale: 1.05 + Math.random() * 0.18,
     bobPhase: Math.random() * Math.PI * 2,
     active: false,
-    cooldown: 4500 + Math.random() * 6500,
+    cooldown: 18000 + Math.random() * 17000,
     progress: 0,
     duration: 18000 + Math.random() * 6000,
     facing,
@@ -508,6 +529,18 @@ function createNPCs(width: number, shops: ShopData[]): NPCData[] {
   const scaleBoost = getCharacterScale();
   for (let i = 0; i < NPC_COUNT; i++) {
     const activity = i === 0 ? "bridge" : i === 1 ? "dock" : "village";
+    const routine: NPCData["routine"] =
+      i === 0
+        ? "bridge"
+        : i === 1
+          ? "dock"
+          : i === 2
+            ? "shopkeeper"
+            : i === 3
+              ? "lamplighter"
+              : i === 4
+                ? "promenade"
+                : "visitor";
     const x =
       activity === "bridge"
         ? width * 0.5
@@ -517,6 +550,8 @@ function createNPCs(width: number, shops: ShopData[]): NPCData[] {
     const targetShop = shops.length
       ? shops[Math.floor(Math.random() * shops.length)]
       : null;
+    const homeShop = shops.length ? shops[(i - 2 + shops.length) % shops.length] : null;
+    const homeX = homeShop?.centerX ?? width * 0.5;
     npcs.push({
       x,
       speed: 0.3 + Math.random() * 0.4,
@@ -527,13 +562,21 @@ function createNPCs(width: number, shops: ShopData[]): NPCData[] {
         NPC_SKIN_COLORS[Math.floor(Math.random() * NPC_SKIN_COLORS.length)],
       shirtColor:
         NPC_SHIRT_COLORS[Math.floor(Math.random() * NPC_SHIRT_COLORS.length)],
-      targetX: targetShop
-        ? targetShop.centerX + (Math.random() - 0.5) * 30
-        : Math.random() * width * 0.8 + width * 0.1,
+      targetX:
+        routine === "shopkeeper"
+          ? homeX
+          : routine === "promenade"
+            ? width * 0.2
+            : targetShop
+              ? targetShop.centerX + (Math.random() - 0.5) * 30
+              : Math.random() * width * 0.8 + width * 0.1,
       idleTimer: 0,
       atShop: false,
       atLamp: false,
       activity,
+      routine,
+      homeX,
+      routineStep: 0,
       momentPhase: Math.random() * Math.PI * 2,
     });
   }
@@ -550,7 +593,7 @@ function createDragon(_width: number, height: number): DragonData {
     flapSpeed: 0.006,
     scale: 1.8 + Math.random() * 0.6,
     active: false,
-    cooldown: 8000 + Math.random() * 15000,
+    cooldown: 45000 + Math.random() * 35000,
   };
 }
 
@@ -565,7 +608,7 @@ function createWitches(_width: number, height: number): WitchData[] {
       facing: 1,
       scale: 1.3 + Math.random() * 0.4,
       active: false,
-      cooldown: 6000 + Math.random() * 10000 + i * 8000,
+      cooldown: 25000 + Math.random() * 25000 + i * 12000,
       state: "flying",
       targetShopX: 0,
       landY: getGroundY(height),
@@ -931,6 +974,20 @@ function getSkyNightAmount(state: WorldState, time: number): number {
   return transition.from + (transition.to - transition.from) * eased;
 }
 
+function clamp01(value: number): number {
+  return Math.max(0, Math.min(1, value));
+}
+
+function getVillageLightAmount(
+  nightAmount: number,
+  x: number,
+  width: number,
+): number {
+  const position = clamp01(x / Math.max(1, width));
+  const switchPoint = 0.38 + position * 0.3;
+  return clamp01((nightAmount - switchPoint) / 0.16);
+}
+
 function drawSkyGradient(
   ctx: CanvasRenderingContext2D,
   w: number,
@@ -955,7 +1012,8 @@ function drawMountains(
   w: number,
   groundY: number,
   scrollY: number,
-  night: boolean
+  night: boolean,
+  pointerParallax: number,
 ) {
   const layers = [
     {
@@ -985,7 +1043,9 @@ function drawMountains(
   ];
 
   for (const [layerIndex, layer] of layers.entries()) {
-    const offset = scrollY * layer.parallax;
+    const offset =
+      scrollY * layer.parallax +
+      pointerParallax * (10 + layerIndex * 7);
     const ridge: { x: number; y: number }[] = [];
     ctx.fillStyle = layer.color;
     ctx.beginPath();
@@ -1112,34 +1172,51 @@ function getRiverY(groundY: number, height: number): number {
   return groundY + Math.max(38, height * 0.055);
 }
 
-function drawEnchantedBankDetails(
+function drawFireflyHabitats(
   ctx: CanvasRenderingContext2D,
   state: WorldState,
   time: number,
 ) {
-  if (!state.nightMode) return;
-
   const { width: w, groundY, dpr } = state;
   const p = Math.max(2, Math.round(1.5 * dpr));
-  const clusters = [0.09, 0.22, 0.72, 0.88];
 
-  for (const [index, ratio] of clusters.entries()) {
-    const x = w * ratio;
+  for (const [index, zone] of FIREFLY_ZONES.entries()) {
+    const x = w * zone.x;
     const pulse = 0.68 + (Math.sin(time * 0.0014 + index * 1.7) + 1) * 0.14;
     const cap = index % 2 === 0 ? "#78ead2" : "#a995ff";
+
+    ctx.fillStyle = state.nightMode ? "#245f48" : "#438a51";
+    ctx.fillRect(x - p * 6, groundY - p * 2, p * 13, p * 2);
+    ctx.fillRect(x - p * 4, groundY - p * 4, p, p * 3);
+    ctx.fillRect(x + p * 4, groundY - p * 3, p, p * 2);
+
     ctx.save();
-    ctx.globalAlpha = pulse * 0.14;
+    ctx.globalAlpha = state.nightMode ? pulse * 0.14 : 0;
     ctx.fillStyle = cap;
-    ctx.fillRect(x - p * 4, groundY - p * 7, p * 9, p * 8);
-    ctx.globalAlpha = pulse;
-    ctx.fillStyle = "#c8e9df";
-    ctx.fillRect(x, groundY - p * 4, p, p * 4);
-    ctx.fillStyle = cap;
-    ctx.fillRect(x - p * 2, groundY - p * 5, p * 5, p * 2);
-    ctx.fillRect(x - p, groundY - p * 6, p * 3, p);
-    ctx.fillStyle = "rgba(255,255,255,0.72)";
-    ctx.fillRect(x, groundY - p * 5, p, p);
+    ctx.fillRect(x - p * 7, groundY - p * 8, p * 15, p * 8);
     ctx.restore();
+
+    for (const offset of [-4, 0, 5]) {
+      const stemHeight = p * (3 + (Math.abs(offset) % 2));
+      ctx.fillStyle = state.nightMode ? "#c8e9df" : "#315f3b";
+      ctx.fillRect(x + offset * p, groundY - stemHeight, p, stemHeight);
+      ctx.fillStyle = state.nightMode
+        ? offset === 0 ? cap : "#f4d76b"
+        : offset === 0 ? "#8b6bc4" : "#e3b64d";
+      ctx.fillRect(
+        x + offset * p - p,
+        groundY - stemHeight - p * 2,
+        p * 3,
+        p * 2,
+      );
+
+      if (state.nightMode) {
+        ctx.globalAlpha = pulse;
+        ctx.fillStyle = "rgba(255,255,255,0.72)";
+        ctx.fillRect(x + offset * p, groundY - stemHeight - p * 2, p, p);
+        ctx.globalAlpha = 1;
+      }
+    }
   }
 }
 
@@ -1240,6 +1317,29 @@ function createJumpingFish(): JumpingFishData {
   };
 }
 
+function createRiverLeaves(width: number): RiverLeafData[] {
+  const colors = ["#c9793d", "#e1ad4d", "#6e9f58"];
+  const count = window.innerWidth <= 640 ? 4 : 7;
+  return Array.from({ length: count }, () => ({
+    x: Math.random() * width,
+    depthRatio: 0.18 + Math.random() * 0.62,
+    speed: 0.018 + Math.random() * 0.018,
+    phase: Math.random() * Math.PI * 2,
+    size: 2 + Math.random() * 2,
+    color: colors[Math.floor(Math.random() * colors.length)],
+  }));
+}
+
+function createAmbientRipples(): AmbientRippleData[] {
+  const now = performance.now();
+  return Array.from({ length: 3 }, (_, index) => ({
+    xRatio: 0.18 + Math.random() * 0.64,
+    depthRatio: 0.22 + Math.random() * 0.58,
+    startedAt: -1,
+    nextAt: now + 1800 + index * 2300 + Math.random() * 3800,
+  }));
+}
+
 function drawJumpingFish(
   ctx: CanvasRenderingContext2D,
   state: WorldState,
@@ -1311,10 +1411,100 @@ function drawJumpingFish(
   }
 }
 
+function drawRiverAmbient(
+  ctx: CanvasRenderingContext2D,
+  state: WorldState,
+  time: number,
+  dt: number,
+) {
+  const riverY = getRiverY(state.groundY, state.height);
+  const depth = state.height - riverY;
+
+  if (!state.nightMode) {
+    for (const leaf of state.riverLeaves) {
+      leaf.x += leaf.speed * dt;
+      if (leaf.x > state.width + 18) leaf.x = -18;
+      const y =
+        riverY +
+        depth * leaf.depthRatio +
+        Math.sin(time * 0.0018 + leaf.phase) * 2.5 * state.dpr;
+      const p = Math.max(2, Math.round(leaf.size * state.dpr));
+
+      ctx.save();
+      ctx.translate(Math.round(leaf.x), Math.round(y));
+      ctx.rotate(Math.sin(time * 0.0007 + leaf.phase) * 0.32);
+      ctx.fillStyle = "rgba(30, 67, 71, 0.22)";
+      ctx.fillRect(-p, p * 1.5, p * 3, Math.max(1, p * 0.6));
+      ctx.fillStyle = leaf.color;
+      ctx.fillRect(-p, -p, p * 3, p * 2);
+      ctx.fillStyle = "rgba(255, 231, 156, 0.42)";
+      ctx.fillRect(0, -p, p, p);
+      ctx.restore();
+    }
+  }
+
+  for (const ripple of state.ambientRipples) {
+    if (ripple.startedAt < 0 && time >= ripple.nextAt) {
+      ripple.startedAt = time;
+    }
+    if (ripple.startedAt < 0) continue;
+
+    const progress = (time - ripple.startedAt) / 1700;
+    if (progress >= 1) {
+      ripple.startedAt = -1;
+      ripple.nextAt = time + 4500 + Math.random() * 7500;
+      ripple.xRatio = 0.18 + Math.random() * 0.64;
+      ripple.depthRatio = 0.22 + Math.random() * 0.58;
+      continue;
+    }
+
+    const x = state.width * ripple.xRatio;
+    const y = riverY + depth * ripple.depthRatio;
+    const width = (8 + progress * 52) * state.dpr;
+    ctx.save();
+    ctx.globalAlpha = Math.sin(progress * Math.PI) * 0.42;
+    ctx.fillStyle = state.nightMode ? "#65c8dc" : "#daf4f8";
+    ctx.fillRect(x - width / 2, y, width, Math.max(1, 2 * state.dpr));
+    ctx.globalAlpha *= 0.55;
+    ctx.fillRect(
+      x - width * 0.34,
+      y + 5 * state.dpr,
+      width * 0.68,
+      Math.max(1, state.dpr),
+    );
+    ctx.restore();
+  }
+
+  if (state.nightMode) {
+    for (const side of [-1, 1]) {
+      for (let index = 0; index < 4; index++) {
+        const edge = side < 0 ? 0.035 : 0.965;
+        const x =
+          state.width * edge +
+          side * -1 * index * 13 * state.dpr +
+          Math.sin(time * 0.0008 + index * 1.3) * 4 * state.dpr;
+        const y =
+          state.height -
+          (28 + index * 17) * state.dpr +
+          Math.cos(time * 0.0011 + index) * 5 * state.dpr;
+        const pulse = 0.38 + (Math.sin(time * 0.003 + index * 1.8) + 1) * 0.25;
+        const p = Math.max(2, Math.round(1.5 * state.dpr));
+        ctx.globalAlpha = pulse * 0.18;
+        ctx.fillStyle = index % 2 ? "#9c8cff" : "#73e4d1";
+        ctx.fillRect(x - p * 3, y - p * 3, p * 7, p * 7);
+        ctx.globalAlpha = pulse;
+        ctx.fillRect(x, y, p, p);
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+}
+
 function drawSceneReflections(
   ctx: CanvasRenderingContext2D,
   state: WorldState,
-  time: number
+  time: number,
+  nightAmount: number,
 ) {
   const riverY = getRiverY(state.groundY, state.height);
   const depth = Math.max(50, state.height - riverY);
@@ -1331,7 +1521,21 @@ function drawSceneReflections(
   };
 
   for (const light of state.streetLights) {
-    reflect(light.x, "#f6ca58", state.nightMode ? 0.52 : 0.18, light.x);
+    const lightAmount = getVillageLightAmount(
+      nightAmount,
+      light.x,
+      state.width,
+    );
+    reflect(light.x, "#f6ca58", 0.05 + lightAmount * 0.47, light.x);
+  }
+  for (const shop of state.shops) {
+    const lightAmount = getVillageLightAmount(
+      nightAmount,
+      shop.centerX,
+      state.width,
+    );
+    const color = shop.variant === 3 ? "#bba5ff" : "#f6c85f";
+    reflect(shop.centerX, color, lightAmount * 0.28, shop.variant * 2.3);
   }
   for (const npc of state.npcs) {
     if (npc.activity === "village") {
@@ -1489,7 +1693,7 @@ function drawBridge(
   w: number,
   h: number,
   riverY: number,
-  night: boolean,
+  lightAmount: number,
   time: number,
 ) {
   const centerX = w / 2;
@@ -1549,9 +1753,12 @@ function drawBridge(
     }
   }
 
-  if (night) {
+  if (lightAmount > 0.001) {
+    ctx.save();
+    ctx.globalAlpha = lightAmount;
     drawRiverLantern(ctx, centerX - topHalf - 8, topY - 22, 0.9, time);
     drawRiverLantern(ctx, centerX + topHalf + 8, topY - 22, 0.9, time + 400);
+    ctx.restore();
   }
 }
 
@@ -1764,7 +1971,7 @@ function updateAirplanes(state: WorldState, dt: number, time: number) {
 
     if (plane.progress >= 1) {
       plane.active = false;
-      plane.cooldown = 22000 + Math.random() * 28000;
+      plane.cooldown = 35000 + Math.random() * 30000;
     }
   }
 }
@@ -1775,6 +1982,10 @@ function updateDragon(state: WorldState, dt: number, time: number) {
   if (!d.active) {
     d.cooldown -= dt;
     if (d.cooldown <= 0) {
+      if (state.witches.some((witch) => witch.active)) {
+        d.cooldown = 5000;
+        return;
+      }
       d.active = true;
       d.facing = Math.random() > 0.5 ? 1 : -1;
       d.x = d.facing > 0 ? -250 : state.width + 250;
@@ -1796,12 +2007,13 @@ function updateDragon(state: WorldState, dt: number, time: number) {
 
   if (outOfBounds) {
     d.active = false;
-    d.cooldown = 12000 + Math.random() * 20000;
+    d.cooldown = 65000 + Math.random() * 50000;
   }
 }
 
 function getValidShops(shops: ShopData[]): ShopData[] {
-  return shops.filter((s) => s.variant !== 2 && s.variant !== 3);
+  const potions = shops.filter((shop) => shop.variant === 1);
+  return potions.length ? potions : shops.filter((shop) => shop.variant === 0);
 }
 
 function updateWitches(state: WorldState, dt: number, time: number) {
@@ -1813,6 +2025,10 @@ function updateWitches(state: WorldState, dt: number, time: number) {
     if (!w.active) {
       w.cooldown -= dt;
       if (w.cooldown <= 0) {
+        if (state.dragon.active || state.witches.some((witch) => witch !== w && witch.active)) {
+          w.cooldown = 4500;
+          continue;
+        }
         w.active = true;
         w.state = "flying";
         w.facing = Math.random() > 0.5 ? 1 : -1;
@@ -1851,7 +2067,7 @@ function updateWitches(state: WorldState, dt: number, time: number) {
           (w.facing < 0 && w.x < -200);
         if (outOfBounds) {
           w.active = false;
-          w.cooldown = 10000 + Math.random() * 15000;
+          w.cooldown = 35000 + Math.random() * 40000;
         }
         break;
       }
@@ -1910,6 +2126,37 @@ function updateNPCs(state: WorldState, dt: number) {
     const dist = Math.abs(dx);
 
     if (dist < 8) {
+      if (npc.routine === "shopkeeper") {
+        const atHome = Math.abs(npc.x - npc.homeX) < 20;
+        npc.atShop = atHome;
+        npc.idleTimer = atHome
+          ? 3500 + Math.random() * 3000
+          : 900 + Math.random() * 1200;
+        npc.routineStep += 1;
+        const side = npc.routineStep % 4 < 2 ? -1 : 1;
+        npc.targetX = atHome ? npc.homeX + side * 44 : npc.homeX;
+        npc.facing = npc.targetX > npc.x ? 1 : -1;
+        continue;
+      }
+
+      if (npc.routine === "lamplighter" && state.streetLights.length) {
+        npc.atLamp = true;
+        npc.idleTimer = 2600 + Math.random() * 2200;
+        npc.routineStep = (npc.routineStep + 1) % state.streetLights.length;
+        const nextLamp = state.streetLights[npc.routineStep];
+        npc.targetX = nextLamp.x - 8;
+        npc.facing = npc.targetX > npc.x ? 1 : -1;
+        continue;
+      }
+
+      if (npc.routine === "promenade") {
+        npc.idleTimer = 700 + Math.random() * 1000;
+        npc.routineStep += 1;
+        npc.targetX = state.width * (npc.routineStep % 2 ? 0.82 : 0.18);
+        npc.facing = npc.targetX > npc.x ? 1 : -1;
+        continue;
+      }
+
       const nearShop = state.shops.find(
         (s) => Math.abs(s.centerX - npc.x) < 60
       );
@@ -2068,6 +2315,7 @@ function drawTreeByType(
 export function initWorld(canvas: HTMLCanvasElement): WorldState | null {
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
+  ctx.imageSmoothingEnabled = false;
 
   const dpr = getCanvasDpr();
   const w = window.innerWidth * dpr;
@@ -2105,6 +2353,8 @@ export function initWorld(canvas: HTMLCanvasElement): WorldState | null {
     bridgeVisitor: createBridgeVisitor(),
     jumpingFish: null,
     nextFishJumpAt: performance.now() + 700 + Math.random() * 2200,
+    riverLeaves: createRiverLeaves(w),
+    ambientRipples: createAmbientRipples(),
     groundSpeckles: createGroundSpeckles(w),
     groundY,
     scrollY: 0,
@@ -2132,6 +2382,7 @@ export function resizeWorld(state: WorldState) {
   const h = window.innerHeight * dpr;
   state.canvas.width = w;
   state.canvas.height = h;
+  state.ctx.imageSmoothingEnabled = false;
   state.canvas.style.width = window.innerWidth + "px";
   state.canvas.style.height = window.innerHeight + "px";
   state.width = w;
@@ -2157,6 +2408,8 @@ export function resizeWorld(state: WorldState) {
   state.bridgeVisitor = createBridgeVisitor();
   state.jumpingFish = null;
   state.nextFishJumpAt = performance.now() + 700 + Math.random() * 2200;
+  state.riverLeaves = createRiverLeaves(w);
+  state.ambientRipples = createAmbientRipples();
 }
 
 export function setWorldNightMode(state: WorldState, nightMode: boolean) {
@@ -2263,7 +2516,17 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
     );
   }
 
-  drawMountains(ctx, w, groundY, state.scrollY, state.nightMode);
+  const pointerParallax = state.input.mouseX < 0
+    ? 0
+    : clamp01(state.input.mouseX / Math.max(1, w)) - 0.5;
+  drawMountains(
+    ctx,
+    w,
+    groundY,
+    state.scrollY,
+    state.nightMode,
+    pointerParallax,
+  );
   if (state.nightMode) {
     for (const witch of state.witches) {
       if (witch.active) {
@@ -2284,8 +2547,9 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
   }
 
   drawGround(ctx, w, h, groundY, time, state.groundSpeckles, state.nightMode);
-  drawEnchantedBankDetails(ctx, state, time);
-  drawSceneReflections(ctx, state, time);
+  drawFireflyHabitats(ctx, state, time);
+  drawRiverAmbient(ctx, state, time, dt);
+  drawSceneReflections(ctx, state, time, nightAmount);
   drawMoonReflection(ctx, state, time);
   const riverY = getRiverY(groundY, h);
   drawDock(ctx, w, h, riverY, state.nightMode, time);
@@ -2294,13 +2558,18 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
     w,
     h,
     riverY,
-    state.nightMode,
+    clamp01((nightAmount - 0.72) / 0.22),
     time,
   );
   drawForegroundPlants(ctx, w, h, state.nightMode, time);
 
   for (const shop of state.shops) {
-    drawShop(ctx, shop.x, groundY, shop.variant, shop.scale, state.nightMode);
+    const lightAmount = getVillageLightAmount(
+      nightAmount,
+      shop.centerX,
+      w,
+    );
+    drawShop(ctx, shop.x, groundY, shop.variant, shop.scale, lightAmount);
   }
 
   updateInteractionCursor(state);
@@ -2412,7 +2681,8 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
 
   // street light poles
   for (const sl of state.streetLights) {
-    drawStreetLight(ctx, sl.x, groundY, sl.scale, state.nightMode, time);
+    const lightAmount = getVillageLightAmount(nightAmount, sl.x, w);
+    drawStreetLight(ctx, sl.x, groundY, sl.scale, lightAmount, time);
   }
 
   updateNPCs(state, dt);
@@ -2482,9 +2752,12 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
   }
 
   // street light glow (night only, drawn on top of everything)
-  if (state.nightMode) {
+  if (nightAmount > 0.001) {
     for (const sl of state.streetLights) {
-      drawLightGlow(ctx, sl.x, groundY, sl.scale, time);
+      const lightAmount = getVillageLightAmount(nightAmount, sl.x, w);
+      if (lightAmount > 0.001) {
+        drawLightGlow(ctx, sl.x, groundY, sl.scale, time, lightAmount);
+      }
     }
   }
 

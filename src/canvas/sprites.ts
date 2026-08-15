@@ -877,7 +877,7 @@ export function drawStreetLight(
   x: number,
   groundY: number,
   scale: number,
-  night: boolean,
+  lightAmount: number,
   time: number
 ) {
   const s = Math.floor(3 * scale);
@@ -917,30 +917,25 @@ export function drawStreetLight(
   ctx.fillStyle = "#3a3a3a";
   ctx.fillRect(lampX - s * 0.3, lampY, s * 2, s * 0.5);
 
-  if (night) {
-    // lamp glass (lit)
+  ctx.fillStyle = "#6a6a6a";
+  ctx.fillRect(lampX, lampY + s * 0.5, s * 1.4, s * 2);
+  ctx.fillStyle = "#7a7a7a";
+  ctx.fillRect(lampX + s * 0.3, lampY + s * 0.8, s * 0.8, s * 1.2);
+
+  if (lightAmount > 0.001) {
     const flicker = 0.9 + Math.sin(time * 0.008) * 0.1;
+    ctx.save();
+    ctx.globalAlpha = lightAmount;
     ctx.fillStyle = `rgba(255, 220, 120, ${flicker})`;
     ctx.fillRect(lampX, lampY + s * 0.5, s * 1.4, s * 2);
 
-    // bright center
     ctx.fillStyle = `rgba(255, 240, 180, ${flicker})`;
     ctx.fillRect(lampX + s * 0.3, lampY + s * 0.8, s * 0.8, s * 1.2);
-
-    // bottom cap
-    ctx.fillStyle = "#3a3a3a";
-    ctx.fillRect(lampX - s * 0.2, lampY + s * 2.5, s * 1.8, s * 0.4);
-  } else {
-    // lamp glass (off — dark/grey)
-    ctx.fillStyle = "#6a6a6a";
-    ctx.fillRect(lampX, lampY + s * 0.5, s * 1.4, s * 2);
-    ctx.fillStyle = "#7a7a7a";
-    ctx.fillRect(lampX + s * 0.3, lampY + s * 0.8, s * 0.8, s * 1.2);
-
-    // bottom cap
-    ctx.fillStyle = "#3a3a3a";
-    ctx.fillRect(lampX - s * 0.2, lampY + s * 2.5, s * 1.8, s * 0.4);
+    ctx.restore();
   }
+
+  ctx.fillStyle = "#3a3a3a";
+  ctx.fillRect(lampX - s * 0.2, lampY + s * 2.5, s * 1.8, s * 0.4);
 }
 
 export function drawLightGlow(
@@ -948,7 +943,8 @@ export function drawLightGlow(
   x: number,
   groundY: number,
   scale: number,
-  time: number
+  time: number,
+  intensity = 1,
 ) {
   const s = Math.floor(3 * scale);
   const poleH = s * 14;
@@ -957,6 +953,7 @@ export function drawLightGlow(
   const flicker = 0.85 + Math.sin(time * 0.008) * 0.15;
 
   ctx.save();
+  ctx.globalAlpha = intensity;
 
   // cone of light from lamp to ground
   const coneTopW = s * 3;
@@ -1051,7 +1048,7 @@ export function drawShop(
   groundY: number,
   variant: number,
   scale: number,
-  night = false,
+  lightAmount = 0,
 ) {
   const s = Math.floor(4 * scale);
   const w = s * 14;
@@ -1061,7 +1058,9 @@ export function drawShop(
   const roofColors = ["#e94560", "#7048a8", "#f5c542", "#6a3d8a"];
   const vi = variant % wallColors.length;
 
-  if (night) {
+  if (lightAmount > 0.001) {
+    ctx.save();
+    ctx.globalAlpha = lightAmount;
     const centerX = x + w / 2;
     const centerY = baseY + h * 0.58;
     const radius = w * 0.82;
@@ -1071,6 +1070,7 @@ export function drawShop(
     aura.addColorStop(1, "rgba(0,0,0,0)");
     ctx.fillStyle = aura;
     ctx.fillRect(centerX - radius, centerY - radius, radius * 2, radius * 2);
+    ctx.restore();
   }
 
   ctx.fillStyle = "rgba(0,0,0,0.15)";
@@ -1084,10 +1084,20 @@ export function drawShop(
   ctx.fillRect(x, baseY, w, s * 1.5);
   ctx.fillStyle = "rgba(0,0,0,0.15)";
   ctx.fillRect(x - s, baseY + s * 3, w + s * 2, s * 0.5);
-  ctx.fillStyle = night ? (vi === 3 ? "#bba5ff" : "#f6c85f") : "#6ec6ff";
+  ctx.fillStyle = "#6ec6ff";
   ctx.fillRect(x + s * 2, baseY + s * 5, s * 3.5, s * 3.5);
   ctx.fillRect(x + s * 8, baseY + s * 5, s * 3.5, s * 3.5);
-  ctx.fillStyle = night ? "rgba(255,247,204,0.46)" : "rgba(255,255,255,0.25)";
+  if (lightAmount > 0.001) {
+    ctx.save();
+    ctx.globalAlpha = lightAmount;
+    ctx.fillStyle = vi === 3 ? "#bba5ff" : "#f6c85f";
+    ctx.fillRect(x + s * 2, baseY + s * 5, s * 3.5, s * 3.5);
+    ctx.fillRect(x + s * 8, baseY + s * 5, s * 3.5, s * 3.5);
+    ctx.restore();
+  }
+  ctx.fillStyle = lightAmount > 0.5
+    ? "rgba(255,247,204,0.46)"
+    : "rgba(255,255,255,0.25)";
   ctx.fillRect(x + s * 2, baseY + s * 5, s * 1.5, s * 1.5);
   ctx.fillRect(x + s * 8, baseY + s * 5, s * 1.5, s * 1.5);
   ctx.fillStyle = "#5a3a1a";

@@ -362,14 +362,14 @@
   min-height: 100svh;
   align-items: flex-end;
   justify-content: flex-start;
-  padding: clamp(5.25rem, 11vh, 7.5rem) 1rem 0.5rem clamp(1rem, 6vw, 5.5rem);
+  padding: clamp(5.25rem, 11vh, 7.5rem) 1rem 0.5rem clamp(0.75rem, 3vw, 2.75rem);
 }
 
 .village-board {
   position: relative;
   display: grid;
-  width: min(100%, clamp(480px, 36vw, 540px));
-  height: 240px;
+  width: min(100%, clamp(500px, 38vw, 570px));
+  height: 250px;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr);
   grid-template-rows: 1fr;
   align-items: start;
@@ -399,7 +399,7 @@
 .hero-brand {
   position: relative;
   z-index: 2;
-  width: 280px;
+  width: 300px;
   max-width: none;
   grid-column: 2;
   grid-row: 1;
@@ -419,6 +419,13 @@
     inset 0 0 0 3px #3d6d62;
   text-shadow: 3px 3px 0 #17100b;
   rotate: 0.35deg;
+}
+
+.scene-night .hero-brand {
+  box-shadow:
+    5px 5px 0 rgba(0, 0, 0, 0.52),
+    inset 0 0 0 3px #3d6d62,
+    0 0 22px rgba(90, 221, 192, 0.13);
 }
 
 .hero-brand::before {
@@ -587,6 +594,22 @@
   transition: transform 160ms ease, filter 160ms ease, box-shadow 160ms ease;
 }
 
+.meeting-sign:focus-visible {
+  outline: 4px solid #fff0a8;
+  outline-offset: 5px;
+}
+
+.meeting-sign.is-launching {
+  animation: meeting-sign-launch 180ms steps(2, end) both;
+}
+
+@keyframes meeting-sign-launch {
+  50% {
+    filter: brightness(1.28) drop-shadow(0 0 9px rgba(255, 232, 156, 0.8));
+    transform: translateY(-4px) scale(1.025);
+  }
+}
+
 .meeting-sign::after {
   position: absolute;
   z-index: -1;
@@ -617,7 +640,7 @@
   grid-column: 1;
   grid-row: 1;
   justify-self: start;
-  margin-top: 90px;
+  margin-top: 96px;
   background: #ef7585;
   rotate: -1deg;
 }
@@ -626,10 +649,10 @@
   grid-column: 3;
   grid-row: 1;
   justify-self: end;
-  margin-top: 50px;
+  margin-top: 54px;
   background: #7bd4b1;
   rotate: 1deg;
-  translate: -60px 0;
+  translate: -105px 0;
 }
 
 .meeting-sign-30::after {
@@ -1164,21 +1187,21 @@
 
   .village-board {
     display: block;
-    width: 220px;
-    height: 250px;
+    width: 176px;
+    height: 246px;
     filter: drop-shadow(5px 6px 0 rgba(0, 0, 0, 0.34));
   }
 
   .hero-brand {
     position: absolute;
     top: 0;
-    left: 10px;
-    width: 190px;
-    max-width: 190px;
+    left: 0;
+    width: 172px;
+    max-width: 172px;
     margin: 0;
     border-width: 3px;
     padding: 0.85rem 1rem 0.75rem;
-    font-size: 0.9rem;
+    font-size: 0.78rem;
     box-shadow:
       4px 4px 0 rgba(0, 0, 0, 0.52),
       inset 0 0 0 2px #3d6d62;
@@ -1196,7 +1219,7 @@
 
   .meeting-sign {
     position: absolute;
-    width: 170px;
+    width: 146px;
     min-height: 64px;
     margin: 0;
     border-width: 3px;
@@ -1207,13 +1230,13 @@
   .meeting-sign-15 {
     top: 78px;
     left: 0;
-    width: 150px;
+    width: 136px;
   }
 
   .meeting-sign-30 {
     top: 164px;
-    left: 45px;
-    width: 165px;
+    left: 12px;
+    width: 148px;
     translate: 0;
   }
 
@@ -1228,11 +1251,11 @@
   }
 
   .meeting-sign-time {
-    font-size: 0.78rem;
+    font-size: 0.72rem;
   }
 
   .meeting-sign-label {
-    font-size: 0.75rem;
+    font-size: 0.66rem;
   }
 
   .meeting-facts {
@@ -1281,5 +1304,41 @@
 
   .athenaeum-return button {
     grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 360px) {
+  .village-hero {
+    padding-right: 0.35rem;
+    padding-left: 0.35rem;
+  }
+
+  .village-board {
+    width: 160px;
+  }
+
+  .hero-brand {
+    width: 156px;
+    max-width: 156px;
+    padding-right: 0.7rem;
+    padding-left: 0.7rem;
+    font-size: 0.7rem;
+  }
+
+  .meeting-sign-15 {
+    width: 126px;
+  }
+
+  .meeting-sign-30 {
+    left: 8px;
+    width: 138px;
+  }
+
+  .meeting-sign-time {
+    font-size: 0.66rem;
+  }
+
+  .meeting-sign-label {
+    font-size: 0.6rem;
   }
 }
