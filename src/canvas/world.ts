@@ -863,131 +863,60 @@ function drawMountains(
   scrollY: number,
   night: boolean
 ) {
-  type MountainLayer = {
-    color: string;
-    shadow: string;
-    edge: string;
-    height: number;
-    parallax: number;
-    profile: readonly (readonly [number, number])[];
-    peaks: readonly number[];
-    snow?: readonly number[];
-  };
-
-  const rangeHeight = Math.min(groundY * 0.34, w * 0.32);
   const layers = [
     {
-      color: night ? "#46557f" : "#a2b7cf",
-      shadow: night ? "rgba(24, 31, 62, 0.22)" : "rgba(91, 116, 151, 0.2)",
-      edge: night ? "rgba(176, 194, 238, 0.42)" : "rgba(230, 240, 248, 0.66)",
-      height: 1,
+      color: night ? "#3c4771" : "#91a7c6",
+      highlight: night ? "rgba(139, 153, 211, 0.22)" : "rgba(206, 222, 238, 0.55)",
+      y: groundY - 84,
+      amp: 62,
+      freq: 0.0027,
       parallax: 0.1,
-      profile: [
-        [0, 0.34], [0.08, 0.52], [0.16, 0.4], [0.28, 1],
-        [0.38, 0.54], [0.5, 0.27], [0.61, 0.48], [0.75, 0.84],
-        [0.84, 0.46], [0.94, 0.64], [1, 0.42],
-      ],
-      peaks: [3, 7],
-      snow: [3, 7],
     },
     {
-      color: night ? "#34466c" : "#7e99b7",
-      shadow: night ? "rgba(16, 28, 53, 0.24)" : "rgba(68, 96, 128, 0.2)",
-      edge: night ? "rgba(130, 157, 210, 0.3)" : "rgba(186, 207, 226, 0.5)",
-      height: 0.72,
+      color: night ? "#303b64" : "#758eaf",
+      highlight: night ? "rgba(112, 134, 193, 0.2)" : "rgba(171, 194, 218, 0.46)",
+      y: groundY - 45,
+      amp: 48,
+      freq: 0.0044,
       parallax: 0.2,
-      profile: [
-        [0, 0.38], [0.1, 0.64], [0.19, 0.36], [0.36, 0.78],
-        [0.5, 0.2], [0.63, 0.62], [0.72, 0.42], [0.87, 0.74], [1, 0.35],
-      ],
-      peaks: [1, 3, 5, 7],
     },
     {
-      color: night ? "#263b59" : "#5e7f9c",
-      shadow: night ? "rgba(11, 29, 45, 0.25)" : "rgba(53, 82, 108, 0.22)",
-      edge: night ? "rgba(93, 134, 174, 0.23)" : "rgba(145, 176, 202, 0.42)",
-      height: 0.46,
+      color: night ? "#263556" : "#5d7899",
+      highlight: night ? "rgba(90, 121, 174, 0.18)" : "rgba(139, 169, 198, 0.38)",
+      y: groundY - 12,
+      amp: 32,
+      freq: 0.0072,
       parallax: 0.3,
-      profile: [
-        [0, 0.32], [0.12, 0.64], [0.24, 0.3], [0.39, 0.7],
-        [0.5, 0.16], [0.6, 0.56], [0.74, 0.3], [0.9, 0.66], [1, 0.28],
-      ],
-      peaks: [1, 3, 5, 7],
     },
-  ] satisfies MountainLayer[];
+  ];
 
-  for (const layer of layers) {
-    const verticalOffset = scrollY * layer.parallax;
-    const ridge = layer.profile.map(([ratio, height]) => ({
-      x: ratio * w,
-      y: groundY - height * rangeHeight * layer.height - verticalOffset,
-    }));
-
+  for (const [layerIndex, layer] of layers.entries()) {
+    const offset = scrollY * layer.parallax;
+    const ridge: { x: number; y: number }[] = [];
     ctx.fillStyle = layer.color;
     ctx.beginPath();
     ctx.moveTo(0, groundY);
-    for (const point of ridge) {
-      ctx.lineTo(point.x, point.y);
+    for (let x = 0; x <= w + 4; x += 4) {
+      const y =
+        layer.y -
+        Math.abs(Math.sin((x + offset) * layer.freq + layerIndex * 0.8)) * layer.amp -
+        Math.abs(Math.sin((x + offset) * layer.freq * 1.73 + 1.4)) * layer.amp * 0.36 -
+        Math.abs(Math.cos((x + offset) * layer.freq * 0.43 + 0.6)) * layer.amp * 0.2;
+      ridge.push({ x, y });
+      ctx.lineTo(x, y);
     }
     ctx.lineTo(w, groundY);
     ctx.closePath();
     ctx.fill();
 
-    for (const peakIndex of layer.peaks) {
-      const peak = ridge[peakIndex];
-      const shadowNeighbor = ridge[peakIndex + (night ? -1 : 1)];
-      const lightNeighbor = ridge[peakIndex + (night ? 1 : -1)];
-      if (!peak || !shadowNeighbor || !lightNeighbor) continue;
-
-      ctx.fillStyle = layer.shadow;
-      const facetBottomX = peak.x + (shadowNeighbor.x - peak.x) * 0.42;
-      const facetBottomY = Math.min(
-        groundY - 2,
-        Math.max(
-          shadowNeighbor.y + 10,
-          peak.y + (groundY - peak.y) * 0.72,
-        ),
-      );
-      ctx.beginPath();
-      ctx.moveTo(peak.x, peak.y);
-      ctx.lineTo(shadowNeighbor.x, shadowNeighbor.y);
-      ctx.lineTo(facetBottomX, facetBottomY);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.fillStyle = layer.edge;
-      for (let step = 0; step <= 0.52; step += 0.08) {
-        const x = peak.x + (lightNeighbor.x - peak.x) * step;
-        const y = peak.y + (lightNeighbor.y - peak.y) * step;
-        ctx.fillRect(Math.round(x), Math.round(y), 5, 2);
-      }
-    }
-
-    for (const snowIndex of layer.snow ?? []) {
-      const peak = ridge[snowIndex];
-      if (!peak) continue;
-      const capWidth = rangeHeight * 0.16;
-      const capHeight = rangeHeight * 0.105;
-      ctx.fillStyle = night ? "#aebcdb" : "#e7eef4";
-      ctx.beginPath();
-      ctx.moveTo(peak.x, peak.y);
-      ctx.lineTo(peak.x - capWidth * 0.52, peak.y + capHeight);
-      ctx.lineTo(peak.x - capWidth * 0.18, peak.y + capHeight * 0.7);
-      ctx.lineTo(peak.x, peak.y + capHeight * 0.92);
-      ctx.lineTo(peak.x + capWidth * 0.16, peak.y + capHeight * 0.58);
-      ctx.lineTo(peak.x + capWidth * 0.52, peak.y + capHeight);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.fillStyle = night ? "rgba(92, 114, 161, 0.52)" : "rgba(145, 167, 192, 0.42)";
-      ctx.beginPath();
-      ctx.moveTo(peak.x, peak.y);
-      ctx.lineTo(peak.x + capWidth * 0.52, peak.y + capHeight);
-      ctx.lineTo(peak.x + capWidth * 0.16, peak.y + capHeight * 0.58);
-      ctx.lineTo(peak.x, peak.y + capHeight * 0.92);
-      ctx.closePath();
-      ctx.fill();
-    }
+    ctx.strokeStyle = layer.highlight;
+    ctx.lineWidth = layerIndex === 0 ? 3 : 2;
+    ctx.beginPath();
+    ridge.forEach((point, index) => {
+      if (index === 0) ctx.moveTo(point.x, point.y + 2);
+      else ctx.lineTo(point.x, point.y + 2);
+    });
+    ctx.stroke();
   }
 }
 
@@ -2181,7 +2110,8 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
     }
   }
 
-  // dragon + witches (night only)
+  // Night flyers update here; witches are drawn after the mountains so the
+  // terrain cannot hide their approach to the village.
   if (state.nightMode) {
     updateDragon(state, dt, time);
     if (state.dragon.active) {
@@ -2198,11 +2128,6 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
     }
 
     updateWitches(state, dt, time);
-    for (const w of state.witches) {
-      if (w.active) {
-        drawWitch(ctx, w.x, w.y, w.scale, w.facing, time, w.state === "landed");
-      }
-    }
   }
 
   for (const cloud of state.clouds) {
@@ -2218,6 +2143,21 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
   }
 
   drawMountains(ctx, w, groundY, state.scrollY, state.nightMode);
+  if (state.nightMode) {
+    for (const witch of state.witches) {
+      if (witch.active) {
+        drawWitch(
+          ctx,
+          witch.x,
+          witch.y,
+          witch.scale,
+          witch.facing,
+          time,
+          witch.state === "landed",
+        );
+      }
+    }
+  }
   for (const tree of state.trees) {
     drawTreeByType(ctx, tree, groundY);
   }
