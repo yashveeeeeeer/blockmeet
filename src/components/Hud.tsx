@@ -3,24 +3,20 @@ import { motion } from "framer-motion";
 interface HudProps {
   soundOn: boolean;
   crtOn: boolean;
-  perfMode: boolean;
   nightMode: boolean;
   xp: number;
   onToggleSound: () => void;
   onToggleCrt: () => void;
-  onTogglePerf: () => void;
   onToggleNight: () => void;
 }
 
 export default function Hud({
   soundOn,
   crtOn,
-  perfMode,
   nightMode,
   xp,
   onToggleSound,
   onToggleCrt,
-  onTogglePerf,
   onToggleNight,
 }: HudProps) {
   return (
@@ -48,12 +44,6 @@ export default function Hud({
           onClick={onToggleCrt}
           label="CRT"
           title="Toggle CRT effect"
-        />
-        <HudButton
-          active={perfMode}
-          onClick={onTogglePerf}
-          label="PERF"
-          title="Toggle performance mode"
         />
       </div>
 

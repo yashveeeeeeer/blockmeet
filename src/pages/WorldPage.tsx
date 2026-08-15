@@ -217,12 +217,10 @@ export default function WorldPage() {
       <Hud
         soundOn={soundOn}
         crtOn={crtOn}
-        perfMode={perfMode}
         nightMode={nightMode}
         xp={xp}
         onToggleSound={() => setSoundOn((current) => !current)}
         onToggleCrt={() => setCrtOn((current) => !current)}
-        onTogglePerf={() => setPerfMode((current) => !current)}
         onToggleNight={() => setNightMode((current) => !current)}
       />
 
