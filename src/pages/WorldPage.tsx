@@ -55,7 +55,6 @@ export default function WorldPage() {
 
   const [soundOn, setSoundOn] = useState(false);
   const [crtOn, setCrtOn] = useState(false);
-  const [perfMode, setPerfMode] = useState(false);
   const [xp, setXp] = useState(() => getTimeOfDayXp());
   const [modalOpen, setModalOpen] = useState(false);
   const [booking, setBooking] = useState<BookingSelection | null>(null);
@@ -71,13 +70,6 @@ export default function WorldPage() {
     },
     [navigate],
   );
-
-  useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setPerfMode(true);
-      setCrtOn(false);
-    }
-  }, []);
 
   useEffect(() => {
     const handleVisibility = () => {
@@ -154,10 +146,6 @@ export default function WorldPage() {
   }, [soundOn]);
 
   useEffect(() => {
-    if (worldRef.current) worldRef.current.performanceMode = perfMode;
-  }, [perfMode]);
-
-  useEffect(() => {
     const handleScroll = () => {
       if (worldRef.current) worldRef.current.scrollY = window.scrollY;
     };
@@ -212,7 +200,7 @@ export default function WorldPage() {
         aria-hidden="true"
       />
 
-      <HdrStarfield performanceMode={perfMode} />
+      <HdrStarfield />
 
       <Hud
         soundOn={soundOn}

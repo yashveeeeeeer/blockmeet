@@ -230,7 +230,7 @@
     drop-shadow(0 0 3px rgba(255, 255, 255, 1))
     drop-shadow(0 0 10px rgba(104, 197, 255, 0.95))
     drop-shadow(0 0 22px rgba(122, 111, 255, 0.68));
-  animation: hdr-shooting-star 18s cubic-bezier(0.18, 0.62, 0.25, 1) 1.1s infinite;
+  animation: hdr-shooting-star 48s cubic-bezier(0.18, 0.62, 0.25, 1) 8s infinite;
 }
 
 .hdr-shooting-star::before,
@@ -257,14 +257,6 @@
   box-shadow:
     0 0 3px 2px rgba(255, 255, 255, 0.96),
     0 0 13px 5px rgba(130, 204, 255, 0.82);
-}
-
-.hdr-starfield--reduced .hdr-shooting-star {
-  display: none;
-}
-
-.hdr-starfield--reduced {
-  transition: none;
 }
 
 .hdr-star::before,
@@ -317,24 +309,24 @@
 
 @keyframes hdr-shooting-star {
   0%,
-  5% {
+  1.5% {
     opacity: 0;
     transform: translate3d(-8vw, -2vw, 0) rotate(15deg) scaleX(0.7);
   }
 
-  6% {
+  2% {
     opacity: 0.35;
   }
 
-  8% {
+  3% {
     opacity: 1;
   }
 
-  13% {
+  5.5% {
     opacity: 0.94;
   }
 
-  17%,
+  7%,
   100% {
     opacity: 0;
     transform: translate3d(62vw, 16vw, 0) rotate(15deg) scaleX(1);
@@ -1289,16 +1281,5 @@
 
   .athenaeum-return button {
     grid-column: 1 / -1;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
   }
 }

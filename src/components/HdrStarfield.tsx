@@ -10,16 +10,9 @@ const FEATURE_STARS = [
   { x: 94, y: 31, size: 5, delay: -0.4, duration: 5.3 },
 ] as const;
 
-interface HdrStarfieldProps {
-  performanceMode?: boolean;
-}
-
-export default function HdrStarfield({ performanceMode = false }: HdrStarfieldProps) {
+export default function HdrStarfield() {
   return (
-    <div
-      className={`hdr-starfield${performanceMode ? " hdr-starfield--reduced" : ""}`}
-      aria-hidden="true"
-    >
+    <div className="hdr-starfield" aria-hidden="true">
       {FEATURE_STARS.map((star) => (
         <span
           key={`${star.x}-${star.y}`}

@@ -25,11 +25,19 @@ import {
 import { InputState, createInputState, attachInputHandlers, getCanvasDpr } from "./input";
 
 const MAX_PARTICLES = 60;
+const MAX_FIREFLIES = 18;
 const GRID_SIZE = 32;
 const GROUND_ROW_COUNT = 2;
 const NPC_COUNT = 6;
 
+const FIREFLY_ZONES = [
+  { x: 0.12, yOffset: 46, radiusX: 0.032, radiusY: 25 },
+  { x: 0.38, yOffset: 54, radiusX: 0.038, radiusY: 30 },
+  { x: 0.7, yOffset: 48, radiusX: 0.035, radiusY: 27 },
+] as const;
+
 interface Particle {
+  kind: "day" | "firefly";
   x: number;
   y: number;
   vx: number;
@@ -38,6 +46,13 @@ interface Particle {
   maxLife: number;
   size: number;
   color: string;
+  clusterIndex?: number;
+  anchorX?: number;
+  anchorY?: number;
+  radiusX?: number;
+  radiusY?: number;
+  phase?: number;
+  driftSpeed?: number;
 }
 
 interface CloudData {
@@ -238,7 +253,6 @@ export interface WorldState {
   scrollY: number;
   nightMode: boolean;
   skyTransition: SkyTransitionData | null;
-  performanceMode: boolean;
   soundEnabled: boolean;
   animFrame: number;
   detach: (() => void) | null;
@@ -822,24 +836,61 @@ function updateHorses(state: WorldState, dt: number) {
 
 function spawnParticle(state: WorldState): Particle | null {
   const isNight = state.nightMode;
-  const maxP = isNight ? 28 : MAX_PARTICLES;
+  const maxP = isNight ? MAX_FIREFLIES : MAX_PARTICLES;
   if (state.particles.length >= maxP) return null;
-  const cluster = [0.12, 0.3, 0.65, 0.84][Math.floor(Math.random() * 4)];
+
+  if (isNight) {
+    const clusterCounts = FIREFLY_ZONES.map(
+      (_, index) => state.particles.filter((particle) => particle.clusterIndex === index).length,
+    );
+    const smallestCluster = Math.min(...clusterCounts);
+    const availableClusters = clusterCounts
+      .map((count, index) => ({ count, index }))
+      .filter(({ count }) => count === smallestCluster);
+    const clusterIndex =
+      availableClusters[Math.floor(Math.random() * availableClusters.length)].index;
+    const zone = FIREFLY_ZONES[clusterIndex];
+    const anchorX =
+      state.width * zone.x +
+      (Math.random() - 0.5) * state.width * zone.radiusX;
+    const anchorY =
+      state.groundY -
+      zone.yOffset * state.dpr +
+      (Math.random() - 0.5) * 18 * state.dpr;
+    const phase = Math.random() * Math.PI * 2;
+    const radiusX = (9 + Math.random() * 13) * state.dpr;
+    const radiusY = (7 + Math.random() * zone.radiusY * 0.45) * state.dpr;
+
+    return {
+      kind: "firefly",
+      x: anchorX,
+      y: anchorY,
+      vx: 0,
+      vy: 0,
+      life: 0,
+      maxLife: 9000 + Math.random() * 7000,
+      size: 2 + Math.random() * 1.6,
+      color: Math.random() > 0.32 ? "#f6d365" : "#79ead3",
+      clusterIndex,
+      anchorX,
+      anchorY,
+      radiusX,
+      radiusY,
+      phase,
+      driftSpeed: 0.55 + Math.random() * 0.55,
+    };
+  }
+
   return {
-    x: isNight
-      ? Math.max(12, Math.min(state.width - 12, state.width * cluster + (Math.random() - 0.5) * state.width * 0.12))
-      : Math.random() * state.width,
-    y: isNight
-      ? state.groundY - 18 - Math.random() * Math.min(105 * state.dpr, state.groundY * 0.2)
-      : Math.random() * state.groundY,
-    vx: isNight ? (Math.random() - 0.5) * 0.12 : (Math.random() - 0.5) * 0.3,
-    vy: isNight ? (Math.random() - 0.5) * 0.08 : -0.2 - Math.random() * 0.3,
+    kind: "day",
+    x: Math.random() * state.width,
+    y: Math.random() * state.groundY,
+    vx: (Math.random() - 0.5) * 0.3,
+    vy: -0.2 - Math.random() * 0.3,
     life: 0,
-    maxLife: isNight ? 5000 + Math.random() * 5000 : 2000 + Math.random() * 3000,
-    size: isNight ? 2 + Math.random() * 2 : 1 + Math.random() * 2,
-    color: isNight
-      ? Math.random() > 0.38 ? "#f6d365" : "#79ead3"
-      : "rgba(255,255,255,0.5)",
+    maxLife: 2000 + Math.random() * 3000,
+    size: 1 + Math.random() * 2,
+    color: "rgba(255,255,255,0.5)",
   };
 }
 
@@ -1195,12 +1246,6 @@ function drawJumpingFish(
   time: number,
   dt: number,
 ) {
-  if (state.performanceMode) {
-    state.jumpingFish = null;
-    state.nextFishJumpAt = time + getNextFishDelay();
-    return;
-  }
-
   if (!state.jumpingFish && time >= state.nextFishJumpAt) {
     state.jumpingFish = createJumpingFish();
   }
@@ -1306,7 +1351,7 @@ function drawMoonReflection(
   const riverY = getRiverY(state.groundY, state.height);
   const depth = state.height - riverY;
   const moonX = state.width * 0.78;
-  const rows = state.performanceMode ? 7 : 12;
+  const rows = 12;
 
   ctx.save();
   for (let row = 0; row < rows; row++) {
@@ -1923,6 +1968,27 @@ function updateParticles(state: WorldState, dt: number) {
       continue;
     }
 
+    if (
+      p.kind === "firefly" &&
+      p.anchorX !== undefined &&
+      p.anchorY !== undefined &&
+      p.radiusX !== undefined &&
+      p.radiusY !== undefined &&
+      p.phase !== undefined &&
+      p.driftSpeed !== undefined
+    ) {
+      const wanderTime = p.life * 0.001 * p.driftSpeed;
+      p.x =
+        p.anchorX +
+        Math.sin(wanderTime + p.phase) * p.radiusX * 0.68 +
+        Math.sin(wanderTime * 1.9 + p.phase * 0.7) * p.radiusX * 0.32;
+      p.y =
+        p.anchorY +
+        Math.cos(wanderTime * 0.82 + p.phase) * p.radiusY * 0.7 +
+        Math.sin(wanderTime * 1.43 + p.phase * 1.4) * p.radiusY * 0.3;
+      continue;
+    }
+
     if (input.mouseX > 0 && input.mouseY > 0) {
       const dx = input.mouseX - p.x;
       const dy = input.mouseY - p.y;
@@ -1951,8 +2017,12 @@ function drawParticles(
   time: number
 ) {
   for (const p of particles) {
-    const alpha = 1 - p.life / p.maxLife;
-    const flicker = 0.6 + Math.sin(time * 0.005 + p.x) * 0.4;
+    const lifeProgress = p.life / p.maxLife;
+    const alpha = p.kind === "firefly"
+      ? Math.min(1, p.life / 650, (p.maxLife - p.life) / 900)
+      : 1 - lifeProgress;
+    const flickerPhase = p.phase ?? p.x;
+    const flicker = 0.64 + Math.sin(time * 0.0035 + flickerPhase) * 0.36;
     if (!p.color.startsWith("rgba")) {
       ctx.globalAlpha = alpha * flicker * 0.16;
       ctx.fillStyle = p.color;
@@ -2040,7 +2110,6 @@ export function initWorld(canvas: HTMLCanvasElement): WorldState | null {
     scrollY: 0,
     nightMode: isNightTime(),
     skyTransition: null,
-    performanceMode: false,
     soundEnabled: false,
     animFrame: 0,
     detach: null,
@@ -2083,6 +2152,7 @@ export function resizeWorld(state: WorldState) {
   state.horses = createHorses(w);
   state.streetLights = createStreetLights(w, state.shops);
   state.groundSpeckles = createGroundSpeckles(w);
+  state.particles = [];
   state.reactions = [];
   state.bridgeVisitor = createBridgeVisitor();
   state.jumpingFish = null;
@@ -2095,7 +2165,7 @@ export function setWorldNightMode(state: WorldState, nightMode: boolean) {
   const current = getSkyNightAmount(state, now);
 
   state.nightMode = nightMode;
-  if (state.performanceMode || Math.abs(current - target) < 0.001) {
+  if (Math.abs(current - target) < 0.001) {
     state.skyTransition = null;
     return;
   }
@@ -2420,10 +2490,8 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
 
   drawReactions(state, dt);
 
-  if (!state.performanceMode) {
-    updateParticles(state, dt);
-    drawParticles(ctx, state.particles, time);
-  }
+  updateParticles(state, dt);
+  drawParticles(ctx, state.particles, time);
 
   if (!state.soundEnabled && state.musicPlayer?.playing) {
     state.musicPlayer.stop();
