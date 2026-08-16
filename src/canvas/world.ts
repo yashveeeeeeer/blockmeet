@@ -228,6 +228,17 @@ interface RiverLeafData {
   color: string;
 }
 
+interface RiverFlowerData {
+  x: number;
+  laneStart: number;
+  laneEnd: number;
+  depthRatio: number;
+  speed: number;
+  phase: number;
+  scale: number;
+  petals: string;
+}
+
 interface AmbientRippleData {
   xRatio: number;
   depthRatio: number;
@@ -268,6 +279,7 @@ export interface WorldState {
   jumpingFish: JumpingFishData | null;
   nextFishJumpAt: number;
   riverLeaves: RiverLeafData[];
+  riverFlowers: RiverFlowerData[];
   ambientRipples: AmbientRippleData[];
   groundSpeckles: { row: number; col: number; dx: number; dy: number }[];
   groundY: number;
@@ -1401,6 +1413,82 @@ function createRiverLeaves(width: number): RiverLeafData[] {
   }));
 }
 
+function createRiverFlowers(width: number): RiverFlowerData[] {
+  const isPhone = window.innerWidth <= 640;
+  const isPortraitTablet = window.innerWidth <= 900 && window.innerHeight > window.innerWidth;
+  const isShortLandscape = window.innerWidth <= 900 && window.innerHeight <= 520;
+  const lanes = isPhone
+    ? [[0.5, 0.56] as const]
+    : isPortraitTablet
+      ? [[0.31, 0.46] as const]
+      : isShortLandscape
+        ? [[0.34, 0.47] as const]
+        : [[0.34, 0.43] as const, [0.63, 0.76] as const];
+  const count = window.innerWidth <= 360 ? 3 : window.innerWidth <= 640 ? 4 : window.innerWidth <= 900 ? 5 : 7;
+  const petalColors = ["#f6b7c8", "#fff1d4", "#cdb9f4", "#f29aae"];
+
+  return Array.from({ length: count }, (_, index) => {
+    const [laneStartRatio, laneEndRatio] = lanes[index % lanes.length];
+    const laneStart = laneStartRatio * width;
+    const laneEnd = laneEndRatio * width;
+    return {
+      x: laneStart + Math.random() * (laneEnd - laneStart),
+      laneStart,
+      laneEnd,
+      depthRatio: isPhone ? 0.16 + Math.random() * 0.25 : 0.2 + Math.random() * 0.48,
+      speed: 0.004 + Math.random() * 0.004,
+      phase: Math.random() * Math.PI * 2,
+      scale: 0.72 + Math.random() * 0.38,
+      petals: petalColors[index % petalColors.length],
+    };
+  });
+}
+
+function drawRiverFlowers(
+  ctx: CanvasRenderingContext2D,
+  state: WorldState,
+  time: number,
+  dt: number,
+) {
+  const riverY = getRiverY(state.groundY, state.height);
+  const depth = state.height - riverY;
+
+  for (const flower of state.riverFlowers) {
+    flower.x += flower.speed * dt * state.dpr;
+    if (flower.x > flower.laneEnd) flower.x = flower.laneStart;
+
+    const bob = Math.sin(time * 0.0014 + flower.phase) * 1.8 * state.dpr;
+    const y = riverY + depth * flower.depthRatio + bob;
+    const p = Math.max(1, Math.round(flower.scale * state.dpr));
+    const pad = Math.max(2, Math.round(flower.scale * 1.35 * state.dpr));
+    const blossomX = pad;
+
+    ctx.save();
+    ctx.translate(Math.round(flower.x), Math.round(y));
+    ctx.rotate(Math.sin(time * 0.00045 + flower.phase) * 0.12);
+
+    ctx.fillStyle = state.nightMode ? "rgba(2, 13, 30, 0.42)" : "rgba(23, 65, 83, 0.28)";
+    ctx.fillRect(-4 * pad, 2 * pad, 8 * pad, pad);
+
+    ctx.fillStyle = state.nightMode ? "#1d5d51" : "#2d765b";
+    ctx.fillRect(-4 * pad, -pad, 8 * pad, 3 * pad);
+    ctx.fillRect(-3 * pad, -2 * pad, 6 * pad, 5 * pad);
+    ctx.fillStyle = state.nightMode ? "#32806a" : "#55a974";
+    ctx.fillRect(-3 * pad, -pad, 4 * pad, pad);
+    ctx.fillStyle = state.nightMode ? "#0e3938" : "#27664f";
+    ctx.fillRect(2 * pad, -pad, 2 * pad, pad);
+
+    ctx.fillStyle = flower.petals;
+    ctx.fillRect(blossomX - p, -5 * p, 2 * p, 3 * p);
+    ctx.fillRect(blossomX - p, 2 * p, 2 * p, 3 * p);
+    ctx.fillRect(blossomX - 4 * p, -2 * p, 3 * p, 3 * p);
+    ctx.fillRect(blossomX + p, -2 * p, 3 * p, 3 * p);
+    ctx.fillStyle = state.nightMode ? "#ffe08a" : "#f2bf48";
+    ctx.fillRect(blossomX - p, -2 * p, 2 * p, 2 * p);
+    ctx.restore();
+  }
+}
+
 function createAmbientRipples(): AmbientRippleData[] {
   const now = performance.now();
   return Array.from({ length: 3 }, (_, index) => ({
@@ -2422,6 +2510,7 @@ export function initWorld(canvas: HTMLCanvasElement): WorldState | null {
     jumpingFish: null,
     nextFishJumpAt: performance.now() + 700 + Math.random() * 2200,
     riverLeaves: createRiverLeaves(w),
+    riverFlowers: createRiverFlowers(w),
     ambientRipples: createAmbientRipples(),
     groundSpeckles: createGroundSpeckles(w),
     groundY,
@@ -2477,6 +2566,7 @@ export function resizeWorld(state: WorldState) {
   state.jumpingFish = null;
   state.nextFishJumpAt = performance.now() + 700 + Math.random() * 2200;
   state.riverLeaves = createRiverLeaves(w);
+  state.riverFlowers = createRiverFlowers(w);
   state.ambientRipples = createAmbientRipples();
 }
 
@@ -2619,6 +2709,7 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
   drawRiverAmbient(ctx, state, time, dt);
   drawSceneReflections(ctx, state, time, nightAmount);
   drawMoonReflection(ctx, state, time);
+  drawRiverFlowers(ctx, state, time, dt);
   const riverY = getRiverY(groundY, h);
   drawDock(ctx, w, h, riverY, state.nightMode, time);
   drawBridge(
