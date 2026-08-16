@@ -282,12 +282,50 @@ export interface WorldState {
 }
 
 function getGroundY(height: number): number {
+  if (window.innerWidth <= 900 && window.innerHeight <= 520) return height * 0.52;
   const ratio = window.innerWidth <= 640 ? 0.58 : window.innerWidth <= 900 ? 0.61 : 0.63;
   return height * ratio;
 }
 
 function getCharacterScale(): number {
   return window.innerWidth >= 900 ? 1.28 : window.innerWidth >= 641 ? 1.14 : 1;
+}
+
+function getBridgeCenterX(width: number): number {
+  if (window.innerWidth <= 900 && window.innerHeight <= 520 && window.innerWidth > 640) return width * 0.66;
+  if (window.innerWidth <= 340) return width * 0.76;
+  if (window.innerWidth <= 360) return width * 0.74;
+  if (window.innerWidth <= 640) return width * 0.72;
+  if (window.innerWidth <= 900 && window.innerHeight > window.innerWidth) return width * 0.7;
+  return width * 0.5;
+}
+
+function getBridgeHalfWidths(width: number) {
+  if (window.innerWidth <= 640) {
+    return {
+      topHalf: Math.max(24, Math.min(50, width * 0.045)),
+      bottomHalf: Math.max(70, Math.min(190, width * 0.18)),
+    };
+  }
+
+  if (window.innerWidth <= 900 && window.innerHeight > window.innerWidth) {
+    return {
+      topHalf: Math.max(26, Math.min(54, width * 0.045)),
+      bottomHalf: Math.max(80, Math.min(190, width * 0.18)),
+    };
+  }
+
+  if (window.innerWidth <= 900 && window.innerHeight <= 520) {
+    return {
+      topHalf: Math.max(28, Math.min(58, width * 0.05)),
+      bottomHalf: Math.max(80, Math.min(220, width * 0.18)),
+    };
+  }
+
+  return {
+    topHalf: Math.max(30, Math.min(62, width * 0.055)),
+    bottomHalf: Math.max(90, Math.min(260, width * 0.22)),
+  };
 }
 
 // ── AMBIENT MUSIC PLAYER ─────────────────────────────────────────
@@ -692,13 +730,12 @@ function getBridgeVisitorPosition(state: WorldState) {
   const progress = visitor.progress;
   const topY = riverY + 4;
   const bottomY = state.height - Math.max(56, state.height * 0.075);
-  const topHalf = Math.max(30, Math.min(62, state.width * 0.055));
-  const bottomHalf = Math.max(90, Math.min(260, state.width * 0.22));
+  const { topHalf, bottomHalf } = getBridgeHalfWidths(state.width);
   const bridgeHalf = topHalf + (bottomHalf - topHalf) * progress;
   const laneOffset = bridgeHalf * 0.3 * visitor.lane;
 
   return {
-    x: state.width * 0.5 + laneOffset,
+    x: getBridgeCenterX(state.width) + laneOffset,
     y: topY + (bottomY - topY) * progress,
     scale: 0.58 + progress * 1.05,
   };
@@ -1153,7 +1190,7 @@ function drawGround(
   for (let step = 0; step < 6; step++) {
     const progress = step / 5;
     const y = groundY + 5 + progress * Math.max(20, riverY - groundY - 13);
-    const pathCenter = w / 2 + Math.sin((1 - progress) * Math.PI) * w * 0.018;
+    const pathCenter = getBridgeCenterX(w) + Math.sin((1 - progress) * Math.PI) * w * 0.018;
     const pathWidth = 18 + progress * Math.min(78, w * 0.09);
     ctx.fillStyle = night ? "#7f6848" : "#c5a56b";
     ctx.fillRect(pathCenter - pathWidth / 2, y, pathWidth, 5);
@@ -1170,6 +1207,42 @@ function drawGround(
 
 function getRiverY(groundY: number, height: number): number {
   return groundY + Math.max(38, height * 0.055);
+}
+
+function getDockLayout(w: number, h: number, riverY: number) {
+  if (window.innerWidth <= 640) {
+    const dockW = Math.min(140, w * 0.17);
+    return {
+      dockW,
+      dockX: w - w * 0.018 - dockW,
+      dockY: riverY + Math.min(48, (h - riverY) * 0.24),
+    };
+  }
+
+  if (window.innerWidth <= 900 && window.innerHeight > window.innerWidth) {
+    const dockW = Math.min(180, w * 0.17);
+    return {
+      dockW,
+      dockX: w - w * 0.025 - dockW,
+      dockY: riverY + Math.min(52, (h - riverY) * 0.25),
+    };
+  }
+
+  if (window.innerWidth <= 900 && window.innerHeight <= 520) {
+    const dockW = Math.min(150, w * 0.12);
+    return {
+      dockW,
+      dockX: w - w * 0.018 - dockW,
+      dockY: riverY + Math.min(44, (h - riverY) * 0.22),
+    };
+  }
+
+  const dockW = Math.min(210, w * 0.2);
+  return {
+    dockW,
+    dockX: w - w * 0.06 - dockW,
+    dockY: riverY + Math.min(60, (h - riverY) * 0.3),
+  };
 }
 
 function drawFireflyHabitats(
@@ -1228,9 +1301,7 @@ function drawDock(
   night: boolean,
   time: number
 ) {
-  const dockW = Math.min(210, w * 0.2);
-  const dockX = w - w * 0.06 - dockW;
-  const dockY = riverY + Math.min(60, (h - riverY) * 0.3);
+  const { dockW, dockX, dockY } = getDockLayout(w, h, riverY);
   const plankH = Math.max(10, h * 0.014);
 
   ctx.fillStyle = "#2a170e";
@@ -1696,11 +1767,10 @@ function drawBridge(
   lightAmount: number,
   time: number,
 ) {
-  const centerX = w / 2;
+  const centerX = getBridgeCenterX(w);
   const topY = riverY - 8;
   const bottomY = h + 18;
-  const topHalf = Math.max(30, Math.min(62, w * 0.055));
-  const bottomHalf = Math.max(90, Math.min(260, w * 0.22));
+  const { topHalf, bottomHalf } = getBridgeHalfWidths(w);
 
   ctx.fillStyle = "#1d120d";
   ctx.beginPath();
@@ -1867,9 +1937,7 @@ function drawRiverMoments(
   }
 
   if (dockNpc) {
-    const dockW = Math.min(210, state.width * 0.2);
-    const dockX = state.width - state.width * 0.06 - dockW;
-    const dockY = riverY + Math.min(60, (state.height - riverY) * 0.3);
+    const { dockW, dockX, dockY } = getDockLayout(state.width, state.height, riverY);
     dockNpc.x = dockX + dockW * 0.65;
     if (state.nightMode) {
       drawCharacterRim(ctx, dockNpc.x, dockY - 2, dockNpc.scale * 0.92, time);

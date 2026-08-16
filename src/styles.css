@@ -1186,6 +1186,9 @@
   }
 
   .village-board {
+    position: absolute;
+    top: calc(58svh + max(38px, 5.5svh) + 8px);
+    left: 0.65rem;
     display: block;
     width: 176px;
     height: 246px;
@@ -1307,7 +1310,157 @@
   }
 }
 
-@media (max-width: 360px) {
+@media (min-width: 641px) and (max-width: 900px) and (orientation: portrait) {
+  .village-board {
+    position: absolute;
+    top: calc(61svh + max(38px, 5.5svh) + 8px);
+    left: 1rem;
+    display: block;
+    width: 210px;
+    height: 250px;
+    filter: drop-shadow(5px 6px 0 rgba(0, 0, 0, 0.34));
+  }
+
+  .hero-brand {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 200px;
+    max-width: 200px;
+    margin: 0;
+    border-width: 3px;
+    padding: 0.9rem 1rem 0.78rem;
+    font-size: 0.9rem;
+  }
+
+  .hero-brand::after {
+    left: calc(50% - 7px);
+    width: 14px;
+    height: 220px;
+  }
+
+  .meeting-sign {
+    position: absolute;
+    width: 160px;
+    min-height: 66px;
+    margin: 0;
+    border-width: 3px;
+    padding: 0.85rem 0.45rem 0.7rem;
+  }
+
+  .meeting-sign-15 {
+    top: 82px;
+    left: 0;
+  }
+
+  .meeting-sign-30 {
+    top: 166px;
+    left: 14px;
+    width: 174px;
+    translate: 0;
+  }
+
+  .meeting-sign-15::after {
+    bottom: -104px;
+    height: 104px;
+  }
+
+  .meeting-sign-30::after {
+    bottom: -24px;
+    height: 24px;
+  }
+
+  .meeting-sign-time {
+    font-size: 0.78rem;
+  }
+
+  .meeting-sign-label {
+    font-size: 0.68rem;
+  }
+}
+
+@media (max-width: 900px) and (max-height: 520px) and (orientation: landscape) {
+  .village-hero {
+    min-height: 100svh;
+    padding: 3.4rem 0.5rem 0 0.75rem;
+  }
+
+  .village-board {
+    position: relative;
+    top: auto;
+    left: auto;
+    display: block;
+    width: 340px;
+    height: 116px;
+    filter: drop-shadow(4px 5px 0 rgba(0, 0, 0, 0.34));
+  }
+
+  .hero-brand {
+    position: absolute;
+    top: 0;
+    left: 60px;
+    width: 220px;
+    max-width: 220px;
+    margin: 0;
+    border-width: 3px;
+    padding: 0.68rem 0.8rem 0.58rem;
+    font-size: 0.78rem;
+    box-shadow:
+      4px 4px 0 rgba(0, 0, 0, 0.52),
+      inset 0 0 0 2px #3d6d62;
+  }
+
+  .hero-brand::after {
+    left: calc(50% - 7px);
+    width: 14px;
+    height: 72px;
+  }
+
+  .meeting-sign {
+    position: absolute;
+    top: 50px;
+    min-height: 54px;
+    margin: 0;
+    border-width: 3px;
+    padding: 0.66rem 0.35rem 0.52rem;
+    box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.52);
+  }
+
+  .meeting-sign-15 {
+    left: 0;
+    width: 145px;
+  }
+
+  .meeting-sign-30 {
+    left: 155px;
+    width: 155px;
+    translate: 0;
+  }
+
+  .meeting-sign-15::after,
+  .meeting-sign-30::after {
+    bottom: -38px;
+    height: 38px;
+  }
+
+  .meeting-sign-time {
+    font-size: 0.68rem;
+  }
+
+  .meeting-sign-label {
+    margin-top: 0.4rem;
+    font-size: 0.58rem;
+  }
+}
+
+@media (max-width: 640px) and (max-height: 360px) and (orientation: landscape) {
+  .village-board {
+    scale: 0.86;
+    transform-origin: left bottom;
+  }
+}
+
+@media (max-width: 360px) and (orientation: portrait) {
   .village-hero {
     padding-right: 0.35rem;
     padding-left: 0.35rem;
@@ -1315,6 +1468,7 @@
 
   .village-board {
     width: 160px;
+    height: 184px;
   }
 
   .hero-brand {
@@ -1326,12 +1480,29 @@
   }
 
   .meeting-sign-15 {
+    top: 58px;
     width: 126px;
   }
 
   .meeting-sign-30 {
+    top: 116px;
     left: 8px;
     width: 138px;
+  }
+
+  .meeting-sign {
+    min-height: 54px;
+    padding: 0.62rem 0.35rem 0.5rem;
+  }
+
+  .meeting-sign-15::after {
+    bottom: -72px;
+    height: 72px;
+  }
+
+  .meeting-sign-30::after {
+    bottom: -18px;
+    height: 18px;
   }
 
   .meeting-sign-time {
