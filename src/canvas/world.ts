@@ -237,6 +237,8 @@ interface RiverFlowerData {
   phase: number;
   scale: number;
   petals: string;
+  petalLight: string;
+  variety: 0 | 1 | 2;
 }
 
 interface AmbientRippleData {
@@ -1425,12 +1427,17 @@ function createRiverFlowers(width: number): RiverFlowerData[] {
         ? [[0.34, 0.47] as const]
         : [[0.34, 0.43] as const, [0.63, 0.76] as const];
   const count = window.innerWidth <= 360 ? 3 : window.innerWidth <= 640 ? 4 : window.innerWidth <= 900 ? 5 : 7;
-  const petalColors = ["#f6b7c8", "#fff1d4", "#cdb9f4", "#f29aae"];
+  const flowerPalettes = [
+    { petals: "#e56f98", petalLight: "#ffc1d2" },
+    { petals: "#f0dca5", petalLight: "#fff7df" },
+    { petals: "#9c82d7", petalLight: "#d8c8ff" },
+  ] as const;
 
   return Array.from({ length: count }, (_, index) => {
     const [laneStartRatio, laneEndRatio] = lanes[index % lanes.length];
     const laneStart = laneStartRatio * width;
     const laneEnd = laneEndRatio * width;
+    const palette = flowerPalettes[index % flowerPalettes.length];
     return {
       x: laneStart + Math.random() * (laneEnd - laneStart),
       laneStart,
@@ -1438,10 +1445,55 @@ function createRiverFlowers(width: number): RiverFlowerData[] {
       depthRatio: isPhone ? 0.16 + Math.random() * 0.25 : 0.2 + Math.random() * 0.48,
       speed: 0.004 + Math.random() * 0.004,
       phase: Math.random() * Math.PI * 2,
-      scale: 0.72 + Math.random() * 0.38,
-      petals: petalColors[index % petalColors.length],
+      scale: 0.86 + Math.random() * 0.28,
+      petals: palette.petals,
+      petalLight: palette.petalLight,
+      variety: (index % 3) as 0 | 1 | 2,
     };
   });
+}
+
+function drawLotusBloom(
+  ctx: CanvasRenderingContext2D,
+  flower: RiverFlowerData,
+  unit: number,
+  centerX: number,
+) {
+  const centerY = -2 * unit;
+
+  if (flower.variety === 0) {
+    // A cupped pink lotus: broad outer petals and two bright upright petals.
+    ctx.fillStyle = flower.petals;
+    ctx.fillRect(centerX - 4 * unit, centerY - unit, 3 * unit, 3 * unit);
+    ctx.fillRect(centerX + unit, centerY - unit, 3 * unit, 3 * unit);
+    ctx.fillRect(centerX - 2 * unit, centerY - 3 * unit, 2 * unit, 4 * unit);
+    ctx.fillRect(centerX, centerY - 4 * unit, 2 * unit, 5 * unit);
+    ctx.fillStyle = flower.petalLight;
+    ctx.fillRect(centerX - unit, centerY - 2 * unit, 2 * unit, 3 * unit);
+    ctx.fillRect(centerX + unit, centerY - 3 * unit, unit, 3 * unit);
+  } else if (flower.variety === 1) {
+    // A flatter cream water lily with a wide, layered silhouette.
+    ctx.fillStyle = flower.petals;
+    ctx.fillRect(centerX - 4 * unit, centerY, 8 * unit, 2 * unit);
+    ctx.fillRect(centerX - 3 * unit, centerY - 2 * unit, 2 * unit, 3 * unit);
+    ctx.fillRect(centerX + unit, centerY - 2 * unit, 2 * unit, 3 * unit);
+    ctx.fillRect(centerX - unit, centerY - 4 * unit, 2 * unit, 5 * unit);
+    ctx.fillStyle = flower.petalLight;
+    ctx.fillRect(centerX - 2 * unit, centerY - unit, 4 * unit, 2 * unit);
+    ctx.fillRect(centerX, centerY - 3 * unit, unit, 3 * unit);
+  } else {
+    // A compact lavender bloom with pointed upper petals.
+    ctx.fillStyle = flower.petals;
+    ctx.fillRect(centerX - 3 * unit, centerY - unit, 2 * unit, 3 * unit);
+    ctx.fillRect(centerX + unit, centerY - unit, 2 * unit, 3 * unit);
+    ctx.fillRect(centerX - 2 * unit, centerY - 4 * unit, 2 * unit, 5 * unit);
+    ctx.fillRect(centerX, centerY - 5 * unit, 2 * unit, 6 * unit);
+    ctx.fillStyle = flower.petalLight;
+    ctx.fillRect(centerX - unit, centerY - 2 * unit, 2 * unit, 3 * unit);
+  }
+
+  ctx.fillStyle = "#f4c94f";
+  ctx.fillRect(centerX - unit, centerY, 2 * unit, unit);
 }
 
 function drawRiverFlowers(
@@ -1459,32 +1511,28 @@ function drawRiverFlowers(
 
     const bob = Math.sin(time * 0.0014 + flower.phase) * 1.8 * state.dpr;
     const y = riverY + depth * flower.depthRatio + bob;
-    const p = Math.max(1, Math.round(flower.scale * state.dpr));
-    const pad = Math.max(2, Math.round(flower.scale * 1.35 * state.dpr));
-    const blossomX = pad;
+    const pad = Math.max(2, Math.round(flower.scale * 1.45 * state.dpr));
+    const blossomUnit = Math.max(2, Math.round(flower.scale * 1.25 * state.dpr));
+    const blossomX = 2 * pad;
 
     ctx.save();
     ctx.translate(Math.round(flower.x), Math.round(y));
-    ctx.rotate(Math.sin(time * 0.00045 + flower.phase) * 0.12);
+    ctx.rotate(Math.sin(time * 0.00045 + flower.phase) * 0.07);
 
     ctx.fillStyle = state.nightMode ? "rgba(2, 13, 30, 0.42)" : "rgba(23, 65, 83, 0.28)";
-    ctx.fillRect(-4 * pad, 2 * pad, 8 * pad, pad);
+    ctx.fillRect(-6 * pad, 2 * pad, 12 * pad, pad);
 
-    ctx.fillStyle = state.nightMode ? "#1d5d51" : "#2d765b";
-    ctx.fillRect(-4 * pad, -pad, 8 * pad, 3 * pad);
-    ctx.fillRect(-3 * pad, -2 * pad, 6 * pad, 5 * pad);
-    ctx.fillStyle = state.nightMode ? "#32806a" : "#55a974";
-    ctx.fillRect(-3 * pad, -pad, 4 * pad, pad);
-    ctx.fillStyle = state.nightMode ? "#0e3938" : "#27664f";
-    ctx.fillRect(2 * pad, -pad, 2 * pad, pad);
+    ctx.fillStyle = state.nightMode ? "#1f6b55" : "#327c51";
+    ctx.fillRect(-6 * pad, -pad, 12 * pad, 3 * pad);
+    ctx.fillRect(-5 * pad, -2 * pad, 10 * pad, 5 * pad);
+    ctx.fillStyle = state.nightMode ? "#3f9b70" : "#65b875";
+    ctx.fillRect(-5 * pad, -pad, 7 * pad, 2 * pad);
+    ctx.fillRect(-4 * pad, -2 * pad, 5 * pad, pad);
+    ctx.fillStyle = state.nightMode ? "#0d312f" : "#1e533f";
+    ctx.fillRect(3 * pad, -pad, 3 * pad, pad);
+    ctx.fillRect(pad, 0, 4 * pad, pad);
 
-    ctx.fillStyle = flower.petals;
-    ctx.fillRect(blossomX - p, -5 * p, 2 * p, 3 * p);
-    ctx.fillRect(blossomX - p, 2 * p, 2 * p, 3 * p);
-    ctx.fillRect(blossomX - 4 * p, -2 * p, 3 * p, 3 * p);
-    ctx.fillRect(blossomX + p, -2 * p, 3 * p, 3 * p);
-    ctx.fillStyle = state.nightMode ? "#ffe08a" : "#f2bf48";
-    ctx.fillRect(blossomX - p, -2 * p, 2 * p, 2 * p);
+    drawLotusBloom(ctx, flower, blossomUnit, blossomX);
     ctx.restore();
   }
 }
