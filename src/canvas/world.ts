@@ -1344,27 +1344,47 @@ function drawDock(
   ctx.fillRect(dockX + 8, dockY - 4, 8, 5);
   ctx.fillRect(dockX + dockW - 16, dockY - 4, 8, 5);
 
-  // A small moored pixel boat and its gentle ripple.
-  const boatX = dockX + dockW * 0.55;
+  // The moored boat points downstream and tugs to the right with the current.
+  const boatW = Math.min(54, Math.max(38, w * 0.045));
+  const boatX = Math.min(w - boatW - 8, dockX + dockW * 0.68) + Math.sin(time * 0.0015) * 1.5;
   const boatY = dockY + 34 + Math.sin(time * 0.002) * 2;
+  const bowW = Math.max(5, boatW * 0.12);
+  const hullInset = Math.max(5, boatW * 0.13);
+
+  // Directional wake: every streak travels left-to-right and trails the stern.
+  const wakeOffset = (time * 0.018) % 28;
+  ctx.fillStyle = night ? "rgba(90, 211, 214, 0.32)" : "rgba(220, 247, 255, 0.46)";
+  for (let streak = 0; streak < 3; streak++) {
+    const wakeX = boatX - 42 + ((wakeOffset + streak * 11) % 32);
+    ctx.fillRect(wakeX, boatY + 17 + streak * 4, 13 + streak * 5, Math.max(1, h * 0.002));
+  }
+
+  // A square stern on the left and stepped prow on the right establish heading.
   ctx.fillStyle = "#25140d";
-  ctx.fillRect(boatX, boatY, 54, 7);
+  ctx.fillRect(boatX, boatY, boatW - bowW, 7);
+  ctx.fillRect(boatX + hullInset, boatY + 7, boatW - hullInset - bowW, 6);
+  ctx.fillRect(boatX + boatW - bowW, boatY + 2, bowW, 5);
   ctx.fillStyle = "#9a5630";
-  ctx.fillRect(boatX + 7, boatY + 7, 40, 6);
+  ctx.fillRect(boatX + 3, boatY + 2, boatW - bowW - 3, 4);
+  ctx.fillRect(boatX + hullInset, boatY + 7, boatW - hullInset - bowW - 2, 4);
+  ctx.fillStyle = "#c8793d";
+  ctx.fillRect(boatX + boatW - bowW - 3, boatY + 3, bowW + 2, 2);
+
+  // The rope attaches to the upstream stern, so the downstream bow can pull right.
+  const ropeAnchorX = dockX + dockW * 0.38;
   ctx.strokeStyle = "#c8a36b";
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(dockX + dockW - 12, dockY + 2);
-  ctx.quadraticCurveTo(boatX + 48, boatY - 9, boatX + 45, boatY + 5);
+  ctx.moveTo(ropeAnchorX, dockY + 2);
+  ctx.quadraticCurveTo(boatX - 6, boatY - 9, boatX + 3, boatY + 4);
   ctx.stroke();
-  ctx.fillStyle = night ? "rgba(90, 211, 214, 0.32)" : "rgba(220, 247, 255, 0.4)";
-  ctx.fillRect(boatX - 7, boatY + 18, 68, 3);
 
   if (night) {
     drawRiverLantern(ctx, dockX + 12, dockY - 5, 1, time);
   }
 
-  drawWaterRings(ctx, boatX + 28, boatY + 17, time, night, 1.1);
+  ctx.fillStyle = night ? "rgba(118, 224, 235, 0.44)" : "rgba(238, 252, 255, 0.68)";
+  ctx.fillRect(boatX + boatW - 2, boatY + 13, 7, 2);
 }
 
 function drawWaterRings(
