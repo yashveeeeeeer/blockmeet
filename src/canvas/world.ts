@@ -219,13 +219,19 @@ interface JumpingFishData {
   fin: string;
 }
 
-interface RiverLeafData {
+interface GoldenLeafData {
+  phase: "waiting" | "falling" | "floating";
   x: number;
-  depthRatio: number;
-  speed: number;
-  phase: number;
+  y: number;
+  vx: number;
+  vy: number;
+  rotation: number;
+  spin: number;
   size: number;
-  color: string;
+  colorIndex: number;
+  bobPhase: number;
+  nextAt: number;
+  touchedAt: number;
 }
 
 interface RiverFlowerData {
@@ -280,7 +286,7 @@ export interface WorldState {
   bridgeVisitor: BridgeVisitorData;
   jumpingFish: JumpingFishData | null;
   nextFishJumpAt: number;
-  riverLeaves: RiverLeafData[];
+  goldenLeaves: GoldenLeafData[];
   riverFlowers: RiverFlowerData[];
   ambientRipples: AmbientRippleData[];
   groundSpeckles: { row: number; col: number; dx: number; dy: number }[];
@@ -1165,12 +1171,15 @@ function drawGround(
   // Sparse horizontal ripples make the water feel calm rather than noisy.
   for (let row = 0; row < 7; row++) {
     const y = riverY + 14 + row * Math.max(16, (h - riverY) / 8);
-    const offset = Math.floor((time * (0.012 + row * 0.002)) % 72);
+    const spacing = 86;
+    const offset = Math.floor((time * (0.012 + row * 0.002)) % spacing);
     ctx.fillStyle = night
       ? `rgba(53, 160, 197, ${0.12 + row * 0.012})`
       : `rgba(168, 224, 244, ${0.18 + row * 0.012})`;
-    for (let x = -offset; x < w; x += 86) {
-      const rippleWidth = 20 + ((row * 13 + x) % 24);
+    const segmentCount = Math.ceil(w / spacing) + 2;
+    for (let segment = -1; segment < segmentCount; segment++) {
+      const x = segment * spacing + offset;
+      const rippleWidth = 20 + ((row * 13 + (segment + 12) * 7) % 24);
       ctx.fillRect(x, y, rippleWidth, 3);
     }
   }
@@ -1402,17 +1411,241 @@ function createJumpingFish(): JumpingFishData {
   };
 }
 
-function createRiverLeaves(width: number): RiverLeafData[] {
-  const colors = ["#c9793d", "#e1ad4d", "#6e9f58"];
-  const count = window.innerWidth <= 640 ? 4 : 7;
-  return Array.from({ length: count }, () => ({
-    x: Math.random() * width,
-    depthRatio: 0.18 + Math.random() * 0.62,
-    speed: 0.018 + Math.random() * 0.018,
-    phase: Math.random() * Math.PI * 2,
-    size: 2 + Math.random() * 2,
-    color: colors[Math.floor(Math.random() * colors.length)],
-  }));
+function getGoldenTreeLayout(
+  width: number,
+  height: number,
+  groundY: number,
+  dpr: number,
+) {
+  const riverY = getRiverY(groundY, height);
+  const compact = window.innerWidth <= 640;
+  return {
+    x: Math.max((compact ? 20 : 34) * dpr, width * (compact ? 0.045 : 0.05)),
+    baseY: riverY - 6 * dpr,
+    scale: dpr * (compact ? 0.82 : 1),
+    waterY: riverY + Math.max(8 * dpr, (height - riverY) * 0.09),
+  };
+}
+
+function resetGoldenLeaf(
+  leaf: GoldenLeafData,
+  width: number,
+  height: number,
+  groundY: number,
+  dpr: number,
+  time: number,
+  delay: number,
+) {
+  const tree = getGoldenTreeLayout(width, height, groundY, dpr);
+  leaf.phase = "waiting";
+  leaf.x = tree.x;
+  leaf.y = tree.baseY - 70 * tree.scale;
+  leaf.vx = 0;
+  leaf.vy = 0;
+  leaf.rotation = Math.random() * Math.PI * 2;
+  leaf.spin = (Math.random() - 0.5) * 0.004;
+  leaf.bobPhase = Math.random() * Math.PI * 2;
+  leaf.nextAt = time + delay;
+  leaf.touchedAt = -1;
+}
+
+function beginGoldenLeafFall(
+  leaf: GoldenLeafData,
+  width: number,
+  height: number,
+  groundY: number,
+  dpr: number,
+) {
+  const tree = getGoldenTreeLayout(width, height, groundY, dpr);
+  leaf.phase = "falling";
+  leaf.x = tree.x + (-22 + Math.random() * 48) * tree.scale;
+  leaf.y = tree.baseY - (58 + Math.random() * 34) * tree.scale;
+  leaf.vx = (0.007 + Math.random() * 0.008) * dpr;
+  leaf.vy = (0.042 + Math.random() * 0.018) * dpr;
+  leaf.rotation = Math.random() * Math.PI * 2;
+  leaf.spin = (0.0014 + Math.random() * 0.0018) * (Math.random() > 0.5 ? 1 : -1);
+  leaf.bobPhase = Math.random() * Math.PI * 2;
+  leaf.touchedAt = -1;
+}
+
+function createGoldenLeaves(
+  width: number,
+  height: number,
+  groundY: number,
+  dpr: number,
+): GoldenLeafData[] {
+  const count = window.innerWidth <= 640 ? 6 : 8;
+  const now = performance.now();
+  const tree = getGoldenTreeLayout(width, height, groundY, dpr);
+
+  return Array.from({ length: count }, (_, index) => {
+    const leaf: GoldenLeafData = {
+      phase: "waiting",
+      x: tree.x,
+      y: tree.baseY - 70 * tree.scale,
+      vx: 0,
+      vy: 0,
+      rotation: Math.random() * Math.PI * 2,
+      spin: 0,
+      size: (1.75 + Math.random() * 0.4) * dpr,
+      colorIndex: index % 3,
+      bobPhase: Math.random() * Math.PI * 2,
+      nextAt: now,
+      touchedAt: -1,
+    };
+
+    if (index === 0) {
+      beginGoldenLeafFall(leaf, width, height, groundY, dpr);
+    } else if (index === 1) {
+      resetGoldenLeaf(leaf, width, height, groundY, dpr, now, 1800 + Math.random() * 1800);
+    } else {
+      const floatingIndex = index - 2;
+      const floatingCount = count - 2;
+      leaf.phase = "floating";
+      leaf.x = width * (0.12 + (floatingIndex / Math.max(1, floatingCount - 1)) * 0.76);
+      leaf.y = tree.waterY;
+      leaf.vx = (0.012 + Math.random() * 0.007) * dpr;
+      leaf.spin = (Math.random() - 0.5) * 0.00055;
+      leaf.touchedAt = now - 1000;
+    }
+    return leaf;
+  });
+}
+
+function drawGoldenRiverbankTree(
+  ctx: CanvasRenderingContext2D,
+  state: WorldState,
+) {
+  const tree = getGoldenTreeLayout(state.width, state.height, state.groundY, state.dpr);
+  const s = tree.scale;
+
+  ctx.save();
+  ctx.translate(Math.round(tree.x), Math.round(tree.baseY));
+
+  ctx.fillStyle = state.nightMode ? "#382117" : "#51301d";
+  ctx.fillRect(-7 * s, -61 * s, 14 * s, 61 * s);
+  ctx.fillRect(-23 * s, -56 * s, 22 * s, 7 * s);
+  ctx.fillRect(3 * s, -48 * s, 23 * s, 7 * s);
+  ctx.fillStyle = state.nightMode ? "#654026" : "#7b4a27";
+  ctx.fillRect(-3 * s, -58 * s, 5 * s, 54 * s);
+  ctx.fillRect(-20 * s, -54 * s, 18 * s, 3 * s);
+  ctx.fillRect(4 * s, -46 * s, 18 * s, 3 * s);
+
+  const shadow = state.nightMode ? "#75642b" : "#9a6d24";
+  const mid = state.nightMode ? "#b8862f" : "#d6962e";
+  const light = state.nightMode ? "#e0ae3e" : "#f0bd45";
+  const highlight = state.nightMode ? "#f1cd61" : "#ffd86b";
+
+  ctx.fillStyle = shadow;
+  ctx.fillRect(-43 * s, -78 * s, 77 * s, 29 * s);
+  ctx.fillRect(-34 * s, -96 * s, 58 * s, 27 * s);
+  ctx.fillRect(-23 * s, -108 * s, 35 * s, 18 * s);
+  ctx.fillRect(-50 * s, -69 * s, 28 * s, 21 * s);
+  ctx.fillRect(18 * s, -83 * s, 27 * s, 25 * s);
+  ctx.fillRect(-39 * s, -55 * s, 16 * s, 12 * s);
+  ctx.fillRect(28 * s, -63 * s, 14 * s, 13 * s);
+
+  ctx.fillStyle = mid;
+  ctx.fillRect(-36 * s, -83 * s, 33 * s, 24 * s);
+  ctx.fillRect(-20 * s, -100 * s, 34 * s, 24 * s);
+  ctx.fillRect(4 * s, -88 * s, 31 * s, 24 * s);
+  ctx.fillRect(-44 * s, -67 * s, 25 * s, 16 * s);
+  ctx.fillRect(-35 * s, -54 * s, 10 * s, 8 * s);
+  ctx.fillRect(30 * s, -61 * s, 9 * s, 8 * s);
+
+  ctx.fillStyle = light;
+  ctx.fillRect(-29 * s, -91 * s, 21 * s, 17 * s);
+  ctx.fillRect(-9 * s, -103 * s, 18 * s, 15 * s);
+  ctx.fillRect(10 * s, -82 * s, 20 * s, 15 * s);
+  ctx.fillRect(-39 * s, -69 * s, 15 * s, 12 * s);
+
+  ctx.fillStyle = highlight;
+  ctx.fillRect(-23 * s, -91 * s, 8 * s, 7 * s);
+  ctx.fillRect(-3 * s, -99 * s, 7 * s, 6 * s);
+  ctx.fillRect(16 * s, -79 * s, 7 * s, 6 * s);
+
+  ctx.restore();
+}
+
+function drawGoldenLeaves(
+  ctx: CanvasRenderingContext2D,
+  state: WorldState,
+  time: number,
+  dt: number,
+) {
+  const tree = getGoldenTreeLayout(state.width, state.height, state.groundY, state.dpr);
+  const dayColors = ["#f6cc55", "#e6a934", "#d98b25"];
+  const nightColors = ["#c8a443", "#ae7d2d", "#956329"];
+  const colors = state.nightMode ? nightColors : dayColors;
+
+  for (const leaf of state.goldenLeaves) {
+    if (leaf.phase === "waiting") {
+      if (time >= leaf.nextAt) {
+        beginGoldenLeafFall(leaf, state.width, state.height, state.groundY, state.dpr);
+      } else {
+        continue;
+      }
+    }
+
+    if (leaf.phase === "falling") {
+      leaf.vy += 0.000014 * state.dpr * dt;
+      leaf.x += (leaf.vx + Math.sin(time * 0.003 + leaf.bobPhase) * 0.006 * state.dpr) * dt;
+      leaf.y += leaf.vy * dt;
+      leaf.rotation += leaf.spin * dt;
+      if (leaf.y >= tree.waterY) {
+        leaf.phase = "floating";
+        leaf.y = tree.waterY;
+        leaf.vx = (0.012 + Math.random() * 0.007) * state.dpr;
+        leaf.spin *= 0.18;
+        leaf.touchedAt = time;
+      }
+    } else if (leaf.phase === "floating") {
+      leaf.x += leaf.vx * dt;
+      leaf.rotation += leaf.spin * dt;
+      if (leaf.x > state.width + 24 * state.dpr) {
+        resetGoldenLeaf(
+          leaf,
+          state.width,
+          state.height,
+          state.groundY,
+          state.dpr,
+          time,
+          1800 + Math.random() * 3600,
+        );
+        continue;
+      }
+    }
+
+    const isFloating = leaf.phase === "floating";
+    const y = leaf.y + (isFloating ? Math.sin(time * 0.0017 + leaf.bobPhase) * 1.7 * state.dpr : 0);
+    const p = Math.max(1, Math.round(leaf.size));
+
+    if (isFloating && time - leaf.touchedAt < 720) {
+      const splashProgress = clamp01((time - leaf.touchedAt) / 720);
+      ctx.save();
+      ctx.globalAlpha = (1 - splashProgress) * 0.48;
+      ctx.fillStyle = state.nightMode ? "#65c8dc" : "#daf4f8";
+      const splashWidth = (4 + splashProgress * 18) * state.dpr;
+      ctx.fillRect(leaf.x - splashWidth / 2, y + 3 * p, splashWidth, Math.max(1, state.dpr));
+      ctx.restore();
+    }
+
+    ctx.save();
+    ctx.translate(Math.round(leaf.x), Math.round(y));
+    ctx.rotate(leaf.rotation + (isFloating ? Math.sin(time * 0.0008 + leaf.bobPhase) * 0.12 : 0));
+    if (isFloating) {
+      ctx.fillStyle = state.nightMode ? "rgba(1, 12, 25, 0.32)" : "rgba(28, 76, 88, 0.24)";
+      ctx.fillRect(-2 * p, 2 * p, 5 * p, p);
+    }
+    ctx.fillStyle = colors[leaf.colorIndex];
+    ctx.fillRect(-2 * p, -p, 4 * p, 2 * p);
+    ctx.fillRect(-p, -2 * p, 2 * p, 4 * p);
+    ctx.fillStyle = state.nightMode ? "#e0bd58" : "#ffe17a";
+    ctx.fillRect(-p, -p, p, p);
+    ctx.fillStyle = state.nightMode ? "#6e4927" : "#89572a";
+    ctx.fillRect(2 * p, 0, 2 * p, Math.max(1, Math.round(p * 0.6)));
+    ctx.restore();
+  }
 }
 
 function createRiverFlowers(width: number): RiverFlowerData[] {
@@ -1622,33 +1855,9 @@ function drawRiverAmbient(
   ctx: CanvasRenderingContext2D,
   state: WorldState,
   time: number,
-  dt: number,
 ) {
   const riverY = getRiverY(state.groundY, state.height);
   const depth = state.height - riverY;
-
-  if (!state.nightMode) {
-    for (const leaf of state.riverLeaves) {
-      leaf.x += leaf.speed * dt;
-      if (leaf.x > state.width + 18) leaf.x = -18;
-      const y =
-        riverY +
-        depth * leaf.depthRatio +
-        Math.sin(time * 0.0018 + leaf.phase) * 2.5 * state.dpr;
-      const p = Math.max(2, Math.round(leaf.size * state.dpr));
-
-      ctx.save();
-      ctx.translate(Math.round(leaf.x), Math.round(y));
-      ctx.rotate(Math.sin(time * 0.0007 + leaf.phase) * 0.32);
-      ctx.fillStyle = "rgba(30, 67, 71, 0.22)";
-      ctx.fillRect(-p, p * 1.5, p * 3, Math.max(1, p * 0.6));
-      ctx.fillStyle = leaf.color;
-      ctx.fillRect(-p, -p, p * 3, p * 2);
-      ctx.fillStyle = "rgba(255, 231, 156, 0.42)";
-      ctx.fillRect(0, -p, p, p);
-      ctx.restore();
-    }
-  }
 
   for (const ripple of state.ambientRipples) {
     if (ripple.startedAt < 0 && time >= ripple.nextAt) {
@@ -2557,7 +2766,7 @@ export function initWorld(canvas: HTMLCanvasElement): WorldState | null {
     bridgeVisitor: createBridgeVisitor(),
     jumpingFish: null,
     nextFishJumpAt: performance.now() + 700 + Math.random() * 2200,
-    riverLeaves: createRiverLeaves(w),
+    goldenLeaves: createGoldenLeaves(w, h, groundY, dpr),
     riverFlowers: createRiverFlowers(w),
     ambientRipples: createAmbientRipples(),
     groundSpeckles: createGroundSpeckles(w),
@@ -2613,7 +2822,7 @@ export function resizeWorld(state: WorldState) {
   state.bridgeVisitor = createBridgeVisitor();
   state.jumpingFish = null;
   state.nextFishJumpAt = performance.now() + 700 + Math.random() * 2200;
-  state.riverLeaves = createRiverLeaves(w);
+  state.goldenLeaves = createGoldenLeaves(w, h, state.groundY, dpr);
   state.riverFlowers = createRiverFlowers(w);
   state.ambientRipples = createAmbientRipples();
 }
@@ -2753,11 +2962,13 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
   }
 
   drawGround(ctx, w, h, groundY, time, state.groundSpeckles, state.nightMode);
+  drawGoldenRiverbankTree(ctx, state);
   drawFireflyHabitats(ctx, state, time);
-  drawRiverAmbient(ctx, state, time, dt);
+  drawRiverAmbient(ctx, state, time);
   drawSceneReflections(ctx, state, time, nightAmount);
   drawMoonReflection(ctx, state, time);
   drawRiverFlowers(ctx, state, time, dt);
+  drawGoldenLeaves(ctx, state, time, dt);
   const riverY = getRiverY(groundY, h);
   drawDock(ctx, w, h, riverY, state.nightMode, time);
   drawBridge(
