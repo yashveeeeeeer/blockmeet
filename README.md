@@ -11,7 +11,7 @@ Both houses are clickable. Keyboard users can reach each destination through ski
 
 ## Reading library
 
-The source is the first tab of [the reading sheet](https://docs.google.com/spreadsheets/d/1_osSnIbsvgJADRjoIj07pE1AOh1BuAOpSfENd58M4QM/edit). Keep it readable by anyone with the link; no Google credentials are stored in this repository.
+The source is the first tab of [the reading sheet](https://docs.google.com/spreadsheets/d/1_osSnIbsvgJADRjoIj07pE1AOh1BuAOpSfENd58M4QM/edit). Keep it readable by anyone with the link; no Google credentials are stored in this repository. Readings keep the sheet's row order, including when filtered or searched. After `All`, category tabs follow the order in which each type first appears in the sheet. Rearranging rows updates that order on the next visit.
 
 Keep the `Title`, `Type`, `Author`, and `Link` column names. Only `Title` is required. Add rows normally: the page fetches the public CSV on each visit and categories are generated from `Type`. Books, essays, articles, web pages, papers and courses are recognized; other type names also work. `Added`, `Status`, `Finished`, and `Notes` are not shown. Empty rows are ignored and duplicate title/author pairs share one card. Items without a valid HTTP(S) link remain readable cards.
 
