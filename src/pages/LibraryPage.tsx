@@ -39,19 +39,6 @@ function ReadingCard({ reading, index }: { reading: Reading; index: number }) {
   </li>;
 }
 
-function PixelBooks() {
-  return <svg className="library-emblem" viewBox="0 0 112 88" fill="none" aria-hidden="true" shapeRendering="crispEdges">
-    <path d="M6 76h100v6H6z" fill="#714f3b" /><path d="M6 76h100v2H6z" fill="#ad8052" />
-    <path d="M16 26h15v50H16z" fill="#4ecca3" /><path d="M19 26h3v50h-3z" fill="#2b8a6c" />
-    <path d="M20 32h7v3h-7zm0 34h7v3h-7z" fill="#d6f5db" />
-    <path d="M33 15h20v61H33z" fill="#e8bb54" /><path d="M36 15h3v61h-3z" fill="#b88539" />
-    <path d="M39 24h9v3h-9zm0 41h9v3h-9z" fill="#fff1bb" />
-    <path d="M56 33h13v43H56z" fill="#d97878" /><path d="M59 33h2v43h-2z" fill="#a94e62" />
-    <path d="m72 26 12-3 12 50-12 3z" fill="#8a91c7" /><path d="m75 26 3-1 12 50-3 1z" fill="#5f6699" />
-    <path d="M89 6h3v10h-3zM85 10h11v3H85zM8 42h3v8H8zM5 45h9v2H5z" fill="#e8bb54" />
-  </svg>;
-}
-
 export default function LibraryPage() {
   const [readings, setReadings] = useState<Reading[]>(initialReadings);
   const [category, setCategory] = useState("All");
@@ -107,11 +94,9 @@ export default function LibraryPage() {
       <main>
         <section className="library-heading" aria-labelledby="library-title">
           <div>
-            <p className="library-eyebrow"><span aria-hidden="true">■</span> THE VILLAGE LIBRARY</p>
             <h1 id="library-title">ATHENAEUM<span aria-hidden="true">.</span></h1>
             <p className="library-intro">A home for books, essays, and things worth reading.</p>
           </div>
-          <PixelBooks />
         </section>
 
         <div className="library-tools">
@@ -133,17 +118,13 @@ export default function LibraryPage() {
 
         <section id="library-shelves" aria-label="Reading collection" tabIndex={-1}>
           {shown.length > 0 ? <ul className="library-grid">{shown.map((reading, index) => <ReadingCard key={reading.id} reading={reading} index={index} />)}</ul> :
-            <div className="library-empty"><PixelBooks /><h2>{readings.length ? "Nothing on this shelf yet." : "A library waiting to grow."}</h2>
+            <div className="library-empty"><h2>{readings.length ? "Nothing on this shelf yet." : "A library waiting to grow."}</h2>
               <p>{readings.length ? "Try another title, author, or shelf." : "The next good read will find a home here."}</p>
               {readings.length > 0 && <button type="button" onClick={clear}>Show all readings</button>}
             </div>}
         </section>
       </main>
 
-      <footer className="library-footer">
-        <p><span aria-hidden="true">✦</span> A little more of the world, one page at a time.</p>
-        <Link to="/bakery">BAKERY HOUSE <span aria-hidden="true">↗</span><small>Writings &amp; personal views</small></Link>
-      </footer>
       {savedMode && <p className="library-sync-note" role="status">Showing the saved library. <button type="button" onClick={() => setReload(value => value + 1)}>Try refreshing</button></p>}
     </div>
   </div>;

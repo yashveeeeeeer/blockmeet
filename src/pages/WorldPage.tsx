@@ -193,6 +193,8 @@ export default function WorldPage() {
       <a className="skip-link" href="#booking">
         Skip to booking
       </a>
+      <Link className="skip-link" to="/athenaeum">Visit Athenaeum</Link>
+      <Link className="skip-link" to="/bakery">Visit Bakery House</Link>
 
       <canvas
         ref={canvasRef}
@@ -202,11 +204,6 @@ export default function WorldPage() {
       />
 
       <HdrStarfield />
-
-      <nav className="village-destinations" aria-label="Explore the village">
-        <Link to="/athenaeum">ATHENAEUM</Link>
-        <Link to="/bakery">BAKERY</Link>
-      </nav>
 
       <Hud
         soundOn={soundOn}
