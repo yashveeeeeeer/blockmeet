@@ -7,7 +7,7 @@ An ultra-interactive Minecraft-inspired 8-bit pixel world landing page that redi
 - `/blockmeet/athenaeum`: the reading library, with covers, titles, category filters and author/title search. No dates or reading-status labels.
 - `/blockmeet/bakery`: the original writings page, including its articles, reading animations and display controls. Published article URLs under `/blockmeet/writings/` are unchanged.
 
-Both houses are clickable. Navigation links also support keyboard users and small screens. Bakery and Athenaeum remain visible when the village draws fewer buildings.
+Both houses are clickable. Keyboard users can reach each destination through skip links that appear only on focus. Bakery and Athenaeum remain visible when the village draws fewer buildings.
 
 ## Reading library
 
