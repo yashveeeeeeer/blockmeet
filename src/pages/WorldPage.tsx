@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { SITE } from "../config";
 import {
@@ -67,6 +67,7 @@ export default function WorldPage() {
   const handleShopClick = useCallback(
     (variant: number) => {
       if (variant === ATHENAEUM_VARIANT) navigate("/athenaeum");
+      if (variant === 0) navigate("/bakery");
     },
     [navigate],
   );
@@ -201,6 +202,11 @@ export default function WorldPage() {
       />
 
       <HdrStarfield />
+
+      <nav className="village-destinations" aria-label="Explore the village">
+        <Link to="/athenaeum">ATHENAEUM</Link>
+        <Link to="/bakery">BAKERY</Link>
+      </nav>
 
       <Hud
         soundOn={soundOn}

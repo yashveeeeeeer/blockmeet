@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { SITE } from "../config";
@@ -65,6 +65,11 @@ function ToggleButton({
 }
 
 export default function WritingsPage() {
+  useEffect(() => {
+    document.title = "Bakery House · BLOCKMeet";
+    window.scrollTo(0, 0);
+    return () => { document.title = "BLOCKMeet"; };
+  }, []);
   const navigate = useNavigate();
   const [nightMode, setNightMode] = useState(true);
   const [crtOn, setCrtOn] = useState(false);
@@ -135,7 +140,7 @@ export default function WritingsPage() {
             nightMode ? "text-pixel-gold" : "text-[#6a5020]"
           }`}
         >
-          ATHENAEUM
+          BAKERY HOUSE
         </motion.h1>
         <motion.p
           initial={{ opacity: 0 }}

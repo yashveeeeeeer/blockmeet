@@ -574,7 +574,7 @@ function createShops(width: number): ShopData[] {
       spacing * (i + 1) - shopW / 2 + (Math.random() - 0.5) * 40;
     shops.push({
       x: sx,
-      variant: i,
+      variant: i === count - 1 ? 3 : i,
       scale: sc,
       centerX: sx + shopW / 2,
     });
@@ -2116,7 +2116,7 @@ function updateInteractionCursor(state: WorldState) {
     ) ||
     state.horses.some((horse) => Math.abs(x - horse.x) < 58 && Math.abs(y - state.groundY) < 72);
   const nearShop = state.shops.some((shop) => {
-    if (shop.variant !== 3) return false;
+    if (shop.variant !== 3 && shop.variant !== 0) return false;
     const s = Math.floor(4 * shop.scale);
     return x >= shop.x && x <= shop.x + s * 14 && y >= state.groundY - s * 12 && y <= state.groundY;
   });
@@ -3017,7 +3017,7 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
     const cy = state.input.lastClickY;
     let handled = false;
     for (const shop of state.shops) {
-      if (shop.variant !== 3) continue;
+      if (shop.variant !== 3 && shop.variant !== 0) continue;
       const s = Math.floor(4 * shop.scale);
       const shopW = s * 14;
       const shopH = s * 12;

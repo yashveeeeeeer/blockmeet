@@ -1,0 +1,518 @@
+{
+  "33ubju": {
+    "title": "The Grug Brained Developer",
+    "images": [],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "No usable cover found"
+      },
+      {
+        "source": "Source page cover illustrations",
+        "result": "No usable cover found"
+      }
+    ]
+  },
+  "17huobq": {
+    "title": "Choose Boring Technology",
+    "images": [],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "Generic author photo, not an essay cover"
+      },
+      {
+        "source": "Source article illustrations",
+        "result": "Inspected inline images; no cover image"
+      }
+    ]
+  },
+  "jadru2": {
+    "title": "The Web’s Grain",
+    "images": [],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "No usable cover found"
+      },
+      {
+        "source": "Source page cover illustrations",
+        "result": "No usable cover found"
+      }
+    ]
+  },
+  "oucimv": {
+    "title": "What Screens Want",
+    "images": [],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "No usable cover found"
+      },
+      {
+        "source": "Source page cover illustrations",
+        "result": "No usable cover found"
+      }
+    ]
+  },
+  "3z1iul": {
+    "title": "Up and Down the Ladder of Abstraction",
+    "images": [],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "No usable cover found"
+      },
+      {
+        "source": "Source page cover illustrations",
+        "result": "No usable cover found"
+      }
+    ]
+  },
+  "md9ne": {
+    "title": "Leverage Points: Places to Intervene in a System",
+    "images": [
+      "covers/b60ed81bcf71c6c7013d.png"
+    ],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "Found: http://donellameadows.org/wp-content/userfiles/State-of-the-System-Diagram_Leverage-Points-300x167.png"
+      }
+    ]
+  },
+  "130qiei": {
+    "title": "Pace Layering: How Complex Systems Learn and Keep Learning",
+    "images": [
+      "covers/4f990797c183f2224e5a.jpg"
+    ],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "Found: https://static.longnow.org/2023/07/Master-Pace-Layers-Jan-02015.007.jpg"
+      }
+    ]
+  },
+  "1vbqgev": {
+    "title": "How Complex Systems Fail",
+    "images": [],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "No usable cover found"
+      },
+      {
+        "source": "Source page cover illustrations",
+        "result": "No usable cover found"
+      }
+    ]
+  },
+  "1ecjx5f": {
+    "title": "Programming as Theory Building",
+    "images": [],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "No usable cover found"
+      },
+      {
+        "source": "Source page cover illustrations",
+        "result": "No usable cover found"
+      }
+    ]
+  },
+  "go898z": {
+    "title": "The Shape of Design",
+    "images": [
+      "covers/6ddf08a8f27503c2aa1b.svg"
+    ],
+    "attempts": [
+      {
+        "source": "Verified cover",
+        "result": "Found: https://shapeofdesignbook.com/img/cover.svg"
+      }
+    ]
+  },
+  "mbd80x": {
+    "title": "Who Could Write Protocol Fiction for Speculative Infrastructure?",
+    "images": [
+      "covers/9c4caf18efae289a7a13.png"
+    ],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "Found: https://interconnected.org/home/2022/08/11/casi.png?v=1"
+      }
+    ]
+  },
+  "4gn0bi": {
+    "title": "The Hard Work of Imagining",
+    "images": [
+      "covers/c6303e18f54d3c1b48fb.png"
+    ],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "Found: https://interconnected.org/home/2020/12/11/thingscon.png?v=1"
+      }
+    ]
+  },
+  "15gb4zq": {
+    "title": "Context Plumbing",
+    "images": [
+      "covers/cf09cd089a0546e1d7ec.png"
+    ],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "Found: https://www.interconnected.org/home/2025/11/28/plumbing.png?v=1"
+      }
+    ]
+  },
+  "c461wb": {
+    "title": "How to Generate Color Palettes for Design Systems",
+    "images": [
+      "covers/9e8b2d31135b9791d69e.jpg"
+    ],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "Found: https://mattstromawn.com/images/og/og-0637fc399a-1200.jpeg"
+      }
+    ]
+  },
+  "1iseb7v": {
+    "title": "Color for Design Systems",
+    "images": [],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "No usable cover found"
+      },
+      {
+        "source": "Source page cover illustrations",
+        "result": "No usable cover found"
+      }
+    ]
+  },
+  "1wizaco": {
+    "title": "Data Organization in Spreadsheets",
+    "images": [],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "No usable cover found"
+      },
+      {
+        "source": "Source page cover illustrations",
+        "result": "No usable cover found"
+      }
+    ]
+  },
+  "1apr1nc": {
+    "title": "Tidy Data",
+    "images": [],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "Generic journal logo, not a paper cover"
+      },
+      {
+        "source": "Source page cover illustrations",
+        "result": "No cover illustration found"
+      }
+    ]
+  },
+  "77asry": {
+    "title": "Table Schema 2.0",
+    "images": [],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "No usable cover found"
+      },
+      {
+        "source": "Source page cover illustrations",
+        "result": "No usable cover found"
+      }
+    ]
+  },
+  "1kiravb": {
+    "title": "Database Design Book",
+    "images": [
+      "covers/dbadb061d930cf6ea905.jpg"
+    ],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "No usable cover found"
+      },
+      {
+        "source": "Source page cover illustrations",
+        "result": "Found: https://embed.filekitcdn.com/e/peiG4dBs5qQvp66pwifGod/na1fCQNyJeJGsrADHnsLKZ/email"
+      }
+    ]
+  },
+  "1m32kng": {
+    "title": "Temporal Patterns",
+    "images": [],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "Generic author logo, not an essay cover"
+      },
+      {
+        "source": "Source page cover illustrations",
+        "result": "No cover illustration found"
+      }
+    ]
+  },
+  "1xbrf2c": {
+    "title": "Developing Time-Oriented Database Applications in SQL",
+    "images": [
+      "covers/9498253614dcd04b821d.jpg"
+    ],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "No usable cover found"
+      },
+      {
+        "source": "Google Books title and author search",
+        "result": "HTTP 429"
+      },
+      {
+        "source": "Open Library title and author search",
+        "result": "Found: https://covers.openlibrary.org/b/id/784127-L.jpg?default=false"
+      }
+    ]
+  },
+  "l7h8l9": {
+    "title": "Data and Reality",
+    "images": [
+      "covers/a331ff26098d08a0cb2c.jpg"
+    ],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "Found: https://books.google.co.in/books/content?id=fQZKPgAACAAJ&printsec=frontcover&img=1&zoom=1&imgtk=AFLRE70jLDIn1XXVblIm0YKMCwEAFbtVGv7ZVNF6L-fICHdBB16I5oyhNgkhHyy3GiXkCb_EkQ3pxLejpXuKiR-nfDG1oTL28fMqL2ciC_HW_puj9pU-g_Y3yrYYxIB-kXHWCkwKbjmL"
+      }
+    ]
+  },
+  "ce0n7c": {
+    "title": "SQL Antipatterns, Volume 1",
+    "images": [
+      "covers/3b9fdd060d7f3a787782.jpg"
+    ],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "Found: https://pragprog.com/titles/bksap1/sql-antipatterns-volume-1/bksap1.jpg"
+      }
+    ]
+  },
+  "l5njsl": {
+    "title": "Database Design for Mere Mortals: 25th Anniversary Edition",
+    "images": [
+      "covers/45bf2ffb610a8f23b207.jpg"
+    ],
+    "attempts": [
+      {
+        "source": "Verified cover",
+        "result": "Found: https://www.informit.com/ShowCover.aspx?isbn=9780136788041&type=f"
+      }
+    ]
+  },
+  "1jpx61q": {
+    "title": "The Data Model Resource Book, Volume 1: A Library of Universal Data Models for All Enterprises",
+    "images": [
+      "covers/508c476a3eefffad4e92.jpg"
+    ],
+    "attempts": [
+      {
+        "source": "Verified cover",
+        "result": "Found: https://covers.openlibrary.org/b/isbn/9780471380238-L.jpg?default=false"
+      }
+    ]
+  },
+  "1ovjjhx": {
+    "title": "The Data Model Resource Book, Volume 3: Universal Patterns for Data Modeling",
+    "images": [
+      "covers/dd0b79f4160ddbb9ec94.jpg"
+    ],
+    "attempts": [
+      {
+        "source": "Verified cover",
+        "result": "Found: https://covers.openlibrary.org/b/isbn/9780470178454-L.jpg?default=false"
+      }
+    ]
+  },
+  "8otjk4": {
+    "title": "Joe Celko's Trees and Hierarchies in SQL for Smarties, 2nd Edition",
+    "images": [
+      "covers/9459e6163f249ce79b6c.jpg"
+    ],
+    "attempts": [
+      {
+        "source": "Verified cover",
+        "result": "Found: https://learning.oreilly.com/library/cover/9780123877338/"
+      }
+    ]
+  },
+  "1pzy7c1": {
+    "title": "PostgreSQL 18 Documentation",
+    "images": [
+      "covers/ff92fb5d12a7fa6b23c2.png"
+    ],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "Found: https://www.postgresql.org/media/img/about/press/elephant.png"
+      }
+    ]
+  },
+  "1pzx908": {
+    "title": "Evolutionary Database Design",
+    "images": [
+      "covers/5c31140c7542c4ba3fc7.png"
+    ],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "Found: https://martinfowler.com/articles/evodb/card.png"
+      }
+    ]
+  },
+  "11zjjbf": {
+    "title": "Use The Index, Luke!",
+    "images": [
+      "covers/16165f08275f4933fd69.png"
+    ],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "Found: https://use-the-index-luke.com/static/util_squirrel.og.fMeqdSQq.png"
+      }
+    ]
+  },
+  "j13onj": {
+    "title": "The Data Warehouse Toolkit: The Definitive Guide to Dimensional Modeling, 3rd Edition",
+    "images": [
+      "covers/89a817c476fe40b411ff.jpg"
+    ],
+    "attempts": [
+      {
+        "source": "Verified cover",
+        "result": "Found: https://covers.openlibrary.org/b/isbn/9781118530801-L.jpg?default=false"
+      }
+    ]
+  },
+  "13ocf8r": {
+    "title": "Designing Data-Intensive Applications, 2nd Edition",
+    "images": [
+      "covers/7bbdc21820560c94b6a3.jpg"
+    ],
+    "attempts": [
+      {
+        "source": "Verified cover",
+        "result": "Found: https://learning.oreilly.com/library/cover/9781098119058/"
+      }
+    ]
+  },
+  "qqswwi": {
+    "title": "Data Pipelines Pocket Reference",
+    "images": [
+      "covers/49b5a28c1d47f22132a1.jpg"
+    ],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "HTTP 403"
+      },
+      {
+        "source": "Google Books title and author search",
+        "result": "HTTP 429"
+      },
+      {
+        "source": "Open Library title and author search",
+        "result": "Found: https://covers.openlibrary.org/b/id/10716520-L.jpg?default=false"
+      }
+    ]
+  },
+  "1mm6gnl": {
+    "title": "Fundamentals of Data Engineering",
+    "images": [
+      "covers/294b8d56b2e689f5b5a9.jpg"
+    ],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "HTTP 403"
+      },
+      {
+        "source": "Google Books title and author search",
+        "result": "HTTP 429"
+      },
+      {
+        "source": "Open Library title and author search",
+        "result": "Found: https://covers.openlibrary.org/b/id/14831765-L.jpg?default=false"
+      }
+    ]
+  },
+  "q47yvh": {
+    "title": "An Engineer's Guide to Data Contracts - Pt. 1",
+    "images": [
+      "covers/43d4d8dbc17711361e2c.jpg"
+    ],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "Found: https://substackcdn.com/image/fetch/$s_!ZxC_!,w_1200,h_675,c_fill,f_jpg,q_auto:good,fl_progressive:steep,g_auto/https%3A%2F%2Fbucketeer-e05bbc84-baa3-437e-9518-adb32be77984.s3.amazonaws.com%2Fpublic%2Fimages%2Fe807c9ee-c24a-4e6d-99c5-7328f39e9db3_1600x882.png"
+      }
+    ]
+  },
+  "10fezj5": {
+    "title": "Data Modeling Essentials, 3rd Edition",
+    "images": [
+      "covers/c3796580c62946b5a8b4.jpg"
+    ],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "Found: https://secure-ecsd.elsevier.com/covers/80/Tango2/largest/9780126445510.jpg"
+      }
+    ]
+  },
+  "he5gy": {
+    "title": "Database Internals",
+    "images": [
+      "covers/cb14924867cd3a1d0e78.jpg"
+    ],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "HTTP 403"
+      },
+      {
+        "source": "Google Books title and author search",
+        "result": "HTTP 429"
+      },
+      {
+        "source": "Open Library title and author search",
+        "result": "Found: https://covers.openlibrary.org/b/id/14572292-L.jpg?default=false"
+      }
+    ]
+  },
+  "9ejeht": {
+    "title": "CMU 15-445/645: Intro to Database Systems (Fall 2025)",
+    "images": [
+      "covers/228adbb7901b7a17638d.jpg"
+    ],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "Found: https://15445.courses.cs.cmu.edu/fall2025/images/twitter-card.jpg"
+      }
+    ]
+  }
+}
