@@ -1,0 +1,43 @@
+Added,Status,Title,Type,Author,Link,Notes
+"Sep 29, 2026",Done,The Grug Brained Developer,Essay,,https://grugbrain.dev/,Really good for early-career people who don't yet have much idea about how corporate works. Very fun way to write a document. A genuinely good leisure read.
+"Sep 29, 2026",Done,Choose Boring Technology,Essay,Dan McKinley,https://mcfunley.com/choose-boring-technology,"1. We only have so much room for innovation. Spend it on the actual business problem, not on making every part of the tech stack new.
+2. Boring doesn't mean bad. Choose proven tools that are good enough for the job. Their capabilities and failure modes are better understood, so there are fewer unknown surprises.
+3. Pick tools for the whole company, not just one task. Every new tool adds operational work and things people need to learn. A tool that works well enough for several problems can be better than a different ""best"" tool for each one. Keeping the system reliable matters far more in the long run than making it easier to build.
+4. Before adding new tech, work out how you'd solve the problem with what you already have. If the real goal is just to try a new tool, stop. Otherwise, write down what makes the current stack too costly or difficult to use, and discuss the choice across the company.
+5. New tech is fine when it earns its place. If it overlaps with or replaces something you already use, commit to moving the old functionality over and propose a timeline. The point is to ship and leave room for bigger problems, not collect tools."
+"Sep 29, 2026",Done,The Web’s Grain,Essay,Frank Chimero,https://frankchimero.com/blog/2015/the-webs-grain/,
+"Sep 29, 2026",To Read,What Screens Want,Essay,Frank Chimero,https://frankchimero.com/blog/2013/what-screens-want/,
+"Sep 29, 2026",To Read,Up and Down the Ladder of Abstraction,Essay,Bret Victor,https://worrydream.com/LadderOfAbstraction/,
+"Sep 29, 2026",To Read,Leverage Points: Places to Intervene in a System,Essay,Donella Meadows,https://donellameadows.org/archives/leverage-points-places-to-intervene-in-a-system/,
+"Sep 29, 2026",To Read,Pace Layering: How Complex Systems Learn and Keep Learning,Essay,Stewart Brand,https://longnow.org/ideas/pace-layers/,
+"Sep 29, 2026",To Read,How Complex Systems Fail,Essay,Richard I. Cook,https://how.complexsystems.fail/,
+"Sep 29, 2026",To Read,Programming as Theory Building,Essay,Peter Naur,https://pages.cs.wisc.edu/~remzi/Naur.pdf,
+"Sep 29, 2026",To Read,The Shape of Design,Book,Frank Chimero,https://shapeofdesignbook.com/download/,
+"Sep 29, 2026",To Read,Who Could Write Protocol Fiction for Speculative Infrastructure?,Essay,Matt Webb,https://interconnected.org/home/2022/08/11/casi,
+"Sep 29, 2026",To Read,The Hard Work of Imagining,Essay,Matt Webb,https://interconnected.org/home/2020/12/11/thingscon,
+"Sep 29, 2026",To Read,Context Plumbing,Essay,Matt Webb,https://www.interconnected.org/home/2025/11/28/plumbing,
+"Sep 29, 2026",To Read,How to Generate Color Palettes for Design Systems,Essay,Matthew Ström,https://mattstromawn.com/writing/generating-color-palettes/,
+"Sep 29, 2026",To Read,Color for Design Systems,Essay,,https://colors.dotui.org/,
+"Oct 7, 2026",To Read,Data Organization in Spreadsheets,Essay,Karl W. Broman & Kara H. Woo,https://kbroman.org/Paper_DataOrg/manuscript.html,
+"Oct 7, 2026",To Read,Tidy Data,Essay,Hadley Wickham,https://www.jstatsoft.org/article/view/v059i10,
+"Oct 7, 2026",To Read,Table Schema 2.0,Essay,Data Package Working Group,https://datapackage.org/standard/table-schema/,
+"Oct 7, 2026",To Read,Database Design Book,Book,Alexey Makhotkin,https://databasedesignbook.com/,
+"Oct 7, 2026",To Read,Temporal Patterns,Essay,Martin Fowler,https://martinfowler.com/eaaDev/timeNarrative.html,
+"Oct 7, 2026",To Read,Developing Time-Oriented Database Applications in SQL,Book,Richard T. Snodgrass,https://www.cs.arizona.edu/~rts/tdbbook.pdf,
+"Oct 7, 2026",To Read,Data and Reality,Book,William Kent,https://books.google.com/books/about/Data_and_Reality.html?id=fQZKPgAACAAJ,
+"Oct 7, 2026",To Read,"SQL Antipatterns, Volume 1",Book,Bill Karwin,https://www.pragprog.com/titles/bksap1/sql-antipatterns-volume-1/,
+"Oct 7, 2026",To Read,Database Design for Mere Mortals: 25th Anniversary Edition,Book,Michael J. Hernandez,https://www.pearson.com/en-us/subject-catalog/p/database-design-for-mere-mortals-25th-anniversary-edition/P200000000317,
+"Oct 7, 2026",To Read,"The Data Model Resource Book, Volume 1: A Library of Universal Data Models for All Enterprises",Book,Len Silverston & Graeme Simsion,https://books.wiley.com/authors/len-silverston/vol-1-book/,
+"Oct 7, 2026",To Read,"The Data Model Resource Book, Volume 3: Universal Patterns for Data Modeling",Book,Len Silverston & Paul Agnew,https://books.wiley.com/authors/len-silverston/vol-3-book/,
+"Oct 7, 2026",To Read,"Joe Celko's Trees and Hierarchies in SQL for Smarties, 2nd Edition",Book,Joe Celko,https://www.oreilly.com/library/view/joe-celkos-trees/9780123877338/,
+"Oct 7, 2026",To Read,PostgreSQL 18 Documentation,Essay,PostgreSQL Global Development Group,https://www.postgresql.org/docs/18/,
+"Oct 7, 2026",To Read,Evolutionary Database Design,Essay,Martin Fowler & Pramod Sadalage,https://www.martinfowler.com/articles/evodb.html,
+"Oct 7, 2026",To Read,"Use The Index, Luke!",Book,Markus Winand,https://use-the-index-luke.com/,
+"Oct 7, 2026",To Read,"The Data Warehouse Toolkit: The Definitive Guide to Dimensional Modeling, 3rd Edition",Book,Ralph Kimball & Margy Ross,https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/books/data-warehouse-dw-toolkit/,
+"Oct 7, 2026",To Read,"Designing Data-Intensive Applications, 2nd Edition",Book,Martin Kleppmann & Chris Riccomini,https://www.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/,
+"Oct 7, 2026",To Read,Data Pipelines Pocket Reference,Book,James Densmore,https://www.oreilly.com/library/view/data-pipelines-pocket/9781492087823/,
+"Oct 7, 2026",To Read,Fundamentals of Data Engineering,Book,Joe Reis & Matt Housley,https://www.oreilly.com/library/view/fundamentals-of-data/9781098108298/,
+"Oct 7, 2026",To Read,An Engineer's Guide to Data Contracts - Pt. 1,Essay,Chad Sanderson & Adrian Kreuziger,https://dataproducts.substack.com/p/an-engineers-guide-to-data-contracts,
+"Oct 7, 2026",To Read,"Data Modeling Essentials, 3rd Edition",Book,Graeme Simsion & Graham Witt,https://shop.elsevier.com/books/data-modeling-essentials/simsion/978-0-12-644551-0,
+"Oct 7, 2026",To Read,Database Internals,Book,Alex Petrov,https://www.oreilly.com/library/view/database-internals/9781492040330/,
+"Oct 7, 2026",To Read,CMU 15-445/645: Intro to Database Systems (Fall 2025),Essay,Andy Pavlo,https://15445.courses.cs.cmu.edu/fall2025/,

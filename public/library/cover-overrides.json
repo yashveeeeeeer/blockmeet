@@ -1,0 +1,61 @@
+{
+  "go898z": {
+    "title": "The Shape of Design",
+    "images": ["https://shapeofdesignbook.com/img/cover.svg"],
+    "source": "https://shapeofdesignbook.com/"
+  },
+  "13ocf8r": {
+    "title": "Designing Data-Intensive Applications, 2nd Edition",
+    "images": ["https://learning.oreilly.com/library/cover/9781098119058/"],
+    "source": "https://www.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/cover.html"
+  },
+  "8otjk4": {
+    "title": "Joe Celko's Trees and Hierarchies in SQL for Smarties, 2nd Edition",
+    "images": ["https://learning.oreilly.com/library/cover/9780123877338/"],
+    "source": "https://www.oreilly.com/library/view/joe-celkos-trees/9780123877338/"
+  },
+  "l5njsl": {
+    "title": "Database Design for Mere Mortals: 25th Anniversary Edition",
+    "images": ["https://www.informit.com/ShowCover.aspx?isbn=9780136788041&type=f"],
+    "source": "https://www.informit.com/store/database-design-for-mere-mortals-25th-anniversary-edition-9780136788041"
+  },
+  "1jpx61q": {
+    "title": "The Data Model Resource Book, Volume 1",
+    "images": ["https://covers.openlibrary.org/b/isbn/9780471380238-L.jpg?default=false"],
+    "source": "https://www.wiley-vch.de/en/areas-interest/computing-computer-sciences/the-data-model-resource-book-978-0-471-38023-8"
+  },
+  "1ovjjhx": {
+    "title": "The Data Model Resource Book, Volume 3",
+    "images": ["https://covers.openlibrary.org/b/isbn/9780470178454-L.jpg?default=false"],
+    "source": "https://uat.store.wiley.com/en-us/the-data-model-resource-book-volume-3-universal-patterns-for-data-modeling-p-9781118080832"
+  },
+  "j13onj": {
+    "title": "The Data Warehouse Toolkit, 3rd Edition",
+    "images": ["https://covers.openlibrary.org/b/isbn/9781118530801-L.jpg?default=false"],
+    "source": "https://uat.store.wiley.com/en-us/the-data-warehouse-toolkit-the-definitive-guide-to-dimensional-modeling-3rd-edition-p-9781118530801"
+  },
+  "17huobq": {
+    "title": "Choose Boring Technology",
+    "images": [],
+    "attempts": [
+      { "source": "Source page metadata", "result": "Generic author photo, not an essay cover" },
+      { "source": "Source article illustrations", "result": "Inspected inline images; no cover image" }
+    ]
+  },
+  "1apr1nc": {
+    "title": "Tidy Data",
+    "images": [],
+    "attempts": [
+      { "source": "Source page metadata", "result": "Generic journal logo, not a paper cover" },
+      { "source": "Source page cover illustrations", "result": "No cover illustration found" }
+    ]
+  },
+  "1m32kng": {
+    "title": "Temporal Patterns",
+    "images": [],
+    "attempts": [
+      { "source": "Source page metadata", "result": "Generic author logo, not an essay cover" },
+      { "source": "Source page cover illustrations", "result": "No cover illustration found" }
+    ]
+  }
+}

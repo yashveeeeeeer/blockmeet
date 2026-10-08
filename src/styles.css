@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+.village-destinations { position: fixed; z-index: 40; top: 12px; left: 16px; display: flex; gap: 8px; }
+.village-destinations a { padding: 10px; border: 2px solid #4ecca345; color: #bdeadd; background: #0c1425d9; font-family: "Press Start 2P", monospace; font-size: 8px; text-decoration: none; box-shadow: 2px 2px 0 #0005; }
+.village-destinations a:hover { border-color: #4ecca3; color: #f5c542; }
+@media (max-width: 760px) {
+  .village-destinations { top: 50px; left: 12px; }
+  .village-destinations a { font-size: 7px; padding: 8px; }
+}
+
 :root {
   color-scheme: dark;
   --night: #080b1c;
@@ -22,7 +30,7 @@
 
   body {
     margin: 0;
-    min-width: 320px;
+    min-width: min(320px, 100%);
     overflow-x: hidden;
     background: var(--night);
     color: var(--ink);

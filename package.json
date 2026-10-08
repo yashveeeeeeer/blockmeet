@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs",
+    "library:sync": "node --experimental-strip-types scripts/sync-library.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
