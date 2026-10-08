@@ -74,7 +74,7 @@ export default function LibraryPage() {
     return () => { active = false; controller.abort(); window.clearTimeout(timeout); };
   }, [reload]);
 
-  const categories = useMemo(() => ["All", ...[...new Set(readings.map(reading => reading.type))].sort((a, b) => a === "Books" ? -1 : b === "Books" ? 1 : a.localeCompare(b))], [readings]);
+  const categories = useMemo(() => ["All", ...new Set(readings.map(reading => reading.type))], [readings]);
   const activeCategory = categories.includes(category) ? category : "All";
   const shown = useMemo(() => filterReadings(readings, activeCategory, query), [readings, activeCategory, query]);
   const clear = () => { setCategory("All"); setQuery(""); };
