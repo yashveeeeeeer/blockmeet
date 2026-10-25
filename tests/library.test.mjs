@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { parseCSV, readingsFromCSV, filterReadings, safeURL, fetchReadings } from "../src/lib/library.ts";
+import { parseCSV, readingsFromCSV, filterReadings, mergeReadings, safeURL, fetchReadings } from "../src/lib/library.ts";
 
 test("Google Sheets CSV preserves quoted commas, multiline notes, BOM and escaped quotes", () => {
   assert.deepEqual(parseCSV('\uFEFFTitle,Notes\r\n"SQL, Volume 1","Line one\n""Line two"""\r\n'), [
@@ -55,7 +55,10 @@ test("live updates add new rows and reject failures before replacing the saved c
 
 test("saved reading list is complete and cover assets exist", async () => {
   const root = new URL("../public/library/", import.meta.url);
-  const readings = readingsFromCSV(await readFile(new URL("readings.csv", root), "utf8"));
+  const readings = mergeReadings(
+    readingsFromCSV(await readFile(new URL("readings.csv", root), "utf8")),
+    readingsFromCSV(await readFile(new URL("additions.csv", root), "utf8")),
+  );
   assert.ok(Array.isArray(readings));
   const catalog = JSON.parse(await readFile(new URL("covers.json", root), "utf8"));
   for (const reading of readings) {
@@ -64,4 +67,17 @@ test("saved reading list is complete and cover assets exist", async () => {
     if (reading.type === "Books" && !cover.images.length) assert.ok(cover.attempts.length >= 2, reading.title);
     for (const image of cover.images) assert.ok((await readFile(new URL(image, root))).length > 1500);
   }
+});
+
+test("repository additions survive sheet refreshes and yield to matching sheet rows", async () => {
+  const additions = readingsFromCSV("Title,Type,Author,Link\nAdded essay,Essay,A,https://example.org/essay\nAnother essay,Essay,B,https://example.org/another");
+  const initial = readingsFromCSV("Title,Type\nExisting,Book");
+  assert.deepEqual(mergeReadings(initial, additions).map(row => row.title), ["Existing", "Added essay", "Another essay"]);
+  assert.deepEqual(mergeReadings([], additions), additions);
+  const { readings } = await fetchReadings(new AbortController().signal, async () => new Response(
+    "Title,Type,Author,Link\nRenamed essay,Essay,Updated author,https://example.org/essay\nExisting,Book,,\nAnother essay,Essay,B,https://example.org/updated-link",
+  ));
+  const merged = mergeReadings(readings, additions);
+  assert.deepEqual(merged, readings);
+  assert.deepEqual(filterReadings(merged, "Essays", "").map(row => row.title), ["Renamed essay", "Another essay"]);
 });

@@ -514,5 +514,57 @@
         "result": "Found: https://15445.courses.cs.cmu.edu/fall2025/images/twitter-card.jpg"
       }
     ]
+  },
+  "13cp66o": {
+    "title": "Bitemporal History",
+    "images": [
+      "covers/f595da8732ddc50dd3a4.png"
+    ],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "Found: https://martinfowler.com/articles/bitemporal-history/card.png"
+      }
+    ]
+  },
+  "16jxmox": {
+    "title": "Ubiquitous Language",
+    "images": [],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "No usable cover found"
+      },
+      {
+        "source": "Source page cover illustrations",
+        "result": "No usable cover found"
+      }
+    ]
+  },
+  "8pf2zn": {
+    "title": "Bounded Context",
+    "images": [
+      "covers/b0d0ae95afbbb1cdc893.png"
+    ],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "Found: https://martinfowler.com/bliki/images/boundedContext/sketch.png"
+      }
+    ]
+  },
+  "1pitr15": {
+    "title": "Using Data Model Patterns for Rapid Applications Development",
+    "images": [],
+    "attempts": [
+      {
+        "source": "Source page metadata",
+        "result": "No usable cover found"
+      },
+      {
+        "source": "Source page cover illustrations",
+        "result": "No usable cover found"
+      }
+    ]
   }
 }

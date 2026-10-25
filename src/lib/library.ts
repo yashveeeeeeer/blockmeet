@@ -91,6 +91,20 @@ export function filterReadings(readings: Reading[], category: string, query: str
   );
 }
 
+// Sheet rows take priority and retain their order when an addition moves into the sheet.
+export function mergeReadings(sheet: Reading[], additions: Reading[]): Reading[] {
+  const merged = [...sheet];
+  const ids = new Set(sheet.map(reading => reading.id));
+  const urls = new Set(sheet.map(reading => reading.url).filter(Boolean));
+  for (const reading of additions) {
+    if (ids.has(reading.id) || (reading.url && urls.has(reading.url))) continue;
+    merged.push(reading);
+    ids.add(reading.id);
+    if (reading.url) urls.add(reading.url);
+  }
+  return merged;
+}
+
 export async function fetchReadings(signal: AbortSignal, fetcher: typeof fetch = fetch) {
   const response = await fetcher(LIBRARY_CSV, { signal, cache: "no-store" });
   if (!response.ok) throw new Error("Sheet unavailable");

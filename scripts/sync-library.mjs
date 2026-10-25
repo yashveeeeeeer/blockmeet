@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
-import { LIBRARY_CSV, readingsFromCSV, safeURL } from "../src/lib/library.ts";
+import { LIBRARY_CSV, mergeReadings, readingsFromCSV, safeURL } from "../src/lib/library.ts";
 
 const root = new URL("../public/library/", import.meta.url);
 await mkdir(new URL("covers/", root), { recursive: true });
@@ -28,7 +28,8 @@ try {
   console.warn(`Sheet unavailable (${error.message}); keeping the saved library.`);
   csv = await readFile(new URL("readings.csv", root), "utf8");
 }
-const readings = readingsFromCSV(csv);
+const additions = readingsFromCSV(await readFile(new URL("additions.csv", root), "utf8"));
+const readings = mergeReadings(readingsFromCSV(csv), additions);
 const decode = value => value.replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;/g, "'");
 function metadataImages(html, base) {
   const candidates = [];
