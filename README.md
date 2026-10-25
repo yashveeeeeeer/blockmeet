@@ -17,6 +17,8 @@ Keep the `Title`, `Type`, `Author`, and `Link` column names. Only `Title` is req
 
 `public/library/readings.csv` is the saved fallback. The page starts with this copy (or the last successfully fetched copy in the visitor's browser), so a slow or unavailable Google Sheet does not leave an empty page. It offers a refresh if the live request fails.
 
+`public/library/additions.csv` holds readings added through GitHub when the sheet cannot be edited. These follow the sheet rows in file order and are included in the initial, cached, and live collection, as well as cover syncs. A matching title/author pair or URL in the sheet takes precedence, so moving an addition into the sheet does not create a duplicate and uses the sheet's position. Remove its row from `additions.csv` once the sheet is maintained as its source. Dates and completion status remain hidden.
+
 ### Covers and automatic refresh
 
 Run `npm run library:sync` with Node 22.18+ to refresh the CSV and cover catalog. The sync checks publisher ISBN covers, source-page image metadata and explicitly labelled cover illustrations. For books without a usable image, it also searches Google Books and Open Library using the title and author. At least two lookups are attempted before an unresolved book uses a plain white title page. Search results, errors and source URLs are recorded in `public/library/covers.json`. Images are cached in `public/library/covers/`; visitors do not depend on publisher image servers. `cover-overrides.json` holds verified edition-specific sources and exclusions for misleading generic site images.

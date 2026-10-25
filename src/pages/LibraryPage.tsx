@@ -1,19 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import savedCSV from "../../public/library/readings.csv?raw";
+import additionsCSV from "../../public/library/additions.csv?raw";
 import savedCovers from "../../public/library/covers.json?raw";
-import { fetchReadings, filterReadings, readingsFromCSV, type CoverCatalog, type Reading } from "../lib/library";
+import { fetchReadings, filterReadings, mergeReadings, readingsFromCSV, type CoverCatalog, type Reading } from "../lib/library";
 import "./library.css";
 
 const covers: CoverCatalog = JSON.parse(savedCovers);
-const snapshot = readingsFromCSV(savedCSV);
+const additions = readingsFromCSV(additionsCSV);
+const snapshot = mergeReadings(readingsFromCSV(savedCSV), additions);
 const CACHE_KEY = "blockmeet-library-csv-v1";
 const BASE = import.meta.env.BASE_URL;
 
 function initialReadings() {
   try {
     const cached = localStorage.getItem(CACHE_KEY);
-    return cached ? readingsFromCSV(cached) : snapshot;
+    return cached ? mergeReadings(readingsFromCSV(cached), additions) : snapshot;
   } catch { return snapshot; }
 }
 
@@ -63,7 +65,7 @@ export default function LibraryPage() {
       try {
         const { csv, readings: latest } = await fetchReadings(controller.signal);
         if (!active) return;
-        setReadings(latest);
+        setReadings(mergeReadings(latest, additions));
         setSavedMode(false);
         try { localStorage.setItem(CACHE_KEY, csv); } catch { /* storage can be disabled */ }
       } catch {
