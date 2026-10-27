@@ -118,17 +118,23 @@ function makeBook(
     map: pageMap,
     roughness: 0.95,
   });
-  const binding = new THREE.MeshStandardMaterial({
+  // A clear varnish sits above the printed color, so reflections move with the
+  // book without baking glare into the cover artwork. Paper stays matte.
+  const coating = { clearcoat: 0.85, clearcoatRoughness: 0.28, metalness: 0 };
+  const binding = new THREE.MeshPhysicalMaterial({
+    ...coating,
     color: design.cloth,
-    roughness: 0.8,
+    roughness: 0.55,
   });
-  const face = new THREE.MeshStandardMaterial({
+  const face = new THREE.MeshPhysicalMaterial({
+    ...coating,
     map: frontMap,
-    roughness: 0.7,
+    roughness: 0.45,
   });
-  const spineMat = new THREE.MeshStandardMaterial({
+  const spineMat = new THREE.MeshPhysicalMaterial({
+    ...coating,
     map: spineMap,
-    roughness: 0.8,
+    roughness: 0.55,
   });
   const blockGeo = new THREE.BoxGeometry(238, 356, design.thickness - 5);
   const boardGeo = new THREE.BoxGeometry(246, 364, 3);
@@ -202,6 +208,9 @@ export function mountBookScene(
   });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
+  // Roll off bright reflections instead of clipping pale cover artwork to white.
+  renderer.toneMapping = THREE.NeutralToneMapping;
+  renderer.toneMappingExposure = 0.9;
   renderer.setClearColor(0x000000, 0);
   const scene = new THREE.Scene();
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 1, 3000);
@@ -213,6 +222,11 @@ export function mountBookScene(
   const fill = new THREE.DirectionalLight(0xb9ded8, 0.7);
   fill.position.set(500, -200, 600);
   scene.add(fill);
+  // A nearby studio light produces a broad, moving highlight across the flat
+  // boards. Directional light alone gives an almost uniform reflection.
+  const gloss = new THREE.PointLight(0xfff6e8, 160000, 0, 2);
+  gloss.position.set(-120, -30, 480);
+  scene.add(gloss);
   const books = new Map<string, Book>();
   const rows = [...root.querySelectorAll<HTMLElement>("[data-book-id]")];
   const byId = new Map(readings.map((reading) => [reading.id, reading]));
