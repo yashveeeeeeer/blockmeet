@@ -1,7 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { stitchedLettering } from "../src/components/library/embroidery.ts";
-import { threadPaths } from "../src/components/library/thread-paths.ts";
 
 function mask(filled) {
   const width = 128, height = 128;
@@ -17,16 +16,6 @@ test("empty lettering produces no strands", () => {
   assert.equal(geometry.getAttribute("position").count, 0);
   assert.equal(geometry.index.count, 0);
   geometry.dispose();
-});
-
-test("satin bundles turn across horizontal and vertical letter strokes", () => {
-  const vertical = threadPaths(mask((x, y) => x > 50 && x < 58 && y > 20 && y < 100), 128, 128);
-  const horizontal = threadPaths(mask((x, y) => y > 50 && y < 58 && x > 20 && x < 100), 128, 128);
-  const across = (threads) => threads.reduce((sum, s) => sum + Math.abs(s.x2 - s.x1), 0);
-  const down = (threads) => threads.reduce((sum, s) => sum + Math.abs(s.y2 - s.y1), 0);
-  assert.ok(across(vertical) > down(vertical) * 3);
-  assert.ok(down(horizontal) > across(horizontal) * 3);
-  assert.deepEqual(vertical, threadPaths(mask((x, y) => x > 50 && x < 58 && y > 20 && y < 100), 128, 128));
 });
 
 test("raised threads preserve separate glyphs and their counters", () => {

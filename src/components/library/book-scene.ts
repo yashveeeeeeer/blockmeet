@@ -75,10 +75,6 @@ function makeBook(
   foilEnvironment: THREE.Texture,
 ): Book {
   const design = bookDesign(reading);
-  const lightInk = new THREE.Color(design.ink).getHSL({ h: 0, s: 0, l: 0 }).l > 0.5;
-  const threadColor = design.finish === "iridescent"
-    ? (lightInk ? "#d3bdd9" : "#57637d")
-    : (lightInk ? "#dfcfa4" : "#5b4b31");
   const generated = !(cover && reading.type === "Books");
   const front = canvas(512, 768);
   const titleMask = canvas(1024, 1536);
@@ -92,7 +88,6 @@ function makeBook(
   titleMask.ctx.font = front.ctx.font;
   titleMask.ctx.fillText("ATHENAEUM", 46, 58);
   front.ctx.fillRect(46, 82, 420, 1);
-  front.ctx.fillStyle = threadColor;
   let fontSize = 56;
   let lines: string[] = [];
   do {
@@ -114,7 +109,6 @@ function makeBook(
   );
   titleMask.ctx.font = front.ctx.font;
   lines.forEach((line, i) => titleMask.ctx.fillText(line, 46, 158 + i * fontSize * 1.15));
-  front.ctx.fillStyle = design.ink;
   front.ctx.font = "21px Georgia, serif";
   wrapBookTitle(
     reading.author,
@@ -148,7 +142,6 @@ function makeBook(
     if (spine.ctx.measureText(reading.title).width <= 1270) break;
     spineSize--;
   } while (spineSize > 17);
-  spine.ctx.fillStyle = threadColor;
   spine.ctx.fillText(reading.title, 0, 0);
   spineMask.ctx.font = spine.ctx.font;
   spineMask.ctx.fillText(reading.title, 0, 0);
@@ -267,20 +260,20 @@ function makeBook(
   const ribGeo = new THREE.CylinderGeometry(1.5, 1.5, 348, 8);
   const ribbonGeo = new THREE.BoxGeometry(7, 348, 0.7);
   const frontZ = design.thickness / 2 + 1.5;
+  const lightInk = new THREE.Color(design.ink).getHSL({ h: 0, s: 0, l: 0 }).l > 0.5;
   const thread = new THREE.MeshPhysicalMaterial({
     map: foilMap,
-    color: threadColor,
-    vertexColors: true,
-    metalness: 0,
-    roughness: 0.76,
-    sheen: 1,
+    color: lightInk ? "#eff4f0" : "#64718e",
+    metalness: 0.3,
+    roughness: 0.48,
+    sheen: 0.7,
     sheenColor: new THREE.Color(rainbow ? "#b9daef" : "#ddbd75"),
-    sheenRoughness: 0.7,
-    iridescence: rainbow ? 0.22 : 0,
+    sheenRoughness: 0.45,
+    iridescence: rainbow ? 0.85 : 0,
     iridescenceThicknessMap: filmMap,
     iridescenceThicknessRange: [180, 650],
     envMap: foilEnvironment,
-    envMapIntensity: 0.25,
+    envMapIntensity: 0.65,
   });
   const letteringGeometries: THREE.BufferGeometry[] = [];
   if (generated) {
