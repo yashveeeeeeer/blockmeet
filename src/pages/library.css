@@ -650,3 +650,144 @@
     font-size: 48px;
   }
 }
+
+/* Focused volume: a viewport stage and a quiet, graphic navigation rail. */
+.book-shelf:not(.is-flat) {
+  --shelf-row-height: 142px;
+}
+.book-shelf:not(.is-flat) .shelf-book {
+  height: var(--shelf-row-height);
+}
+.shelf-focus-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: var(--library-bg);
+  opacity: var(--focus-progress, 0);
+}
+.book-shelf[data-focus-view] .shelf-focus-backdrop {
+  display: block;
+}
+.book-shelf[data-focus-view] .shelf-canvas {
+  z-index: 11;
+}
+.book-shelf[data-focus-view] .shelf-book {
+  z-index: 12;
+  touch-action: none;
+}
+.book-shelf:not(.is-flat) .book-details {
+  position: fixed;
+  z-index: 13;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  width: min(760px, calc(100vw - 96px));
+  max-height: 180px;
+  overflow: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.book-shelf:not(.is-flat) .book-description h2 {
+  font-size: 20px;
+  margin: 0 0 7px;
+}
+.book-shelf:not(.is-flat) .book-description p {
+  margin: 0;
+  font-size: 12px;
+}
+.book-shelf:not(.is-flat) .book-type,
+.book-shelf:not(.is-flat) .book-gesture {
+  display: none;
+}
+.book-shelf:not(.is-flat) .book-actions {
+  margin-top: 12px;
+  gap: 20px;
+}
+.shelf-rail {
+  position: fixed;
+  z-index: 14;
+  left: 10px;
+  top: 15svh;
+  width: 32px;
+  max-height: 70svh;
+}
+.shelf-rail-back {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  width: 32px;
+  height: 36px;
+  font-size: 27px;
+  color: var(--library-ink);
+  background: transparent;
+}
+.shelf-rail-ticks {
+  position: relative;
+  max-height: 70svh;
+  overflow-y: auto;
+  scrollbar-width: none;
+  overscroll-behavior: contain;
+}
+.shelf-rail-tick {
+  display: flex;
+  align-items: center;
+  width: 32px;
+  height: 12px;
+  padding: 0 5px;
+  background: transparent;
+  border: 0;
+}
+.shelf-rail-mark {
+  width: 16px;
+  height: 2px;
+  background: var(--library-muted);
+  opacity: 0.45;
+  transition: width 160ms, opacity 160ms;
+}
+.shelf-rail-tick[aria-current],
+.shelf-rail-tick:focus-visible {
+  outline-offset: 0;
+}
+.shelf-rail-tick:is(:hover, :focus-visible, [aria-current]) .shelf-rail-mark {
+  opacity: 1;
+  width: 24px;
+  background: var(--library-green);
+}
+.shelf-rail-label {
+  display: none;
+  position: fixed;
+  left: 50px;
+  top: 50%;
+  max-width: min(280px, calc(100vw - 90px));
+  padding: 8px 12px;
+  border: 1px solid var(--library-line);
+  background: var(--library-bg);
+  color: var(--library-ink);
+  text-align: left;
+  font-size: 12px;
+  pointer-events: none;
+}
+.shelf-rail-tick:is(:hover, :focus-visible) .shelf-rail-label {
+  display: block;
+}
+@media (max-width: 1050px) {
+  .book-shelf:not(.is-flat) { --shelf-row-height: 125px; }
+}
+@media (max-width: 760px) {
+  .book-shelf:not(.is-flat) { --shelf-row-height: 130px; }
+  .library-page:not(.library-eink) .library-layout { padding-left: 48px; padding-right: 20px; }
+  .shelf-rail { left: 3px; width: 28px; }
+  .shelf-rail-tick { width: 28px; height: 11px; }
+  .book-shelf:not(.is-flat) .book-details { bottom: 18px; }
+  .book-shelf:not(.is-flat) .book-description h2 { font-size: 17px; }
+  .book-shelf:not(.is-flat) .book-actions { gap: 12px; flex-wrap: wrap; }
+  .shelf-rail-label { display: none !important; }
+}
+@media (max-width: 440px) {
+  .book-shelf:not(.is-flat) { --shelf-row-height: 105px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shelf-rail-mark { transition: none; }
+}
