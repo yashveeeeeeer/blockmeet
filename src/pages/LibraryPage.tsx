@@ -51,7 +51,9 @@ export default function LibraryPage() {
           controller.signal,
         );
         if (!active) return;
-        setReadings(mergeReadings(latest, additions));
+        const merged = mergeReadings(latest, additions);
+        // An unchanged sheet must not tear down and rebuild the entire GPU scene.
+        setReadings((current) => JSON.stringify(current) === JSON.stringify(merged) ? current : merged);
         try {
           localStorage.setItem(CACHE_KEY, csv);
         } catch {

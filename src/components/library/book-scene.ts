@@ -1,14 +1,18 @@
 import * as THREE from "three";
 import type { CoverCatalog, Reading } from "../../lib/library";
-import { bookDesign, wrapBookTitle } from "../../lib/book-design";
+import { bookDesign, wrapBookTitle, largestFittingSize } from "../../lib/book-design";
 import { bookPointerTilt } from "../../lib/shelf-motion";
-import { raisedLettering, bookPixelRatio } from "./book-relief";
+import { reliefGeometry, bookPixelRatio } from "./book-relief";
+import type { buildRelief, ReliefPaint, ReliefText } from "./relief-data";
+
+type RequestRelief = (paint: ReliefPaint, ready: (geometry: THREE.BufferGeometry) => void) => () => void;
 
 type Book = {
   group: THREE.Group;
   textures: THREE.Texture[];
   materials: THREE.Material[];
   geometries: THREE.BufferGeometry[];
+  cancel: (() => void)[];
 };
 
 function canvas(width: number, height: number) {
@@ -72,18 +76,16 @@ function makeBook(
   isAlive: () => boolean,
   foilEnvironment: THREE.Texture,
   leatherGrain: THREE.Texture,
+  requestRelief: RequestRelief,
 ): Book {
   const design = bookDesign(reading);
   const generated = !(cover && reading.type === "Books");
   const front = canvas(1024, 1536);
   front.ctx.scale(2, 2);
-  const frontMask = canvas(1024, 1536);
-  frontMask.ctx.scale(2, 2);
-  frontMask.ctx.fillStyle = "white";
+  const frontRuns: ReliefText[] = [];
   const frontText = (text: string, x: number, y: number) => {
     front.ctx.fillText(text, x, y);
-    frontMask.ctx.font = front.ctx.font;
-    frontMask.ctx.fillText(text, x, y);
+    frontRuns.push({ text, font: front.ctx.font, x, y });
   };
   cloth(front.ctx, 512, 768, design.cloth);
   front.ctx.fillStyle = design.ink;
@@ -91,22 +93,18 @@ function makeBook(
   front.ctx.font = "17px sans-serif";
   frontText("ATHENAEUM", 46, 58);
   front.ctx.fillRect(46, 82, 420, 2);
-  let fontSize = 56;
   let lines: string[] = [];
-  do {
-    front.ctx.font = `${fontSize}px Georgia, serif`;
+  const fitsTitle = (size: number) => {
+    front.ctx.font = `${size}px Georgia, serif`;
     lines = wrapBookTitle(
       reading.title,
       (text) => front.ctx.measureText(text).width,
       410,
     );
-    if (
-      lines.length * fontSize * 1.15 <= 335 &&
-      lines.every((line) => front.ctx.measureText(line).width <= 420)
-    )
-      break;
-    fontSize -= 2;
-  } while (fontSize > 16);
+    return lines.length * size * 1.15 <= 335 && lines.every((line) => front.ctx.measureText(line).width <= 420);
+  };
+  const fontSize = largestFittingSize(16, 56, 2, fitsTitle);
+  fitsTitle(fontSize);
   lines.forEach((line, i) =>
     frontText(line, 46, 158 + i * fontSize * 1.15),
   );
@@ -123,13 +121,6 @@ function makeBook(
 
   const spine = canvas(192, 3072);
   spine.ctx.scale(2, 2);
-  const spineMask = canvas(192, 3072);
-  spineMask.ctx.scale(2, 2);
-  spineMask.ctx.translate(48, 768);
-  spineMask.ctx.rotate(Math.PI / 2);
-  spineMask.ctx.fillStyle = "white";
-  spineMask.ctx.textAlign = "center";
-  spineMask.ctx.textBaseline = "middle";
   cloth(spine.ctx, 96, 1536, design.cloth);
   spine.ctx.translate(48, 768);
   spine.ctx.rotate(Math.PI / 2);
@@ -138,15 +129,12 @@ function makeBook(
   spine.ctx.fillRect(690, -28, 2, 56);
   spine.ctx.textAlign = "center";
   spine.ctx.textBaseline = "middle";
-  let spineSize = 60;
-  do {
-    spine.ctx.font = `${spineSize}px Georgia, serif`;
-    if (spine.ctx.measureText(reading.title).width <= 1270) break;
-    spineSize--;
-  } while (spineSize > 17);
+  const spineSize = largestFittingSize(17, 60, 1, (size) => {
+    spine.ctx.font = `${size}px Georgia, serif`;
+    return spine.ctx.measureText(reading.title).width <= 1270;
+  });
+  spine.ctx.font = `${spineSize}px Georgia, serif`;
   spine.ctx.fillText(reading.title, 0, 0);
-  spineMask.ctx.font = spine.ctx.font;
-  spineMask.ctx.fillText(reading.title, 0, 0);
   const spineMap = texture(spine.element);
 
   const pages = canvas(512, 512);
@@ -277,20 +265,30 @@ function makeBook(
     bumpMap: leatherGrain,
     bumpScale: .035,
   });
+  // Include the lettering shader in asynchronous warm-up before its worker
+  // geometry arrives; the invisible primer shares the existing board geometry.
+  const letteringPrimer = new THREE.Mesh(boardGeo, lettering);
+  letteringPrimer.visible = false;
+  group.add(letteringPrimer);
   const reliefGeometries: THREE.BufferGeometry[] = [];
+  const cancel: (() => void)[] = [];
   if (generated) {
-    const geometry = raisedLettering(frontMask.element, 246, 364);
-    const relief = new THREE.Mesh(geometry, lettering);
-    relief.position.z = frontZ - .02;
-    group.add(relief);
-    reliefGeometries.push(geometry);
+    cancel.push(requestRelief({columns:1024, rows:1536, width:246, height:364, runs:frontRuns}, (geometry) => {
+      const relief = new THREE.Mesh(geometry, lettering);
+      relief.position.z = frontZ - .02;
+      group.add(relief);
+      reliefGeometries.push(geometry);
+      invalidate();
+    }));
   }
-  const spineRelief = raisedLettering(spineMask.element, design.thickness, 364);
-  const spineLetters = new THREE.Mesh(spineRelief, lettering);
-  spineLetters.rotation.y = -Math.PI / 2;
-  spineLetters.position.x = -123.98;
-  group.add(spineLetters);
-  reliefGeometries.push(spineRelief);
+  cancel.push(requestRelief({columns:192, rows:3072, width:design.thickness, height:364, spine:true, runs:[{text:reading.title, font:spine.ctx.font, x:0, y:0}]}, (geometry) => {
+    const spineLetters = new THREE.Mesh(geometry, lettering);
+    spineLetters.rotation.y = -Math.PI / 2;
+    spineLetters.position.x = -123.98;
+    group.add(spineLetters);
+    reliefGeometries.push(geometry);
+    invalidate();
+  }));
   for (const x of [-118, -109]) {
     const rib = new THREE.Mesh(ribGeo, foil);
     rib.position.set(x, 0, frontZ);
@@ -313,6 +311,7 @@ function makeBook(
   }
   const book: Book = {
     group,
+    cancel,
     textures: [frontMap, spineMap, pageMap, filmMap, foilMap],
     materials: [paper, binding, face, spineMat, foil, lettering],
     geometries: [
@@ -322,9 +321,10 @@ function makeBook(
       ribGeo,
       ribbonGeo,
       ...ornamentGeometries,
-      ...reliefGeometries,
     ],
   };
+  // The async relief array is disposed through the same book lifetime.
+  book.cancel.push(() => reliefGeometries.forEach((geometry) => geometry.dispose()));
 
   // Only actual book covers are used. Essay previews become consistent title bindings.
   if (cover && reading.type === "Books") {
@@ -341,6 +341,7 @@ function makeBook(
 }
 
 function disposeBook(book: Book) {
+  book.cancel.forEach((cancel) => cancel());
   book.group.removeFromParent();
   book.textures.forEach((map) => map.dispose());
   book.materials.forEach((material) => material.dispose());
@@ -354,6 +355,7 @@ export function mountBookScene(
   readings: Reading[],
   covers: CoverCatalog,
   failed: () => void,
+  ready: () => void,
 ) {
   const renderer = new THREE.WebGLRenderer({
     canvas: canvasElement,
@@ -396,6 +398,25 @@ export function mountBookScene(
   gloss.position.set(-120, -30, 480);
   scene.add(gloss);
   const books = new Map<string, Book>();
+  let reliefWorker: Worker | undefined;
+  const pendingRelief = new Map<number, (geometry: THREE.BufferGeometry) => void>();
+  let reliefId = 0;
+  try {
+    reliefWorker = new Worker(new URL("./book-relief.worker.ts", import.meta.url), { type: "module" });
+    reliefWorker.onmessage = (event: MessageEvent<{ id: number; data?: ReturnType<typeof buildRelief> }>) => {
+      const ready = pendingRelief.get(event.data.id);
+      pendingRelief.delete(event.data.id);
+      if (ready && alive && event.data.data) ready(reliefGeometry(event.data.data));
+    };
+    reliefWorker.onerror = () => { pendingRelief.clear(); reliefWorker?.terminate(); reliefWorker = undefined; };
+  } catch { /* The printed cover stays usable when workers are unavailable. */ }
+  const requestRelief: RequestRelief = (paint, ready) => {
+    if (!reliefWorker) return () => {};
+    const id = ++reliefId;
+    pendingRelief.set(id, ready);
+    reliefWorker.postMessage({ id, ...paint });
+    return () => { pendingRelief.delete(id); };
+  };
   const rows = [...root.querySelectorAll<HTMLElement>("[data-book-id]")];
   const byId = new Map(readings.map((reading) => [reading.id, reading]));
   const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
@@ -404,6 +425,13 @@ export function mountBookScene(
   let width = 0;
   let height = 0;
   let animating = false;
+  let compiled = false;
+  let compiling = false;
+  let firstFrame = true;
+  let idleJob = 0;
+  let uploadFrame = 0;
+  const prepared = new WeakSet<Book>();
+  const uploads: { book: Book; next: number }[] = [];
   let lastFrame = performance.now();
   const target = new THREE.Quaternion();
   const openRotation = new THREE.Quaternion();
@@ -414,6 +442,65 @@ export function mountBookScene(
       if (!animating) lastFrame = performance.now();
       frame = requestAnimationFrame(draw);
     }
+  };
+  const uploadNext = () => {
+    uploadFrame = 0;
+    if (!alive) return;
+    const item = uploads[0];
+    if (!item) return;
+    if (!item.book.group.parent) uploads.shift();
+    else {
+      // A fast scroll can reveal several uncached books together. Keep their
+      // cover uploads out of the scroll draw and bound each animation slice.
+      renderer.initTexture(item.book.textures[item.next++]);
+      if (item.next === item.book.textures.length) {
+        prepared.add(item.book);
+        uploads.shift();
+        schedule();
+      }
+    }
+    if (uploads.length) uploadFrame = requestAnimationFrame(uploadNext);
+  };
+  const createBook = (row: HTMLElement) => {
+    const id = row.dataset.bookId!;
+    const book = makeBook(byId.get(id)!, covers[id]?.images[0], schedule, () => alive, foilEnvironment.texture, leatherGrain, requestRelief);
+    const anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+    book.textures.forEach((map) => { map.anisotropy = anisotropy; });
+    book.group.visible = false;
+    books.set(id, book);
+    scene.add(book.group);
+    uploads.push({ book, next: 0 });
+    if (!uploadFrame) uploadFrame = requestAnimationFrame(uploadNext);
+    return book;
+  };
+  const warmNext = () => {
+    idleJob = 0;
+    if (!alive || document.hidden || root.hasAttribute("data-focus-view")) return;
+    const next = rows.find((row) => {
+      if (books.has(row.dataset.bookId!)) return false;
+      const rect = row.getBoundingClientRect();
+      return rect.bottom > -600 && rect.top < innerHeight + 600;
+    });
+    if (!next) return;
+    if (books.size >= 12) {
+      const stale = rows.find((row) => {
+        const cached = books.get(row.dataset.bookId!);
+        if (!cached || cached.group.visible) return false;
+        const rect = row.getBoundingClientRect();
+        return rect.bottom < -600 || rect.top > innerHeight + 600;
+      });
+      if (!stale) return;
+      disposeBook(books.get(stale.dataset.bookId!)!);
+      books.delete(stale.dataset.bookId!);
+      stale.removeAttribute("data-scene-ready");
+    }
+    createBook(next);
+    schedule();
+  };
+  const scheduleWarm = () => {
+    if (!idleJob && alive) idleJob = typeof window.requestIdleCallback === "function"
+      ? window.requestIdleCallback(warmNext)
+      : window.setTimeout(warmNext, 120);
   };
   function draw() {
     frame = 0;
@@ -438,7 +525,7 @@ export function mountBookScene(
       const rect = row.getBoundingClientRect();
       const id = row.dataset.bookId!;
       let book = books.get(id);
-      if (rect.bottom < -180 || rect.top > height + 180) {
+      if (rect.bottom < -20 || rect.top > height + 20) {
         if (book) book.group.visible = false;
         continue;
       }
@@ -461,21 +548,14 @@ export function mountBookScene(
       ));
       target.slerp(openRotation, open);
       if (!book) {
-        const reading = byId.get(id)!;
-        book = makeBook(
-          reading,
-          covers[id]?.images[0],
-          schedule,
-          () => alive,
-          foilEnvironment.texture,
-          leatherGrain,
-        );
-        const anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
-        book.textures.forEach((map) => { map.anisotropy = anisotropy; });
+        book = createBook(row);
         book.group.quaternion.copy(target);
-        books.set(id, book);
-        scene.add(book.group);
       }
+      if (!prepared.has(book)) continue;
+      // Cached books also enter directly in the current shelf pose; warming a
+      // book must not animate it from the group's default upright rotation.
+      if (!row.hasAttribute("data-scene-ready")) book.group.quaternion.copy(target);
+      row.dataset.sceneReady = "true";
       book.group.visible = true;
       // Layout, turn, and scale use the same progress. Only direct manipulation
       // and hover use damping, so they stay responsive after the shelf settles.
@@ -502,13 +582,25 @@ export function mountBookScene(
     }
     // Bound GPU memory even after browsing a very large sheet.
     for (const [id, book] of books)
-      if (!book.group.visible && books.size > 6) {
+      if (!book.group.visible && books.size > 12) {
         disposeBook(book);
         books.delete(id);
+        rows.find((row) => row.dataset.bookId === id)?.removeAttribute("data-scene-ready");
       }
+    if (!compiled) {
+      if (!compiling) {
+        compiling = true;
+        void renderer.compileAsync(scene, camera).then(() => {
+          if (alive) { compiled = true; schedule(); }
+        }).catch(() => { if (alive) failed(); });
+      }
+      return;
+    }
     renderer.render(scene, camera);
     animating = unsettled;
+    if (firstFrame) { firstFrame = false; ready(); }
     if (unsettled) schedule();
+    scheduleWarm();
   }
   const observer = new ResizeObserver(schedule);
   observer.observe(root);
@@ -562,6 +654,9 @@ export function mountBookScene(
   return () => {
     alive = false;
     cancelAnimationFrame(frame);
+    cancelAnimationFrame(uploadFrame);
+    if (typeof window.cancelIdleCallback === "function") window.cancelIdleCallback(idleJob);
+    else window.clearTimeout(idleJob);
     observer.disconnect();
     mutations.disconnect();
     window.removeEventListener("scroll", schedule);
@@ -577,6 +672,9 @@ export function mountBookScene(
     window.removeEventListener("pointerout", leaveWindow);
     window.removeEventListener("blur", resetPointer);
     books.forEach(disposeBook);
+    reliefWorker?.terminate();
+    pendingRelief.clear();
+    rows.forEach((row) => row.removeAttribute("data-scene-ready"));
     foilEnvironment.dispose();
     leatherGrain.dispose();
     renderer.dispose();
