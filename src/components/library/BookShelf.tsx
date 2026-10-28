@@ -13,12 +13,14 @@ function ShelfBook({
   index,
   cover,
   active,
+  flat,
   onSelect,
 }: {
   reading: Reading;
   index: number;
   cover?: string;
   active: boolean;
+  flat: boolean;
   onSelect: () => void;
 }) {
   const [turn, setTurn] = useState(0);
@@ -39,15 +41,16 @@ function ShelfBook({
     const frame = requestAnimationFrame(() =>
       button.current?.scrollIntoView({
         block: "start",
-        behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
-          ? "instant"
-          : "smooth",
+        behavior:
+          flat || matchMedia("(prefers-reduced-motion: reduce)").matches
+            ? "instant"
+            : "smooth",
       }),
     );
     return () => cancelAnimationFrame(frame);
-  }, [active]);
+  }, [active, flat]);
   const startDrag = (event: PointerEvent<HTMLButtonElement>) => {
-    if (!active || event.button !== 0) return;
+    if (flat || !active || event.button !== 0) return;
     drag.current = {
       x: event.clientX,
       y: event.clientY,
@@ -88,12 +91,6 @@ function ShelfBook({
         data-expanded={active}
         data-turn={turn}
         data-pitch={pitch}
-        style={
-          {
-            "--book-turn": `${turn}rad`,
-            "--book-pitch": `${pitch}rad`,
-          } as CSSProperties
-        }
         aria-expanded={active}
         aria-controls={`details-${reading.id}`}
         aria-label={`${active ? "Put back" : "Explore"} ${reading.title}`}
@@ -102,6 +99,10 @@ function ShelfBook({
           if (suppressClick.current) {
             suppressClick.current = false;
             return;
+          }
+          if (!active) {
+            setTurn(0);
+            setPitch(0);
           }
           onSelect();
         }}
@@ -122,7 +123,11 @@ function ShelfBook({
             onSelect();
             event.preventDefault();
           }
-          if (active && ["ArrowLeft", "ArrowRight"].includes(event.key)) {
+          if (
+            !flat &&
+            active &&
+            ["ArrowLeft", "ArrowRight"].includes(event.key)
+          ) {
             setTurn(
               (value) => value + (event.key === "ArrowLeft" ? -0.3 : 0.3),
             );
@@ -131,7 +136,6 @@ function ShelfBook({
         }}
       >
         <span className="binding-fallback" aria-hidden="true">
-          <span className="binding-spine">{reading.title}</span>
           <span className="binding-cover">
             {reading.type === "Books" && cover && !imageFailed ? (
               <img
@@ -184,37 +188,53 @@ function ShelfBook({
               </span>
             </a>
           )}
-          <div
-            className="book-turn-controls"
-            aria-label={`Rotate ${reading.title}`}
+          {!flat && (
+            <div
+              className="book-turn-controls"
+              aria-label={`Rotate ${reading.title}`}
+            >
+              <button
+                type="button"
+                aria-label="Rotate book left"
+                onClick={() => setTurn((value) => value - 0.4)}
+              >
+                ↶
+              </button>
+              <button
+                type="button"
+                aria-label="Reset book rotation"
+                onClick={() => {
+                  setTurn(0);
+                  setPitch(0);
+                }}
+              >
+                Reset
+              </button>
+              <button
+                type="button"
+                aria-label="Rotate book right"
+                onClick={() => setTurn((value) => value + 0.4)}
+              >
+                ↷
+              </button>
+            </div>
+          )}
+          <button
+            className="book-close"
+            type="button"
+            onClick={() => {
+              onSelect();
+              button.current?.focus({ preventScroll: true });
+            }}
           >
-            <button
-              type="button"
-              aria-label="Rotate book left"
-              onClick={() => setTurn((value) => value - 0.4)}
-            >
-              ↶
-            </button>
-            <button
-              type="button"
-              aria-label="Reset book rotation"
-              onClick={() => {
-                setTurn(0);
-                setPitch(0);
-              }}
-            >
-              Reset
-            </button>
-            <button
-              type="button"
-              aria-label="Rotate book right"
-              onClick={() => setTurn((value) => value + 0.4)}
-            >
-              ↷
-            </button>
-          </div>
+            Close book
+          </button>
         </div>
-        <p className="book-gesture">Drag to turn · Select again to put back</p>
+        {!flat && (
+          <p className="book-gesture">
+            Drag to turn · Select again to put back
+          </p>
+        )}
       </div>
     </li>
   );
@@ -232,14 +252,20 @@ export default function BookShelf({
   const root = useRef<HTMLDivElement>(null);
   const canvasHost = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState<string | null>(null);
-  const [ready, setReady] = useState(false);
+  const [rendered, setRendered] = useState<{
+    readings: Reading[];
+    covers: CoverCatalog;
+  } | null>(null);
   const [unavailable, setUnavailable] = useState(false);
+  const ready = rendered?.readings === readings && rendered?.covers === covers;
+  const useFlat = flat || unavailable;
+  const loading = !useFlat && !ready;
   useEffect(() => {
     if (active && !readings.some((reading) => reading.id === active))
       setActive(null);
   }, [readings, active]);
   useEffect(() => {
-    setReady(false);
+    setRendered(null);
     if (flat || unavailable) return;
     let cancelled = false;
     let dispose: (() => void) | undefined;
@@ -254,7 +280,8 @@ export default function BookShelf({
           dispose = mountBookScene(root.current, canvas, readings, covers, () =>
             setUnavailable(true),
           );
-          setReady(true);
+          // mountBookScene has drawn the first frame in its final orientation.
+          setRendered({ readings, covers });
         } catch {
           canvas.remove();
           setUnavailable(true);
@@ -272,10 +299,16 @@ export default function BookShelf({
   return (
     <div
       ref={root}
-      className={`book-shelf${ready && !flat && !unavailable ? " has-webgl" : ""}`}
+      className={`book-shelf${useFlat ? " is-flat" : ready ? " has-webgl" : " is-loading"}`}
+      aria-busy={loading}
     >
       <div ref={canvasHost} aria-hidden="true" />
-      <ol className="shelf-stack">
+      {loading && (
+        <p className="shelf-loading" role="status">
+          Preparing the bookshelf…
+        </p>
+      )}
+      <ol className="shelf-stack" aria-hidden={loading || undefined}>
         {readings.map((reading, index) => (
           <ShelfBook
             key={reading.id}
@@ -283,6 +316,7 @@ export default function BookShelf({
             index={index}
             cover={covers[reading.id]?.images[0]}
             active={active === reading.id}
+            flat={useFlat}
             onSelect={() =>
               setActive((value) => (value === reading.id ? null : reading.id))
             }

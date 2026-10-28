@@ -25,7 +25,9 @@ The shelf is an original implementation inspired by the stacked-book interaction
 
 Select a spine to inspect a cover. Drag a selected book, use the rotation buttons, or press Left/Right to turn it; select it again or press Escape to put it back. Every volume has an ordinary source link, also available directly in Index view. Colors are derived from the reading ID and do not change when filtering or reordering the sheet. New sheet rows receive a binding automatically.
 
-The renderer loads only on the shelf route, uses one WebGL canvas, limits pixel density, evicts off-screen books beyond a small cache, and stops drawing while idle. Reduced-motion preferences disable rotational transitions. E-ink mode, WebGL initialization failures, and lost contexts use the HTML/CSS book fallback. Renderer resources and listeners are disposed when leaving the shelf or changing its collection.
+The renderer loads only on the shelf route, uses one WebGL canvas, limits pixel density, evicts off-screen books beyond a small cache, and stops drawing while idle. The shelf appears after its first 3D frame is ready, without flashing a different HTML book layout while loading. Reduced-motion preferences disable rotational transitions. Reopening a book resets its rotation.
+
+E-ink mode uses a paper-colored layout with upright grayscale covers and source/close controls, without 3D rotation, gloss, or CRT effects. WebGL initialization failures and lost contexts use the same upright HTML grid in the current color theme. Renderer resources and listeners are disposed when leaving the shelf or changing its collection.
 
 ### Cover sync
 

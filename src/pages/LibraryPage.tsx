@@ -91,7 +91,7 @@ export default function LibraryPage() {
 
   return (
     <div
-      className={`library-page${day ? " library-day" : ""}${crt ? " crt-effect" : ""}${eink ? " eink-effect" : ""}`}
+      className={`library-page${day ? " library-day" : ""}${crt && !eink ? " crt-effect" : ""}${eink ? " library-eink" : ""}`}
     >
       <a className="skip-link" href="#library-shelves">
         Skip to the library
@@ -109,6 +109,7 @@ export default function LibraryPage() {
             type="button"
             aria-label="Toggle day/night"
             aria-pressed={day}
+            disabled={eink}
             onClick={() => setDay((value) => !value)}
           >
             {day ? "DAY" : "NIGHT"}
@@ -117,6 +118,7 @@ export default function LibraryPage() {
             type="button"
             aria-label="Toggle CRT scanlines"
             aria-pressed={crt}
+            disabled={eink}
             onClick={() => setCrt((value) => !value)}
           >
             CRT
@@ -200,7 +202,9 @@ export default function LibraryPage() {
           </div>
           <p className="library-instruction">
             {view === "shelf"
-              ? "Pick a spine. Turn it over. Find your next idea."
+              ? eink
+                ? "Select a cover to explore a reading."
+                : "Pick a spine. Turn it over. Find your next idea."
               : "The whole collection, at a glance."}
           </p>
           {savedMode && (
