@@ -51,3 +51,13 @@ test('render resolution improves desktop and Retina detail within the pixel budg
     assert.ok(width * height * scale * scale <= 8_000_001);
   }
 });
+
+test('an opened mobile book caps Retina fill rate without changing desktop quality', () => {
+  assert.equal(bookPixelRatio(390, 844, 3, true), 1.5);
+  assert.equal(bookPixelRatio(390, 844, 1, true), 1);
+  assert.equal(bookPixelRatio(390, 844, 3), 2.5);
+  for (const [width, height] of [[390,844], [844,390], [1024,1366]]) {
+    const ratio = bookPixelRatio(width, height, 3, true);
+    assert.ok(width * height * ratio * ratio <= 1_500_001);
+  }
+});

@@ -19,6 +19,7 @@ export function raisedLettering(mask: HTMLCanvasElement, width: number, height: 
 }
 
 // Supersample standard displays, retain Retina detail, and bound framebuffer cost.
-export function bookPixelRatio(width: number, height: number, deviceRatio: number) {
+export function bookPixelRatio(width: number, height: number, deviceRatio: number, mobile = false) {
+  if (mobile) return Math.min(Math.max(1, deviceRatio), 1.5, Math.sqrt(1_500_000 / Math.max(1, width * height)));
   return Math.min(Math.max(1.5, deviceRatio), 2.5, Math.sqrt(8_000_000 / Math.max(1, width * height)));
 }

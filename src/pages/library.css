@@ -362,6 +362,18 @@
 }
 .has-webgl .shelf-book[data-scene-ready] .shelf-initial-spine,
 .is-flat .shelf-initial-spine { visibility: hidden; }
+.shelf-preview {
+  image-rendering: auto;
+  position: absolute;
+  width: min(calc((100% - 64px) * 1.1655), 700px);
+  height: auto;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.shelf-book[data-preview-ready] .shelf-initial-spine,
+.mobile-shelf.has-webgl .shelf-book[data-scene-ready] .shelf-preview { visibility: hidden; }
 .book-actions {
   flex-wrap: wrap;
 }

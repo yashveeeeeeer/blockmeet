@@ -2,7 +2,7 @@ import { Shape, Path, Vector2, ExtrudeGeometry } from "three";
 
 export type ReliefInput = { columns: number; rows: number; alpha: Uint8Array; width: number; height: number };
 export type ReliefText = { text: string; font: string; x: number; y: number };
-export type ReliefPaint = { columns: number; rows: number; width: number; height: number; runs: ReliefText[]; spine?: boolean };
+export type ReliefPaint = { columns: number; rows: number; width: number; height: number; runs: ReliefText[]; spine?: boolean; scale?: number };
 type Edge = { end: number; direction: number };
 
 // Sub-pixel simplification removes the staircase around curved raster glyphs.
