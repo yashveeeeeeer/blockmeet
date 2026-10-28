@@ -2,6 +2,7 @@ import * as THREE from "three";
 import type { CoverCatalog, Reading } from "../../lib/library";
 import { bookDesign, wrapBookTitle } from "../../lib/book-design";
 import { bookPointerTilt } from "../../lib/shelf-motion";
+import { raisedLettering, bookPixelRatio } from "./book-relief";
 
 type Book = {
   group: THREE.Group;
@@ -22,7 +23,7 @@ function canvas(width: number, height: number) {
 function texture(element: HTMLCanvasElement) {
   const map = new THREE.CanvasTexture(element);
   map.colorSpace = THREE.SRGBColorSpace;
-  map.anisotropy = 4;
+  map.anisotropy = 8;
   return map;
 }
 
@@ -34,10 +35,8 @@ function cloth(
 ) {
   ctx.fillStyle = color;
   ctx.fillRect(0, 0, width, height);
-  ctx.fillStyle = "#ffffff09";
-  for (let x = 0; x < width; x += 4) ctx.fillRect(x, 0, 1, height);
-  ctx.fillStyle = "#00000009";
-  for (let y = 0; y < height; y += 3) ctx.fillRect(0, y, width, 1);
+  // Fine leather grain comes from the material, avoiding a regular printed
+  // crosshatch that aliases when a cover is nearly edge-on.
 }
 
 // A small, locally generated studio reflection shared by all foil accents.
@@ -72,15 +71,26 @@ function makeBook(
   invalidate: () => void,
   isAlive: () => boolean,
   foilEnvironment: THREE.Texture,
+  leatherGrain: THREE.Texture,
 ): Book {
   const design = bookDesign(reading);
-  const front = canvas(512, 768);
+  const generated = !(cover && reading.type === "Books");
+  const front = canvas(1024, 1536);
+  front.ctx.scale(2, 2);
+  const frontMask = canvas(1024, 1536);
+  frontMask.ctx.scale(2, 2);
+  frontMask.ctx.fillStyle = "white";
+  const frontText = (text: string, x: number, y: number) => {
+    front.ctx.fillText(text, x, y);
+    frontMask.ctx.font = front.ctx.font;
+    frontMask.ctx.fillText(text, x, y);
+  };
   cloth(front.ctx, 512, 768, design.cloth);
   front.ctx.fillStyle = design.ink;
   front.ctx.strokeStyle = design.ink;
   front.ctx.font = "17px sans-serif";
-  front.ctx.fillText("ATHENAEUM", 46, 58);
-  front.ctx.fillRect(46, 82, 420, 1);
+  frontText("ATHENAEUM", 46, 58);
+  front.ctx.fillRect(46, 82, 420, 2);
   let fontSize = 56;
   let lines: string[] = [];
   do {
@@ -98,20 +108,28 @@ function makeBook(
     fontSize -= 2;
   } while (fontSize > 16);
   lines.forEach((line, i) =>
-    front.ctx.fillText(line, 46, 158 + i * fontSize * 1.15),
+    frontText(line, 46, 158 + i * fontSize * 1.15),
   );
   front.ctx.font = "21px Georgia, serif";
   wrapBookTitle(
     reading.author,
     (text) => front.ctx.measureText(text).width,
     410,
-  ).forEach((line, i) => front.ctx.fillText(line, 46, 556 + i * 27));
-  front.ctx.fillRect(46, 704, 420, 1);
+  ).forEach((line, i) => frontText(line, 46, 556 + i * 27));
+  front.ctx.fillRect(46, 704, 420, 2);
   front.ctx.font = "15px sans-serif";
-  front.ctx.fillText(reading.type.toUpperCase(), 46, 737);
+  frontText(reading.type.toUpperCase(), 46, 737);
   const frontMap = texture(front.element);
 
-  const spine = canvas(96, 1536);
+  const spine = canvas(192, 3072);
+  spine.ctx.scale(2, 2);
+  const spineMask = canvas(192, 3072);
+  spineMask.ctx.scale(2, 2);
+  spineMask.ctx.translate(48, 768);
+  spineMask.ctx.rotate(Math.PI / 2);
+  spineMask.ctx.fillStyle = "white";
+  spineMask.ctx.textAlign = "center";
+  spineMask.ctx.textBaseline = "middle";
   cloth(spine.ctx, 96, 1536, design.cloth);
   spine.ctx.translate(48, 768);
   spine.ctx.rotate(Math.PI / 2);
@@ -127,13 +145,15 @@ function makeBook(
     spineSize--;
   } while (spineSize > 17);
   spine.ctx.fillText(reading.title, 0, 0);
+  spineMask.ctx.font = spine.ctx.font;
+  spineMask.ctx.fillText(reading.title, 0, 0);
   const spineMap = texture(spine.element);
 
-  const pages = canvas(128, 128);
+  const pages = canvas(512, 512);
   pages.ctx.fillStyle = "#e2dcc9";
-  pages.ctx.fillRect(0, 0, 128, 128);
-  pages.ctx.fillStyle = "#b8b19c";
-  for (let y = 0; y < 128; y += 4) pages.ctx.fillRect(0, y, 128, 1);
+  pages.ctx.fillRect(0, 0, 512, 512);
+  pages.ctx.fillStyle = "#c9c2b0";
+  for (let y = 0; y < 512; y += 4) pages.ctx.fillRect(0, y, 512, 1);
   const pageMap = texture(pages.element);
   const paper = new THREE.MeshStandardMaterial({
     map: pageMap,
@@ -151,13 +171,17 @@ function makeBook(
     ...coating,
     color: design.cloth,
     roughness: 0.8,
+    bumpMap: leatherGrain,
+    bumpScale: .025,
   });
   const face = new THREE.MeshPhysicalMaterial({
     ...coating,
     map: frontMap,
     roughness: 0.82,
+    bumpMap: generated ? leatherGrain : null,
+    bumpScale: .025,
   });
-  if (!(cover && reading.type === "Books")) {
+  if (generated) {
     // A restrained, angle-dependent tint on the lower cloth and hinge. This
     // multiplies the printed color rather than adding white over the ink.
     face.onBeforeCompile = (shader) => {
@@ -178,6 +202,8 @@ function makeBook(
     ...coating,
     map: spineMap,
     roughness: 0.8,
+    bumpMap: leatherGrain,
+    bumpScale: .025,
   });
   const blockGeo = new THREE.BoxGeometry(238, 356, design.thickness - 5);
   const boardGeo = new THREE.BoxGeometry(246, 364, 3);
@@ -239,9 +265,32 @@ function makeBook(
     envMapIntensity: 1.1,
   });
   // Rounded raised ribs along the hinge catch narrow glints as the book turns.
-  const ribGeo = new THREE.CylinderGeometry(1.5, 1.5, 348, 8);
+  const ribGeo = new THREE.CylinderGeometry(1.5, 1.5, 348, 16);
   const ribbonGeo = new THREE.BoxGeometry(7, 348, 0.7);
   const frontZ = design.thickness / 2 + 1.5;
+  const lettering = new THREE.MeshPhysicalMaterial({
+    color: design.ink,
+    metalness: 0,
+    roughness: .9,
+    clearcoat: 0,
+    specularIntensity: .12,
+    bumpMap: leatherGrain,
+    bumpScale: .035,
+  });
+  const reliefGeometries: THREE.BufferGeometry[] = [];
+  if (generated) {
+    const geometry = raisedLettering(frontMask.element, 246, 364);
+    const relief = new THREE.Mesh(geometry, lettering);
+    relief.position.z = frontZ - .02;
+    group.add(relief);
+    reliefGeometries.push(geometry);
+  }
+  const spineRelief = raisedLettering(spineMask.element, design.thickness, 364);
+  const spineLetters = new THREE.Mesh(spineRelief, lettering);
+  spineLetters.rotation.y = -Math.PI / 2;
+  spineLetters.position.x = -123.98;
+  group.add(spineLetters);
+  reliefGeometries.push(spineRelief);
   for (const x of [-118, -109]) {
     const rib = new THREE.Mesh(ribGeo, foil);
     rib.position.set(x, 0, frontZ);
@@ -255,7 +304,7 @@ function makeBook(
   // Publisher artwork retains only the narrow hinge trim at its outer margin.
   if (!(cover && reading.type === "Books")) {
     for (let i = 0; i < 6; i++) {
-      const arcGeo = new THREE.TorusGeometry(12 + i * 5, 1.2, 6, 40, Math.PI);
+      const arcGeo = new THREE.TorusGeometry(12 + i * 5, 1.2, 12, 96, Math.PI);
       const arc = new THREE.Mesh(arcGeo, foil);
       arc.position.set(64, -129, frontZ + 0.2);
       group.add(arc);
@@ -265,7 +314,7 @@ function makeBook(
   const book: Book = {
     group,
     textures: [frontMap, spineMap, pageMap, filmMap, foilMap],
-    materials: [paper, binding, face, spineMat, foil],
+    materials: [paper, binding, face, spineMat, foil, lettering],
     geometries: [
       blockGeo,
       boardGeo,
@@ -273,6 +322,7 @@ function makeBook(
       ribGeo,
       ribbonGeo,
       ...ornamentGeometries,
+      ...reliefGeometries,
     ],
   };
 
@@ -311,13 +361,25 @@ export function mountBookScene(
     antialias: true,
     powerPreference: "low-power",
   });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+  renderer.setPixelRatio(bookPixelRatio(innerWidth, innerHeight, window.devicePixelRatio));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   // Roll off bright reflections instead of clipping pale cover artwork to white.
   renderer.toneMapping = THREE.NeutralToneMapping;
   renderer.toneMappingExposure = 0.9;
   renderer.setClearColor(0x000000, 0);
   const foilEnvironment = foilStudio(renderer);
+  const grain = canvas(256, 256);
+  const grainData = grain.ctx.createImageData(256, 256);
+  let noise = 9217;
+  for (let i = 0; i < 256 * 256; i++) {
+    noise ^= noise << 13; noise ^= noise >>> 17; noise ^= noise << 5;
+    const value = 120 + ((noise >>> 0) % 17);
+    grainData.data.set([value, value, value, 255], i * 4);
+  }
+  grain.ctx.putImageData(grainData, 0, 0);
+  const leatherGrain = new THREE.CanvasTexture(grain.element);
+  leatherGrain.wrapS = leatherGrain.wrapT = THREE.RepeatWrapping;
+  leatherGrain.repeat.set(4, 6);
   const scene = new THREE.Scene();
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 1, 3000);
   camera.position.z = 1600;
@@ -359,9 +421,11 @@ export function mountBookScene(
     const now = performance.now();
     const blend = 1 - Math.exp(-12 * Math.min((now - lastFrame) / 1000, 0.25));
     lastFrame = now;
-    if (width !== innerWidth || height !== innerHeight) {
+    const pixelRatio = bookPixelRatio(innerWidth, innerHeight, window.devicePixelRatio);
+    if (width !== innerWidth || height !== innerHeight || renderer.getPixelRatio() !== pixelRatio) {
       width = innerWidth;
       height = innerHeight;
+      renderer.setPixelRatio(pixelRatio);
       renderer.setSize(width, height, false);
       camera.left = -width / 2;
       camera.right = width / 2;
@@ -404,7 +468,10 @@ export function mountBookScene(
           schedule,
           () => alive,
           foilEnvironment.texture,
+          leatherGrain,
         );
+        const anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+        book.textures.forEach((map) => { map.anisotropy = anisotropy; });
         book.group.quaternion.copy(target);
         books.set(id, book);
         scene.add(book.group);
@@ -435,7 +502,7 @@ export function mountBookScene(
     }
     // Bound GPU memory even after browsing a very large sheet.
     for (const [id, book] of books)
-      if (!book.group.visible && books.size > 12) {
+      if (!book.group.visible && books.size > 6) {
         disposeBook(book);
         books.delete(id);
       }
@@ -511,6 +578,7 @@ export function mountBookScene(
     window.removeEventListener("blur", resetPointer);
     books.forEach(disposeBook);
     foilEnvironment.dispose();
+    leatherGrain.dispose();
     renderer.dispose();
     renderer.forceContextLoss();
   };
