@@ -203,7 +203,7 @@ export default function LibraryPage() {
           <p className="library-instruction">
             {view === "shelf"
               ? eink
-                ? "Select a cover to explore a reading."
+                ? "Select a cover to open its source in a new tab."
                 : "Pick a spine. Turn it over. Find your next idea."
               : "The whole collection, at a glance."}
           </p>

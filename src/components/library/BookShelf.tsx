@@ -15,6 +15,7 @@ function ShelfBook({
   cover,
   active,
   flat,
+  directLink,
   onSelect,
 }: {
   reading: Reading;
@@ -22,6 +23,7 @@ function ShelfBook({
   cover?: string;
   active: boolean;
   flat: boolean;
+  directLink: boolean;
   onSelect: () => void;
 }) {
   const [turn, setTurn] = useState(0);
@@ -72,6 +74,53 @@ function ShelfBook({
       setPitch(Math.max(-0.7, Math.min(0.7, start.pitch + dy * 0.005)));
     }
   };
+  const coverContent = (
+    <span className="binding-fallback" aria-hidden="true">
+      <span className="binding-cover">
+        {reading.type === "Books" && cover && !imageFailed ? (
+          <img
+            src={`${import.meta.env.BASE_URL}library/${cover}`}
+            alt=""
+            loading="lazy"
+            onError={() => setImageFailed(true)}
+          />
+        ) : (
+          <TitleCover reading={reading} enabled={flat} />
+        )}
+      </span>
+    </span>
+  );
+  if (directLink) {
+    return (
+      <li className="shelf-item">
+        {reading.url ? (
+          <a
+            className="shelf-book"
+            data-book-id={reading.id}
+            href={reading.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`${reading.title} (opens in a new tab)`}
+            title={reading.title}
+          >
+            {coverContent}
+          </a>
+        ) : (
+          <div
+            className="shelf-book"
+            data-book-id={reading.id}
+            role="img"
+            aria-label={reading.title}
+          >
+            {coverContent}
+          </div>
+        )}
+        <span className="shelf-mobile-title" aria-hidden="true">
+          {reading.title}
+        </span>
+      </li>
+    );
+  }
   return (
     <li
       className={`shelf-item${active ? " is-open" : ""}`}
@@ -136,20 +185,7 @@ function ShelfBook({
           }
         }}
       >
-        <span className="binding-fallback" aria-hidden="true">
-          <span className="binding-cover">
-            {reading.type === "Books" && cover && !imageFailed ? (
-              <img
-                src={`${import.meta.env.BASE_URL}library/${cover}`}
-                alt=""
-                loading="lazy"
-                onError={() => setImageFailed(true)}
-              />
-            ) : (
-              <TitleCover reading={reading} enabled={flat} />
-            )}
-          </span>
-        </span>
+        {coverContent}
       </button>
       {!active && (
         <span className="shelf-mobile-title" aria-hidden="true">
@@ -257,9 +293,9 @@ export default function BookShelf({
   const useFlat = flat || unavailable;
   const loading = !useFlat && !ready;
   useEffect(() => {
-    if (active && !readings.some((reading) => reading.id === active))
+    if (flat || (active && !readings.some((reading) => reading.id === active)))
       setActive(null);
-  }, [readings, active]);
+  }, [readings, active, flat]);
   useEffect(() => {
     setRendered(null);
     if (flat || unavailable) return;
@@ -311,8 +347,9 @@ export default function BookShelf({
             reading={reading}
             index={index}
             cover={covers[reading.id]?.images[0]}
-            active={active === reading.id}
+            active={!flat && active === reading.id}
             flat={useFlat}
+            directLink={flat}
             onSelect={() =>
               setActive((value) => (value === reading.id ? null : reading.id))
             }

@@ -799,6 +799,12 @@
   position: absolute;
   inset: 0;
 }
+.is-flat a.shelf-book {
+  text-decoration: none;
+}
+.is-flat div.shelf-book {
+  cursor: default;
+}
 .is-flat .shelf-number,
 .is-flat .shelf-indicator {
   display: none;
