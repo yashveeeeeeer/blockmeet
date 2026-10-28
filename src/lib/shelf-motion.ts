@@ -1,5 +1,11 @@
 export const SHELF_MOTION_MS = 800;
 
+export function bookPointerTilt(x: number, y: number, width: number, height: number) {
+  const horizontal = Math.max(-1, Math.min(1, (x / Math.max(1, width)) * 2 - 1));
+  const vertical = Math.max(-1, Math.min(1, (y / Math.max(1, height)) * 2 - 1));
+  return { yaw: horizontal * 0.14, pitch: vertical * 0.09, roll: -horizontal * 0.02 };
+}
+
 // A shared, time-based ease: stationary at either end, with no overshoot.
 export function shelfProgress(elapsed: number) {
   const t = Math.max(0, Math.min(1, elapsed / SHELF_MOTION_MS));
