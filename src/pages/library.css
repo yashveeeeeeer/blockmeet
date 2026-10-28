@@ -653,7 +653,7 @@
 
 /* Focused volume: a viewport stage and a quiet, graphic navigation rail. */
 .book-shelf:not(.is-flat) {
-  --shelf-row-height: 142px;
+  --shelf-row-height: 200px;
 }
 .book-shelf:not(.is-flat) .shelf-book {
   height: var(--shelf-row-height);
@@ -773,10 +773,10 @@
   display: block;
 }
 @media (max-width: 1050px) {
-  .book-shelf:not(.is-flat) { --shelf-row-height: 125px; }
+  .book-shelf:not(.is-flat) { --shelf-row-height: 178px; }
 }
 @media (max-width: 760px) {
-  .book-shelf:not(.is-flat) { --shelf-row-height: 130px; }
+  .book-shelf:not(.is-flat) { --shelf-row-height: 178px; }
   .library-page:not(.library-eink) .library-layout { padding-left: 48px; padding-right: 20px; }
   .shelf-rail { left: 3px; width: 28px; }
   .shelf-rail-tick { width: 28px; height: 11px; }
@@ -786,7 +786,7 @@
   .shelf-rail-label { display: none !important; }
 }
 @media (max-width: 440px) {
-  .book-shelf:not(.is-flat) { --shelf-row-height: 105px; }
+  .book-shelf:not(.is-flat) { --shelf-row-height: 145px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .shelf-rail-mark { transition: none; }

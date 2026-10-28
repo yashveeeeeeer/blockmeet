@@ -15,7 +15,6 @@ const sceneModule = import("./book-scene");
 
 function ShelfBook({
   reading,
-  index,
   cover,
   active,
   flat,
@@ -23,7 +22,6 @@ function ShelfBook({
   onSelect,
 }: {
   reading: Reading;
-  index: number;
   cover?: string;
   active: boolean;
   flat: boolean;
@@ -125,9 +123,6 @@ function ShelfBook({
         } as CSSProperties
       }
     >
-      <span className="shelf-number" aria-hidden="true">
-        {String(index + 1).padStart(2, "0")}
-      </span>
       <button
         ref={button}
         className="shelf-book"
@@ -192,9 +187,6 @@ function ShelfBook({
       </button>
       <span className="shelf-mobile-title" aria-hidden="true">
         {reading.title}
-      </span>
-      <span className="shelf-indicator" aria-hidden="true">
-        {active ? "−" : "+"}
       </span>
       <div
         id={`details-${reading.id}`}
@@ -438,11 +430,10 @@ export default function BookShelf({
         </nav>
       )}
       <ol className="shelf-stack">
-        {readings.map((reading, index) => (
+        {readings.map((reading) => (
           <ShelfBook
             key={reading.id}
             reading={reading}
-            index={index}
             cover={covers[reading.id]?.images[0]}
             active={!flat && active === reading.id}
             flat={useFlat}
