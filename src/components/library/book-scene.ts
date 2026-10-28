@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { hardcoverBoard, hardcoverSpine, curveSpineLettering } from "./hardcover-geometry";
 import type { CoverCatalog, Reading } from "../../lib/library";
 import { bookDesign, wrapBookTitle, largestFittingSize } from "../../lib/book-design";
 import { bookPointerTilt } from "../../lib/shelf-motion";
@@ -197,33 +198,18 @@ export function makeBook(
     bumpScale: .025,
   });
   const blockGeo = new THREE.BoxGeometry(238, 356, design.thickness - 5);
-  const boardGeo = new THREE.BoxGeometry(246, 364, 3);
-  const spineGeo = new THREE.BoxGeometry(4, 364, design.thickness);
+  const boardGeo = hardcoverBoard();
+  const spineGeo = hardcoverSpine(design.thickness);
   const group = new THREE.Group();
   group.add(new THREE.Mesh(blockGeo, paper));
-  const frontBoard = new THREE.Mesh(boardGeo, [
-    binding,
-    binding,
-    binding,
-    binding,
-    face,
-    binding,
-  ]);
+  const frontBoard = new THREE.Mesh(boardGeo, [binding, face]);
   frontBoard.position.z = design.thickness / 2;
   group.add(frontBoard);
   const backBoard = new THREE.Mesh(boardGeo, binding);
   backBoard.position.z = -design.thickness / 2;
+  backBoard.scale.z = -1;
   group.add(backBoard);
-  const bindingMesh = new THREE.Mesh(spineGeo, [
-    binding,
-    spineMat,
-    binding,
-    binding,
-    binding,
-    binding,
-  ]);
-  bindingMesh.position.x = -122;
-  group.add(bindingMesh);
+  group.add(new THREE.Mesh(spineGeo, spineMat));
   const film = canvas(32, 256);
   const filmGradient = film.ctx.createLinearGradient(0, 0, 32, 256);
   filmGradient.addColorStop(0, "#181818");
@@ -255,9 +241,6 @@ export function makeBook(
     envMap: foilEnvironment,
     envMapIntensity: 1.1,
   });
-  // Rounded raised ribs along the hinge catch narrow glints as the book turns.
-  const ribGeo = new THREE.CylinderGeometry(1.5, 1.5, 348, mobile ? 8 : 16);
-  const ribbonGeo = new THREE.BoxGeometry(7, 348, 0.7);
   const frontZ = design.thickness / 2 + 1.5;
   const lettering = new THREE.MeshPhysicalMaterial({
     color: design.ink,
@@ -285,6 +268,7 @@ export function makeBook(
     }));
   }
   cancel.push(requestRelief({columns:spine.element.width, rows:spine.element.height, scale:textureScale, width:design.thickness, height:364, spine:true, runs:[{text:reading.title, font:spine.ctx.font, x:0, y:0}]}, (geometry) => {
+    curveSpineLettering(geometry, design.thickness);
     const spineLetters = new THREE.Mesh(geometry, lettering);
     spineLetters.rotation.y = -Math.PI / 2;
     spineLetters.position.x = -123.98;
@@ -292,17 +276,9 @@ export function makeBook(
     reliefGeometries.push(geometry);
     invalidate();
   }));
-  for (const x of [-118, -109]) {
-    const rib = new THREE.Mesh(ribGeo, foil);
-    rib.position.set(x, 0, frontZ);
-    group.add(rib);
-  }
-  const ribbon = new THREE.Mesh(ribbonGeo, foil);
-  ribbon.position.set(-113.5, 0, frontZ + 0.2);
-  group.add(ribbon);
   const ornamentGeometries: THREE.BufferGeometry[] = [];
   // Embossed semicircles sit below the text on our generated title bindings.
-  // Publisher artwork retains only the narrow hinge trim at its outer margin.
+  // Publisher artwork stays unadorned.
   if (!(cover && reading.type === "Books")) {
     for (let i = 0; i < 6; i++) {
       const arcGeo = new THREE.TorusGeometry(12 + i * 5, 1.2, mobile ? 6 : 12, mobile ? 48 : 96, Math.PI);
@@ -322,8 +298,6 @@ export function makeBook(
       blockGeo,
       boardGeo,
       spineGeo,
-      ribGeo,
-      ribbonGeo,
       ...ornamentGeometries,
     ],
   };

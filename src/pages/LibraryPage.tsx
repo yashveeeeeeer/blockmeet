@@ -135,7 +135,6 @@ export default function LibraryPage() {
           tabIndex={-1}
         >
           <div className="library-collection-heading">
-            <span>The collection</span>
             <select
               className="library-category-select"
               aria-label="Filter by reading type"

@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { createHash } from "node:crypto";
 
 export default defineConfig({
   plugins: [react(), {
@@ -20,10 +21,11 @@ export default defineConfig({
           for (const item of items) if (!/^[a-z0-9]{1,16}$/.test(item.id) || typeof item.fingerprint !== "string" || !/^data:image\/webp;base64,[A-Za-z0-9+/=]+$/.test(item.image)) throw new Error("Invalid preview");
           const directory = resolve(server.config.root, "public/library/shelf-previews");
           await mkdir(directory, { recursive: true });
-          const manifest: Record<string, { fingerprint: string; image: string }> = {};
+          const manifest: Record<string, { fingerprint: string; image: string; revision: string }> = {};
           for (const item of items) {
-            await writeFile(resolve(directory, `${item.id}.webp`), Buffer.from(item.image.split(",")[1], "base64"));
-            manifest[item.id] = { fingerprint: item.fingerprint, image: `shelf-previews/${item.id}.webp` };
+            const bytes = Buffer.from(item.image.split(",")[1], "base64");
+            await writeFile(resolve(directory, `${item.id}.webp`), bytes);
+            manifest[item.id] = { fingerprint: item.fingerprint, image: `shelf-previews/${item.id}.webp`, revision: createHash("sha256").update(bytes).digest("hex").slice(0, 12) };
           }
           await writeFile(resolve(directory, "../shelf-previews.json"), JSON.stringify(manifest, null, 2) + "\n");
           res.setHeader("Content-Type", "application/json"); res.end(JSON.stringify({ saved: items.length }));
