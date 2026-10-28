@@ -419,7 +419,8 @@ export function mountBookScene(
           rect.top -
           rect.height / 2 +
           (hovered ? 5 * (1 - open) : 0),
-        Math.sin(Math.PI * open) * 80,
+        // Clear adjacent volumes while the diagonal cover spans two shelf rows.
+        Math.sin(Math.PI * open) * 600,
       );
     }
     // Bound GPU memory even after browsing a very large sheet.
