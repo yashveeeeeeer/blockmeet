@@ -31,13 +31,9 @@ function initialReadings() {
 export default function LibraryPage() {
   const [readings, setReadings] = useState(initialReadings);
   const [category, setCategory] = useState("All");
-  const [query, setQuery] = useState("");
-  const [savedMode, setSavedMode] = useState(false);
-  const [reload, setReload] = useState(0);
   const [day, setDay] = useState(false);
   const [crt, setCrt] = useState(false);
   const [eink, setEink] = useState(false);
-  const [view, setView] = useState<"shelf" | "index">("shelf");
   useEffect(() => {
     document.title = "Athenaeum · BLOCKMeet";
     window.scrollTo(0, 0);
@@ -56,14 +52,13 @@ export default function LibraryPage() {
         );
         if (!active) return;
         setReadings(mergeReadings(latest, additions));
-        setSavedMode(false);
         try {
           localStorage.setItem(CACHE_KEY, csv);
         } catch {
           /* storage may be disabled */
         }
       } catch {
-        if (active) setSavedMode(true);
+        /* Keep the saved collection when the sheet is unavailable. */
       } finally {
         window.clearTimeout(timeout);
       }
@@ -74,20 +69,16 @@ export default function LibraryPage() {
       controller.abort();
       window.clearTimeout(timeout);
     };
-  }, [reload]);
+  }, []);
   const categories = useMemo(
     () => ["All", ...new Set(readings.map((reading) => reading.type))],
     [readings],
   );
   const activeCategory = categories.includes(category) ? category : "All";
   const shown = useMemo(
-    () => filterReadings(readings, activeCategory, query),
-    [readings, activeCategory, query],
+    () => filterReadings(readings, activeCategory, ""),
+    [readings, activeCategory],
   );
-  const clear = () => {
-    setCategory("All");
-    setQuery("");
-  };
 
   return (
     <div
@@ -96,126 +87,45 @@ export default function LibraryPage() {
       <a className="skip-link" href="#library-shelves">
         Skip to the library
       </a>
-      <header className="library-topbar">
-        <Link to="/" className="library-back">
-          <span aria-hidden="true">←</span> BACK TO WORLD
-        </Link>
-        <span className="library-wordmark">
-          A<span aria-hidden="true"> / </span>
-          <span className="wordmark-name">A personal library</span>
-        </span>
-        <div className="library-display" aria-label="Display settings">
-          <button
-            type="button"
-            aria-label="Toggle day/night"
-            aria-pressed={day}
-            disabled={eink}
-            onClick={() => setDay((value) => !value)}
-          >
-            {day ? "DAY" : "NIGHT"}
-          </button>
-          <button
-            type="button"
-            aria-label="Toggle CRT scanlines"
-            aria-pressed={crt}
-            disabled={eink}
-            onClick={() => setCrt((value) => !value)}
-          >
-            CRT
-          </button>
-          <button
-            type="button"
-            aria-label="Toggle e-ink"
-            aria-pressed={eink}
-            onClick={() => setEink((value) => !value)}
-          >
-            E-INK
-          </button>
-        </div>
-      </header>
       <main className="library-layout">
-        <aside className="library-sidebar" aria-label="Library controls">
+        <header className="library-masthead">
           <div className="library-heading">
             <h1>
-              Athenaeum<span>.</span>
+              <Link to="/" aria-label="Athenaeum — back to world">
+                Athenaeum<span>.</span>
+              </Link>
             </h1>
-            <p>
-              Books, essays, and <br />
-              things worth keeping.
-            </p>
+            <p>A personal collection of readings I've finished.</p>
           </div>
-          <div
-            className="library-categories"
-            role="group"
-            aria-label="Filter by reading type"
-          >
-            {categories.map((name) => (
-              <button
-                key={name}
-                aria-pressed={activeCategory === name}
-                onClick={() => setCategory(name)}
-              >
-                <span>{name === "All" ? "All readings" : name}</span>
-                <span>
-                  {String(
-                    name === "All"
-                      ? readings.length
-                      : readings.filter((reading) => reading.type === name)
-                          .length,
-                  ).padStart(2, "0")}
-                </span>
-              </button>
-            ))}
-          </div>
-          <div className="library-search">
-            <span aria-hidden="true">⌕</span>
-            <input
-              type="search"
-              aria-label="Search the library"
-              placeholder="Find a title or author"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-            />
-            {query && (
-              <button aria-label="Clear search" onClick={() => setQuery("")}>
-                ×
-              </button>
-            )}
-          </div>
-          <div
-            className="library-view"
-            role="group"
-            aria-label="Collection view"
-          >
+          <div className="library-display" aria-label="Display settings">
             <button
-              aria-pressed={view === "shelf"}
-              onClick={() => setView("shelf")}
+              type="button"
+              aria-label="Toggle day/night"
+              aria-pressed={day}
+              disabled={eink}
+              onClick={() => setDay((value) => !value)}
             >
-              Shelf
+              {day ? "DAY" : "NIGHT"}
             </button>
             <button
-              aria-pressed={view === "index"}
-              onClick={() => setView("index")}
+              type="button"
+              aria-label="Toggle CRT scanlines"
+              aria-pressed={crt}
+              disabled={eink}
+              onClick={() => setCrt((value) => !value)}
             >
-              Index
+              CRT
+            </button>
+            <button
+              type="button"
+              aria-label="Toggle e-ink"
+              aria-pressed={eink}
+              onClick={() => setEink((value) => !value)}
+            >
+              E-INK
             </button>
           </div>
-          <p className="library-instruction">
-            {view === "shelf"
-              ? eink
-                ? "Select a cover to open its source in a new tab."
-                : "Pick a spine. Turn it over. Find your next idea."
-              : "The whole collection, at a glance."}
-          </p>
-          {savedMode && (
-            <p className="library-sync-note">
-              Saved collection{" "}
-              <button onClick={() => setReload((value) => value + 1)}>
-                Refresh ↻
-              </button>
-            </p>
-          )}
-        </aside>
+        </header>
         <section
           id="library-shelves"
           className="library-collection"
@@ -223,54 +133,31 @@ export default function LibraryPage() {
           tabIndex={-1}
         >
           <div className="library-collection-heading">
-            <span>
-              {activeCategory === "All" ? "The collection" : activeCategory}
-            </span>
-            <span role="status" aria-live="polite">
-              {shown.length} {shown.length === 1 ? "reading" : "readings"}
-              {query ? " found" : ""}
+            <span>The collection</span>
+            <select
+              className="library-category-select"
+              aria-label="Filter by reading type"
+              value={activeCategory}
+              onChange={(event) => setCategory(event.target.value)}
+            >
+              {categories.map((name) => (
+                <option key={name} value={name}>
+                  {name === "All" ? "All readings" : name}
+                </option>
+              ))}
+            </select>
+            <span className="sr-only" role="status" aria-live="polite">
+              {shown.length} readings
             </span>
           </div>
           {shown.length ? (
-            view === "shelf" ? (
-              <BookShelf readings={shown} covers={covers} flat={eink} />
-            ) : (
-              <ol className="library-index">
-                {shown.map((reading, index) => (
-                  <li key={reading.id}>
-                    <span className="index-number">
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
-                    <div>
-                      {reading.url ? (
-                        <a
-                          href={reading.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {reading.title}
-                          <span className="sr-only"> (opens in a new tab)</span>
-                        </a>
-                      ) : (
-                        <span>{reading.title}</span>
-                      )}
-                      {reading.author && <p>{reading.author}</p>}
-                    </div>
-                    <span className="index-type">{reading.type}</span>
-                  </li>
-                ))}
-              </ol>
-            )
+            <BookShelf readings={shown} covers={covers} flat={eink} />
           ) : (
             <div className="library-empty">
               <h2>No readings found.</h2>
-              <p>Try another title, author, or category.</p>
-              <button onClick={clear}>Show all readings</button>
-            </div>
-          )}
-          {shown.length > 0 && (
-            <div className="shelf-end" aria-hidden="true">
-              · · ·
+              <button onClick={() => setCategory("All")}>
+                Show all readings
+              </button>
             </div>
           )}
         </section>
