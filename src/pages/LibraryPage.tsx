@@ -11,7 +11,6 @@ import {
   type CoverCatalog,
 } from "../lib/library";
 import BookShelf from "../components/library/BookShelf";
-import EmbroideredWordmark from "../components/library/EmbroideredWordmark";
 import "./library.css";
 
 const covers: CoverCatalog = JSON.parse(savedCovers);
@@ -93,7 +92,7 @@ export default function LibraryPage() {
           <div className="library-heading">
             <h1>
               <Link to="/" aria-label="Athenaeum — back to world">
-                <EmbroideredWordmark />
+                Athenaeum<span>.</span>
               </Link>
             </h1>
             <p>A personal collection of readings I've finished.</p>

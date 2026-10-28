@@ -791,22 +791,3 @@
 @media (prefers-reduced-motion: reduce) {
   .shelf-rail-mark { transition: none; }
 }
-
-.wordmark-plain { display: none; }
-.embroidered-wordmark {
-  display: block;
-  width: clamp(280px, 34vw, 440px);
-  max-width: 100%;
-  height: auto;
-  overflow: visible;
-}
-.wordmark-glint { opacity: .25; transition: opacity 220ms; }
-.library-heading h1 a:is(:hover, :focus-visible) .wordmark-glint { opacity: 1; }
-.library-eink .embroidered-wordmark { display: none; }
-.library-eink .wordmark-plain { display: inline; color: inherit; }
-@media (max-width: 600px) {
-  .embroidered-wordmark { width: 310px; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .wordmark-glint { transition: none; }
-}
