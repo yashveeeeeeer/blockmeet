@@ -331,7 +331,7 @@ export function disposeBook(book: Book) {
   book.geometries.forEach((geometry) => geometry.dispose());
 }
 
-// One canvas for the entire shelf. Off-screen books are evicted; idle scenes do not animate.
+// Only the selected book needs WebGL. The scrolling shelf uses saved renders.
 export function mountBookScene(
   root: HTMLElement,
   canvasElement: HTMLCanvasElement,
@@ -412,7 +412,6 @@ export function mountBookScene(
   let compiled = false;
   let compiling = false;
   let firstFrame = true;
-  let idleJob = 0;
   let uploadFrame = 0;
   const prepared = new WeakSet<Book>();
   const uploads: { book: Book; next: number }[] = [];
@@ -434,8 +433,8 @@ export function mountBookScene(
     if (!item) return;
     if (!item.book.group.parent) uploads.shift();
     else {
-      // A fast scroll can reveal several uncached books together. Keep their
-      // cover uploads out of the scroll draw and bound each animation slice.
+      // Bound each upload slice while the selected book opens. No texture
+      // uploads are scheduled by scrolling the closed shelf.
       renderer.initTexture(item.book.textures[item.next++]);
       if (item.next === item.book.textures.length) {
         prepared.add(item.book);
@@ -456,35 +455,6 @@ export function mountBookScene(
     uploads.push({ book, next: 0 });
     if (!uploadFrame) uploadFrame = requestAnimationFrame(uploadNext);
     return book;
-  };
-  const warmNext = () => {
-    idleJob = 0;
-    if (!alive || document.hidden || root.hasAttribute("data-focus-view")) return;
-    const next = rows.find((row) => {
-      if (books.has(row.dataset.bookId!)) return false;
-      const rect = row.getBoundingClientRect();
-      return rect.bottom > -600 && rect.top < innerHeight + 600;
-    });
-    if (!next) return;
-    if (books.size >= 12) {
-      const stale = rows.find((row) => {
-        const cached = books.get(row.dataset.bookId!);
-        if (!cached || cached.group.visible) return false;
-        const rect = row.getBoundingClientRect();
-        return rect.bottom < -600 || rect.top > innerHeight + 600;
-      });
-      if (!stale) return;
-      disposeBook(books.get(stale.dataset.bookId!)!);
-      books.delete(stale.dataset.bookId!);
-      stale.removeAttribute("data-scene-ready");
-    }
-    createBook(next);
-    schedule();
-  };
-  const scheduleWarm = () => {
-    if (!idleJob && alive) idleJob = typeof window.requestIdleCallback === "function"
-      ? window.requestIdleCallback(warmNext)
-      : window.setTimeout(warmNext, 120);
   };
   function draw() {
     frame = 0;
@@ -536,8 +506,8 @@ export function mountBookScene(
         book.group.quaternion.copy(target);
       }
       if (!prepared.has(book)) continue;
-      // Cached books also enter directly in the current shelf pose; warming a
-      // book must not animate it from the group's default upright rotation.
+      // Start directly in the current animation pose rather than briefly
+      // showing the group's default upright rotation during initialization.
       if (!row.hasAttribute("data-scene-ready")) book.group.quaternion.copy(target);
       row.dataset.sceneReady = "true";
       book.group.visible = true;
@@ -564,13 +534,6 @@ export function mountBookScene(
         Math.sin(Math.PI * open) * 600,
       );
     }
-    // Bound GPU memory even after browsing a very large sheet.
-    for (const [id, book] of books)
-      if (!book.group.visible && books.size > 12) {
-        disposeBook(book);
-        books.delete(id);
-        rows.find((row) => row.dataset.bookId === id)?.removeAttribute("data-scene-ready");
-      }
     if (!compiled) {
       if (!compiling) {
         compiling = true;
@@ -584,7 +547,6 @@ export function mountBookScene(
     animating = unsettled;
     if (firstFrame) { firstFrame = false; ready(); }
     if (unsettled) schedule();
-    scheduleWarm();
   }
   const observer = new ResizeObserver(schedule);
   observer.observe(root);
@@ -636,14 +598,12 @@ export function mountBookScene(
   canvasElement.addEventListener("webglcontextlost", contextLost);
   // A rail selection may start outside the viewport. Prepare its shaders and
   // textures before the opening animation brings the book onto the screen.
-  if (mobile && rows[0]) createBook(rows[0]);
+  if (rows[0]) createBook(rows[0]);
   draw();
   return () => {
     alive = false;
     cancelAnimationFrame(frame);
     cancelAnimationFrame(uploadFrame);
-    if (typeof window.cancelIdleCallback === "function") window.cancelIdleCallback(idleJob);
-    else window.clearTimeout(idleJob);
     observer.disconnect();
     mutations.disconnect();
     window.removeEventListener("scroll", schedule);

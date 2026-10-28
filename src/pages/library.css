@@ -359,7 +359,7 @@
   pointer-events: none;
 }
 .shelf-book[data-preview-ready] .shelf-initial-spine,
-.mobile-shelf.has-webgl .shelf-book[data-scene-ready] .shelf-preview { visibility: hidden; }
+.has-webgl .shelf-book[data-scene-ready] .shelf-preview { visibility: hidden; }
 .book-actions {
   flex-wrap: wrap;
 }
