@@ -2,6 +2,7 @@ import * as THREE from "three";
 import type { CoverCatalog, Reading } from "../../lib/library";
 import { bookDesign, wrapBookTitle } from "../../lib/book-design";
 import { bookPointerTilt } from "../../lib/shelf-motion";
+import { stitchedLettering } from "./embroidery";
 
 type Book = {
   group: THREE.Group;
@@ -74,17 +75,23 @@ function makeBook(
   foilEnvironment: THREE.Texture,
 ): Book {
   const design = bookDesign(reading);
+  const generated = !(cover && reading.type === "Books");
   const front = canvas(512, 768);
+  const titleMask = canvas(1024, 1536);
+  titleMask.ctx.scale(2, 2);
+  titleMask.ctx.fillStyle = "white";
   cloth(front.ctx, 512, 768, design.cloth);
   front.ctx.fillStyle = design.ink;
   front.ctx.strokeStyle = design.ink;
   front.ctx.font = "17px sans-serif";
   front.ctx.fillText("ATHENAEUM", 46, 58);
+  titleMask.ctx.font = front.ctx.font;
+  titleMask.ctx.fillText("ATHENAEUM", 46, 58);
   front.ctx.fillRect(46, 82, 420, 1);
   let fontSize = 56;
   let lines: string[] = [];
   do {
-    front.ctx.font = `${fontSize}px Georgia, serif`;
+    front.ctx.font = `bold ${fontSize}px Georgia, serif`;
     lines = wrapBookTitle(
       reading.title,
       (text) => front.ctx.measureText(text).width,
@@ -100,6 +107,8 @@ function makeBook(
   lines.forEach((line, i) =>
     front.ctx.fillText(line, 46, 158 + i * fontSize * 1.15),
   );
+  titleMask.ctx.font = front.ctx.font;
+  lines.forEach((line, i) => titleMask.ctx.fillText(line, 46, 158 + i * fontSize * 1.15));
   front.ctx.font = "21px Georgia, serif";
   wrapBookTitle(
     reading.author,
@@ -112,6 +121,13 @@ function makeBook(
   const frontMap = texture(front.element);
 
   const spine = canvas(96, 1536);
+  const spineMask = canvas(192, 3072);
+  spineMask.ctx.scale(2, 2);
+  spineMask.ctx.translate(48, 768);
+  spineMask.ctx.rotate(Math.PI / 2);
+  spineMask.ctx.fillStyle = "white";
+  spineMask.ctx.textAlign = "center";
+  spineMask.ctx.textBaseline = "middle";
   cloth(spine.ctx, 96, 1536, design.cloth);
   spine.ctx.translate(48, 768);
   spine.ctx.rotate(Math.PI / 2);
@@ -122,11 +138,13 @@ function makeBook(
   spine.ctx.textBaseline = "middle";
   let spineSize = 60;
   do {
-    spine.ctx.font = `${spineSize}px Georgia, serif`;
+    spine.ctx.font = `bold ${spineSize}px Georgia, serif`;
     if (spine.ctx.measureText(reading.title).width <= 1270) break;
     spineSize--;
   } while (spineSize > 17);
   spine.ctx.fillText(reading.title, 0, 0);
+  spineMask.ctx.font = spine.ctx.font;
+  spineMask.ctx.fillText(reading.title, 0, 0);
   const spineMap = texture(spine.element);
 
   const pages = canvas(128, 128);
@@ -157,7 +175,7 @@ function makeBook(
     map: frontMap,
     roughness: 0.82,
   });
-  if (!(cover && reading.type === "Books")) {
+  if (generated) {
     // A restrained, angle-dependent tint on the lower cloth and hinge. This
     // multiplies the printed color rather than adding white over the ink.
     face.onBeforeCompile = (shader) => {
@@ -242,6 +260,35 @@ function makeBook(
   const ribGeo = new THREE.CylinderGeometry(1.5, 1.5, 348, 8);
   const ribbonGeo = new THREE.BoxGeometry(7, 348, 0.7);
   const frontZ = design.thickness / 2 + 1.5;
+  const lightInk = new THREE.Color(design.ink).getHSL({ h: 0, s: 0, l: 0 }).l > 0.5;
+  const thread = new THREE.MeshPhysicalMaterial({
+    map: foilMap,
+    color: lightInk ? "#eff4f0" : "#64718e",
+    metalness: 0.3,
+    roughness: 0.48,
+    sheen: 0.7,
+    sheenColor: new THREE.Color(rainbow ? "#b9daef" : "#ddbd75"),
+    sheenRoughness: 0.45,
+    iridescence: rainbow ? 0.85 : 0,
+    iridescenceThicknessMap: filmMap,
+    iridescenceThicknessRange: [180, 650],
+    envMap: foilEnvironment,
+    envMapIntensity: 0.65,
+  });
+  const letteringGeometries: THREE.BufferGeometry[] = [];
+  if (generated) {
+    const lettering = stitchedLettering(titleMask.element, 246, 364);
+    const embroidery = new THREE.Mesh(lettering, thread);
+    embroidery.position.z = frontZ + 0.18;
+    group.add(embroidery);
+    letteringGeometries.push(lettering);
+  }
+  const spineLettering = stitchedLettering(spineMask.element, design.thickness, 364);
+  const embroideredSpine = new THREE.Mesh(spineLettering, thread);
+  embroideredSpine.rotation.y = -Math.PI / 2;
+  embroideredSpine.position.x = -124.18;
+  group.add(embroideredSpine);
+  letteringGeometries.push(spineLettering);
   for (const x of [-118, -109]) {
     const rib = new THREE.Mesh(ribGeo, foil);
     rib.position.set(x, 0, frontZ);
@@ -253,7 +300,7 @@ function makeBook(
   const ornamentGeometries: THREE.BufferGeometry[] = [];
   // Embossed semicircles sit below the text on our generated title bindings.
   // Publisher artwork retains only the narrow hinge trim at its outer margin.
-  if (!(cover && reading.type === "Books")) {
+  if (generated) {
     for (let i = 0; i < 6; i++) {
       const arcGeo = new THREE.TorusGeometry(12 + i * 5, 1.2, 6, 40, Math.PI);
       const arc = new THREE.Mesh(arcGeo, foil);
@@ -265,7 +312,7 @@ function makeBook(
   const book: Book = {
     group,
     textures: [frontMap, spineMap, pageMap, filmMap, foilMap],
-    materials: [paper, binding, face, spineMat, foil],
+    materials: [paper, binding, face, spineMat, foil, thread],
     geometries: [
       blockGeo,
       boardGeo,
@@ -273,6 +320,7 @@ function makeBook(
       ribGeo,
       ribbonGeo,
       ...ornamentGeometries,
+      ...letteringGeometries,
     ],
   };
 
