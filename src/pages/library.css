@@ -791,23 +791,3 @@
 @media (prefers-reduced-motion: reduce) {
   .shelf-rail-mark { transition: none; }
 }
-
-.wordmark-plain { display: none; }
-.embroidered-wordmark {
-  display: block;
-  width: clamp(280px, 34vw, 440px);
-  max-width: 100%;
-  aspect-ratio: 4.4;
-  overflow: hidden;
-}
-.embroidered-wordmark img { width: 100%; height: 100%; object-fit: cover; }
-.embroidered-wordmark { transition: filter 220ms; }
-.library-heading h1 a:is(:hover, :focus-visible) .embroidered-wordmark { filter: brightness(1.08); }
-.library-eink .embroidered-wordmark { display: none; }
-.library-eink .wordmark-plain { display: inline; color: inherit; }
-@media (max-width: 600px) {
-  .embroidered-wordmark { width: 310px; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .embroidered-wordmark { transition: none; }
-}
