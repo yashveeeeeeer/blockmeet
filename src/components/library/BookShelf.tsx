@@ -199,9 +199,9 @@ function ShelfBook({
         </svg>}
         {coverContent}
       </button>
-      <span className="shelf-mobile-title" aria-hidden="true">
+      {flat && <span className="shelf-mobile-title" aria-hidden="true">
         {reading.title}
-      </span>
+      </span>}
       <div
         id={`details-${reading.id}`}
         className="book-details"

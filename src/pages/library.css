@@ -326,19 +326,6 @@
 .shelf-mobile-title {
   display: none;
 }
-@media (max-width: 760px) {
-  .shelf-mobile-title {
-    position: relative;
-    z-index: 3;
-    display: block;
-    text-align: center;
-    font-size: 12px;
-    line-height: 1.4;
-    color: var(--library-muted);
-    padding: 0 30px 18px;
-    pointer-events: none;
-  }
-}
 
 /* The HTML fallback is a separate reading mode, never an intermediate 3D pose. */
 .book-shelf {
