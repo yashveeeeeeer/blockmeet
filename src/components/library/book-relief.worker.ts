@@ -5,7 +5,7 @@ self.onmessage = (event: MessageEvent<ReliefPaint & { id: number }>) => {
     const { columns, rows, spine, runs } = event.data;
     const canvas = new OffscreenCanvas(columns, rows);
     const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
-    ctx.scale(2, 2);
+    ctx.scale(event.data.scale ?? 2, event.data.scale ?? 2);
     if (spine) { ctx.translate(48, 768); ctx.rotate(Math.PI / 2); ctx.textAlign = "center"; ctx.textBaseline = "middle"; }
     ctx.fillStyle = "white";
     for (const run of runs) { ctx.font = run.font; ctx.fillText(run.text, run.x, run.y); }

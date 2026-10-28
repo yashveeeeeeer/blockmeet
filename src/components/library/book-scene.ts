@@ -13,6 +13,7 @@ type Book = {
   materials: THREE.Material[];
   geometries: THREE.BufferGeometry[];
   cancel: (() => void)[];
+  ready: Promise<void>;
 };
 
 function canvas(width: number, height: number) {
@@ -45,7 +46,7 @@ function cloth(
 
 // A small, locally generated studio reflection shared by all foil accents.
 // Keeping it off the printed surfaces protects their colors and typography.
-function foilStudio(renderer: THREE.WebGLRenderer) {
+export function foilStudio(renderer: THREE.WebGLRenderer) {
   const studio = canvas(512, 256);
   studio.ctx.fillStyle = "#696c73";
   studio.ctx.fillRect(0, 0, 512, 256);
@@ -69,7 +70,7 @@ function foilStudio(renderer: THREE.WebGLRenderer) {
   return environment;
 }
 
-function makeBook(
+export function makeBook(
   reading: Reading,
   cover: string | undefined,
   invalidate: () => void,
@@ -77,11 +78,13 @@ function makeBook(
   foilEnvironment: THREE.Texture,
   leatherGrain: THREE.Texture,
   requestRelief: RequestRelief,
+  mobile = false,
 ): Book {
   const design = bookDesign(reading);
   const generated = !(cover && reading.type === "Books");
-  const front = canvas(1024, 1536);
-  front.ctx.scale(2, 2);
+  const textureScale = mobile ? 1 : 2;
+  const front = canvas(512 * textureScale, 768 * textureScale);
+  front.ctx.scale(textureScale, textureScale);
   const frontRuns: ReliefText[] = [];
   const frontText = (text: string, x: number, y: number) => {
     front.ctx.fillText(text, x, y);
@@ -119,8 +122,8 @@ function makeBook(
   frontText(reading.type.toUpperCase(), 46, 737);
   const frontMap = texture(front.element);
 
-  const spine = canvas(192, 3072);
-  spine.ctx.scale(2, 2);
+  const spine = canvas(96 * textureScale, 1536 * textureScale);
+  spine.ctx.scale(textureScale, textureScale);
   cloth(spine.ctx, 96, 1536, design.cloth);
   spine.ctx.translate(48, 768);
   spine.ctx.rotate(Math.PI / 2);
@@ -150,7 +153,7 @@ function makeBook(
   // Satin printed surfaces keep the ink readable even at the specular angle.
   // Reflective finishes live on separate, raised accents, not over the title.
   const coating = {
-    clearcoat: 0.08,
+    clearcoat: mobile ? 0 : 0.08,
     clearcoatRoughness: 0.6,
     specularIntensity: 0.2,
     metalness: 0,
@@ -253,7 +256,7 @@ function makeBook(
     envMapIntensity: 1.1,
   });
   // Rounded raised ribs along the hinge catch narrow glints as the book turns.
-  const ribGeo = new THREE.CylinderGeometry(1.5, 1.5, 348, 16);
+  const ribGeo = new THREE.CylinderGeometry(1.5, 1.5, 348, mobile ? 8 : 16);
   const ribbonGeo = new THREE.BoxGeometry(7, 348, 0.7);
   const frontZ = design.thickness / 2 + 1.5;
   const lettering = new THREE.MeshPhysicalMaterial({
@@ -273,7 +276,7 @@ function makeBook(
   const reliefGeometries: THREE.BufferGeometry[] = [];
   const cancel: (() => void)[] = [];
   if (generated) {
-    cancel.push(requestRelief({columns:1024, rows:1536, width:246, height:364, runs:frontRuns}, (geometry) => {
+    cancel.push(requestRelief({columns:front.element.width, rows:front.element.height, scale:textureScale, width:246, height:364, runs:frontRuns}, (geometry) => {
       const relief = new THREE.Mesh(geometry, lettering);
       relief.position.z = frontZ - .02;
       group.add(relief);
@@ -281,7 +284,7 @@ function makeBook(
       invalidate();
     }));
   }
-  cancel.push(requestRelief({columns:192, rows:3072, width:design.thickness, height:364, spine:true, runs:[{text:reading.title, font:spine.ctx.font, x:0, y:0}]}, (geometry) => {
+  cancel.push(requestRelief({columns:spine.element.width, rows:spine.element.height, scale:textureScale, width:design.thickness, height:364, spine:true, runs:[{text:reading.title, font:spine.ctx.font, x:0, y:0}]}, (geometry) => {
     const spineLetters = new THREE.Mesh(geometry, lettering);
     spineLetters.rotation.y = -Math.PI / 2;
     spineLetters.position.x = -123.98;
@@ -302,7 +305,7 @@ function makeBook(
   // Publisher artwork retains only the narrow hinge trim at its outer margin.
   if (!(cover && reading.type === "Books")) {
     for (let i = 0; i < 6; i++) {
-      const arcGeo = new THREE.TorusGeometry(12 + i * 5, 1.2, 12, 96, Math.PI);
+      const arcGeo = new THREE.TorusGeometry(12 + i * 5, 1.2, mobile ? 6 : 12, mobile ? 48 : 96, Math.PI);
       const arc = new THREE.Mesh(arcGeo, foil);
       arc.position.set(64, -129, frontZ + 0.2);
       group.add(arc);
@@ -312,6 +315,7 @@ function makeBook(
   const book: Book = {
     group,
     cancel,
+    ready: Promise.resolve(),
     textures: [frontMap, spineMap, pageMap, filmMap, foilMap],
     materials: [paper, binding, face, spineMat, foil, lettering],
     geometries: [
@@ -329,18 +333,23 @@ function makeBook(
   // Only actual book covers are used. Essay previews become consistent title bindings.
   if (cover && reading.type === "Books") {
     const img = new Image();
-    img.onload = () => {
-      if (!isAlive() || !group.parent) return;
-      front.ctx.drawImage(img, 0, 0, 512, 768);
-      frontMap.needsUpdate = true;
-      invalidate();
-    };
+    book.ready = new Promise<void>((resolve) => {
+      img.onload = () => {
+        if (isAlive() && group.parent) {
+          front.ctx.drawImage(img, 0, 0, 512, 768);
+          frontMap.needsUpdate = true;
+          invalidate();
+        }
+        resolve();
+      };
+      img.onerror = () => resolve();
+    });
     img.src = `${import.meta.env.BASE_URL}library/${cover}`;
   }
   return book;
 }
 
-function disposeBook(book: Book) {
+export function disposeBook(book: Book) {
   book.cancel.forEach((cancel) => cancel());
   book.group.removeFromParent();
   book.textures.forEach((map) => map.dispose());
@@ -356,6 +365,7 @@ export function mountBookScene(
   covers: CoverCatalog,
   failed: () => void,
   ready: () => void,
+  mobile = false,
 ) {
   const renderer = new THREE.WebGLRenderer({
     canvas: canvasElement,
@@ -363,7 +373,7 @@ export function mountBookScene(
     antialias: true,
     powerPreference: "low-power",
   });
-  renderer.setPixelRatio(bookPixelRatio(innerWidth, innerHeight, window.devicePixelRatio));
+  renderer.setPixelRatio(bookPixelRatio(innerWidth, innerHeight, window.devicePixelRatio, mobile));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   // Roll off bright reflections instead of clipping pale cover artwork to white.
   renderer.toneMapping = THREE.NeutralToneMapping;
@@ -417,8 +427,8 @@ export function mountBookScene(
     reliefWorker.postMessage({ id, ...paint });
     return () => { pendingRelief.delete(id); };
   };
-  const rows = [...root.querySelectorAll<HTMLElement>("[data-book-id]")];
   const byId = new Map(readings.map((reading) => [reading.id, reading]));
+  const rows = [...root.querySelectorAll<HTMLElement>("[data-book-id]")].filter(row => byId.has(row.dataset.bookId!));
   const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
   let alive = true;
   let frame = 0;
@@ -463,8 +473,8 @@ export function mountBookScene(
   };
   const createBook = (row: HTMLElement) => {
     const id = row.dataset.bookId!;
-    const book = makeBook(byId.get(id)!, covers[id]?.images[0], schedule, () => alive, foilEnvironment.texture, leatherGrain, requestRelief);
-    const anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+    const book = makeBook(byId.get(id)!, covers[id]?.images[0], schedule, () => alive, foilEnvironment.texture, leatherGrain, requestRelief, mobile);
+    const anisotropy = Math.min(mobile ? 4 : 8, renderer.capabilities.getMaxAnisotropy());
     book.textures.forEach((map) => { map.anisotropy = anisotropy; });
     book.group.visible = false;
     books.set(id, book);
@@ -508,7 +518,7 @@ export function mountBookScene(
     const now = performance.now();
     const blend = 1 - Math.exp(-12 * Math.min((now - lastFrame) / 1000, 0.25));
     lastFrame = now;
-    const pixelRatio = bookPixelRatio(innerWidth, innerHeight, window.devicePixelRatio);
+    const pixelRatio = bookPixelRatio(innerWidth, innerHeight, window.devicePixelRatio, mobile);
     if (width !== innerWidth || height !== innerHeight || renderer.getPixelRatio() !== pixelRatio) {
       width = innerWidth;
       height = innerHeight;
@@ -650,6 +660,9 @@ export function mountBookScene(
   root.addEventListener("focusin", schedule);
   root.addEventListener("focusout", schedule);
   canvasElement.addEventListener("webglcontextlost", contextLost);
+  // A rail selection may start outside the viewport. Prepare its shaders and
+  // textures before the opening animation brings the book onto the screen.
+  if (mobile && rows[0]) createBook(rows[0]);
   draw();
   return () => {
     alive = false;

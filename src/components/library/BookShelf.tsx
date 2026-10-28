@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useMemo,
   useRef,
   useState,
   type CSSProperties,
@@ -9,30 +10,39 @@ import type { CoverCatalog, Reading } from "../../lib/library";
 import { bookDesign } from "../../lib/book-design";
 import TitleCover from "./TitleCover";
 import useShelfMotion from "./useShelfMotion";
+import previewJSON from "../../../public/library/shelf-previews.json?raw";
+import { shelfPreview, type ShelfPreviewCatalog } from "../../lib/shelf-preview";
+import { SHELF_MOTION_MS } from "../../lib/shelf-motion";
 
-// Start the renderer download with the library module, not after its first effect.
-const sceneModule = import("./book-scene");
+const previews: ShelfPreviewCatalog = JSON.parse(previewJSON);
+const mobileQuery = "(max-width: 760px), (pointer: coarse)";
+let sceneModule: Promise<typeof import("./book-scene")> | undefined;
+const loadScene = () => sceneModule ??= import("./book-scene");
 
 function ShelfBook({
   reading,
-  index,
   cover,
   active,
   flat,
   directLink,
   onSelect,
+  mobile,
+  eager,
 }: {
   reading: Reading;
-  index: number;
   cover?: string;
   active: boolean;
   flat: boolean;
   directLink: boolean;
   onSelect: () => void;
+  mobile: boolean;
+  eager: boolean;
 }) {
   const [turn, setTurn] = useState(0);
   const [pitch, setPitch] = useState(0);
   const [imageFailed, setImageFailed] = useState(false);
+  const [previewLoaded, setPreviewLoaded] = useState(false);
+  const preview = mobile ? shelfPreview(previews, reading, cover) : undefined;
   const drag = useRef<{
     x: number;
     y: number;
@@ -125,9 +135,6 @@ function ShelfBook({
         } as CSSProperties
       }
     >
-      <span className="shelf-number" aria-hidden="true">
-        {String(index + 1).padStart(2, "0")}
-      </span>
       <button
         ref={button}
         className="shelf-book"
@@ -136,6 +143,7 @@ function ShelfBook({
         data-open-amount={active ? 1 : 0}
         data-turn={turn}
         data-pitch={pitch}
+        data-preview-ready={previewLoaded && preview ? "true" : undefined}
         aria-expanded={active}
         aria-controls={`details-${reading.id}`}
         aria-label={`${active ? "Put back" : "Explore"} ${reading.title}`}
@@ -181,6 +189,7 @@ function ShelfBook({
           }
         }}
       >
+        {mobile && !flat && preview && <img className="shelf-preview" style={{ visibility: previewLoaded ? undefined : "hidden" }} src={`${import.meta.env.BASE_URL}library/${preview}`} alt="" aria-hidden="true" width="1050" height="315" loading={eager ? "eager" : "lazy"} decoding="async" onLoad={() => setPreviewLoaded(true)} onError={() => setPreviewLoaded(false)} />}
         {!flat && <svg className="shelf-initial-spine" viewBox="0 0 600 142" aria-hidden="true">
           <path d="M30 8H600L570 100H0Z" fill={design.cloth} />
           <path d="M0 100H570V140H0Z" fill={design.cloth} />
@@ -192,9 +201,6 @@ function ShelfBook({
       </button>
       <span className="shelf-mobile-title" aria-hidden="true">
         {reading.title}
-      </span>
-      <span className="shelf-indicator" aria-hidden="true">
-        {active ? "−" : "+"}
       </span>
       <div
         id={`details-${reading.id}`}
@@ -285,16 +291,31 @@ export default function BookShelf({
   const root = useRef<HTMLDivElement>(null);
   const canvasHost = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState<string | null>(null);
+  const [mobile, setMobile] = useState(() => matchMedia(mobileQuery).matches);
+  const [sceneSelection, setSceneSelection] = useState<string | null>(null);
+  useEffect(() => {
+    const query = matchMedia(mobileQuery);
+    const update = () => setMobile(query.matches);
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+  // Keep the one interactive book alive until its closing motion has finished.
+  useEffect(() => {
+    if (active) { setSceneSelection(active); return; }
+    const timer = window.setTimeout(() => setSceneSelection(null), SHELF_MOTION_MS + 50);
+    return () => window.clearTimeout(timer);
+  }, [active]);
+  const sceneReadings = useMemo(() => mobile ? readings.filter(reading => reading.id === sceneSelection) : readings, [mobile, readings, sceneSelection]);
   const [visibleId, setVisibleId] = useState<string | null>(null);
   const [rendered, setRendered] = useState<{
     readings: Reading[];
     covers: CoverCatalog;
   } | null>(null);
   const [unavailable, setUnavailable] = useState(false);
-  const ready = rendered?.readings === readings && rendered?.covers === covers;
+  const ready = rendered?.readings === sceneReadings && rendered?.covers === covers;
   const useFlat = flat || unavailable;
   const captureMotion = useShelfMotion(root, active, useFlat, readings);
-  const loading = !useFlat && !ready;
+  const loading = !useFlat && !ready && (!mobile || !!sceneSelection);
   const focused = !!active && !useFlat;
   const railCurrent = active || visibleId || readings[0]?.id;
   const previousActive = useRef<string | null>(null);
@@ -304,7 +325,17 @@ export default function BookShelf({
     setActive(id);
   };
   useEffect(() => {
-    if (active || useFlat || !ready) return;
+    if (active || useFlat || (!mobile && !ready)) return;
+    if (mobile) {
+      // Native image scrolling needs no RAF loop or per-frame layout reads.
+      const observer = new IntersectionObserver((entries) => {
+        if (root.current?.hasAttribute("data-focus-view")) return;
+        const current = entries.filter(entry => entry.isIntersecting).sort((a, b) => Math.abs(a.boundingClientRect.top + a.boundingClientRect.height / 2 - innerHeight / 2) - Math.abs(b.boundingClientRect.top + b.boundingClientRect.height / 2 - innerHeight / 2))[0];
+        if (current) setVisibleId((current.target as HTMLElement).dataset.bookId || null);
+      }, { rootMargin: `${-innerHeight * .4}px 0px ${-innerHeight * .4}px 0px` });
+      root.current?.querySelectorAll(".shelf-book").forEach(book => observer.observe(book));
+      return () => observer.disconnect();
+    }
     let frame = 0;
     const update = () => {
       frame = 0;
@@ -331,7 +362,7 @@ export default function BookShelf({
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
     };
-  }, [active, useFlat, ready, readings]);
+  }, [active, useFlat, ready, readings, mobile]);
   useEffect(() => {
     const ticks = root.current?.querySelector<HTMLElement>(".shelf-rail-ticks");
     const current = ticks?.querySelector<HTMLElement>("[aria-current]");
@@ -370,20 +401,21 @@ export default function BookShelf({
   }, [readings, active, flat]);
   useEffect(() => {
     setRendered(null);
-    if (flat || unavailable) return;
+    if (flat || unavailable || !sceneReadings.length) return;
     let cancelled = false;
     let dispose: (() => void) | undefined;
     let canvas: HTMLCanvasElement | undefined;
-    sceneModule
+    loadScene()
       .then(({ mountBookScene }) => {
         if (cancelled || !root.current || !canvasHost.current) return;
         canvas = document.createElement("canvas");
         canvas.className = "shelf-canvas";
         canvasHost.current.append(canvas);
         try {
-          dispose = mountBookScene(root.current, canvas, readings, covers, () =>
+          dispose = mountBookScene(root.current, canvas, sceneReadings, covers, () =>
             setUnavailable(true),
-            () => { if (!cancelled) setRendered({ readings, covers }); },
+            () => { if (!cancelled) setRendered({ readings: sceneReadings, covers }); },
+            mobile,
           );
         } catch {
           canvas.remove();
@@ -398,11 +430,11 @@ export default function BookShelf({
       dispose?.();
       canvas?.remove();
     };
-  }, [readings, covers, flat, unavailable]);
+  }, [sceneReadings, covers, flat, unavailable, mobile]);
   return (
     <div
       ref={root}
-      className={`book-shelf${useFlat ? " is-flat" : ready ? " has-webgl" : " is-loading"}`}
+      className={`book-shelf${mobile ? " mobile-shelf" : ""}${useFlat ? " is-flat" : ready ? " has-webgl" : " is-loading"}`}
       aria-busy={loading}
       role={focused ? "dialog" : undefined}
       aria-modal={focused ? true : undefined}
@@ -410,7 +442,7 @@ export default function BookShelf({
     >
       <div className="shelf-focus-backdrop" aria-hidden="true" />
       <div ref={canvasHost} aria-hidden="true" />
-      {!useFlat && ready && (
+      {!useFlat && (ready || mobile) && (
         <nav className="shelf-rail" aria-label="Reading navigation">
           <button className="shelf-rail-back" type="button" aria-label="Back to bookshelf" hidden={!active} onClick={() => select(null)}>←</button>
           <div className="shelf-rail-ticks">
@@ -442,7 +474,8 @@ export default function BookShelf({
           <ShelfBook
             key={reading.id}
             reading={reading}
-            index={index}
+            mobile={mobile}
+            eager={index < 6}
             cover={covers[reading.id]?.images[0]}
             active={!flat && active === reading.id}
             flat={useFlat}
