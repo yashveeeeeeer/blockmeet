@@ -299,7 +299,7 @@
   pointer-events: none;
 }
 .has-webgl .binding-fallback {
-  opacity: 0;
+  visibility: hidden;
 }
 .binding-fallback {
   display: flex;
@@ -307,53 +307,9 @@
   justify-content: center;
   height: 100%;
   width: 100%;
-  transition: opacity 0.15s;
-}
-.binding-spine {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 12px 24px;
-  width: 85%;
-  min-height: 60px;
-  background:
-    linear-gradient(0deg, #0002, transparent 60%, #fff1), var(--cloth);
-  border: 1px solid #ffffff25;
-  box-shadow:
-    0 -8px 0 -2px var(--cloth),
-    0 10px 16px #0004;
-  font-family: Georgia, serif;
-  font-size: clamp(14px, 1.7vw, 21px);
-  line-height: 1.2;
-  border-radius: 2px;
-  transform: perspective(700px) rotateY(-4deg);
 }
 .binding-cover {
   display: none;
-}
-.is-open .binding-spine {
-  display: none;
-}
-.is-open .binding-cover {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: space-between;
-  width: 280px;
-  max-width: 76%;
-  height: 410px;
-  max-height: 90%;
-  padding: 30px 27px;
-  background: var(--cloth);
-  box-shadow:
-    10px 6px 0 -2px #d5cdb9,
-    15px 7px 0 -2px var(--cloth),
-    20px 18px 28px #0004;
-  transform: perspective(1100px) rotateY(-14deg);
-  border-radius: 1px;
-}
-.binding-cover:has(img) {
-  padding: 0;
 }
 .binding-cover img {
   width: 100%;
@@ -698,18 +654,11 @@
   .index-type {
     display: none;
   }
-  .binding-spine {
-    min-height: 48px;
-    padding: 10px 15px;
-  }
   .library-search input {
     font-size: 12px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .binding-fallback {
-    transition: none;
-  }
   .library-page * {
     scroll-behavior: auto !important;
   }
@@ -718,13 +667,6 @@
 .is-open .shelf-book {
   height: clamp(300px, 54svh, 470px);
   scroll-margin-top: 105px;
-}
-.is-open .binding-cover {
-  transform: perspective(1100px) rotateX(var(--book-pitch, 0rad))
-    rotateY(calc(-14deg + var(--book-turn, 0rad)));
-  height: 90%;
-  max-width: 65%;
-  width: 250px;
 }
 @media (max-width: 760px) {
   .is-open .shelf-book {
@@ -771,5 +713,205 @@
     color: var(--library-muted);
     padding: 0 30px 18px;
     pointer-events: none;
+  }
+}
+
+/* The HTML fallback is a separate reading mode, never an intermediate 3D pose. */
+.book-shelf {
+  position: relative;
+}
+.shelf-canvas {
+  visibility: hidden;
+}
+.has-webgl .shelf-canvas {
+  visibility: visible;
+}
+.is-loading .shelf-stack {
+  visibility: hidden;
+}
+.shelf-loading {
+  position: absolute;
+  top: 42px;
+  width: 100%;
+  text-align: center;
+  font:
+    14px Georgia,
+    serif;
+  color: var(--library-muted);
+}
+.book-actions {
+  flex-wrap: wrap;
+}
+.book-close {
+  font-size: 13px;
+  color: var(--library-ink);
+  padding: 8px 12px;
+  border: 1px solid var(--library-line);
+  border-radius: 4px;
+}
+.library-display button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* E-ink is a paper-and-ink design, without a page-wide filter or 3D controls. */
+.library-eink {
+  --library-bg: #f7f5ef;
+  --library-ink: #20201d;
+  --library-muted: #585850;
+  --library-line: #c9c7be;
+  --library-green: #242421;
+  --library-surface: #eeece5;
+  color-scheme: light;
+  background: var(--library-bg);
+}
+.library-eink * {
+  scroll-behavior: auto !important;
+}
+.is-flat .shelf-stack {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 30px 24px;
+  padding: 28px 0;
+  align-items: start;
+}
+.is-flat .shelf-item {
+  --cloth: var(--library-surface) !important;
+  --binding-ink: var(--library-ink) !important;
+  min-width: 0;
+}
+.is-flat .shelf-book,
+.is-flat .is-open .shelf-book {
+  width: 100%;
+  max-width: 230px;
+  aspect-ratio: 2 / 3;
+  height: auto;
+  margin: auto;
+  cursor: pointer;
+  scroll-margin-top: 110px;
+}
+.is-flat .binding-fallback {
+  position: absolute;
+  inset: 0;
+}
+.is-flat .shelf-number,
+.is-flat .shelf-indicator {
+  display: none;
+}
+.is-flat .binding-cover,
+.is-flat .is-open .binding-cover {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  padding: 22px 18px;
+  color: var(--library-ink);
+  background: var(--library-surface);
+  border: 1px solid var(--library-line);
+  border-left: 4px double var(--library-line);
+  border-radius: 0;
+  box-shadow: none;
+  transform: none;
+  text-align: left;
+}
+.is-flat .binding-cover:has(img) {
+  padding: 0;
+  border-left-width: 1px;
+}
+.is-flat .binding-cover img {
+  object-fit: contain;
+}
+.library-eink .binding-cover img {
+  filter: grayscale(1);
+}
+.is-flat .binding-cover strong {
+  font-size: clamp(16px, 1.7vw, 23px);
+  line-height: 1.2;
+}
+.is-flat .binding-cover em {
+  font-size: 12px;
+}
+.is-flat .binding-cover small {
+  font-size: 8px;
+}
+.is-flat .shelf-mobile-title {
+  display: block;
+  position: static;
+  padding: 12px 0 0;
+  font:
+    15px/1.4 Georgia,
+    serif;
+  color: var(--library-ink);
+  text-align: left;
+}
+.is-flat .shelf-item.is-open {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(180px, 230px) minmax(0, 1fr);
+  gap: 32px;
+  align-items: center;
+  padding: 24px 0;
+  border-block: 1px solid var(--library-line);
+}
+.is-flat .book-details {
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+.is-flat .book-description {
+  text-align: left;
+}
+.is-flat .book-description h2 {
+  font-size: clamp(23px, 2.5vw, 32px);
+  overflow-wrap: anywhere;
+}
+.is-flat .book-actions {
+  justify-content: flex-start;
+  gap: 16px;
+}
+.is-flat .reading-link {
+  font-size: 14px;
+}
+@media (max-width: 1050px) and (min-width: 761px) {
+  .is-flat .shelf-item.is-open {
+    grid-template-columns: minmax(140px, 190px) minmax(0, 1fr);
+    gap: 20px;
+  }
+}
+@media (max-width: 760px) {
+  .is-flat .shelf-stack {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px 16px;
+  }
+  .is-flat .binding-cover {
+    padding: 16px 12px;
+  }
+  .is-flat .binding-cover strong {
+    font-size: 16px;
+  }
+  .is-flat .shelf-item.is-open {
+    display: block;
+    padding: 24px 0;
+  }
+  .is-flat .is-open .shelf-book {
+    max-width: 210px;
+    scroll-margin-top: 85px;
+  }
+  .is-flat .is-open .binding-cover strong {
+    font-size: 21px;
+  }
+  .is-flat .book-details {
+    margin-top: 24px;
+  }
+  .is-flat .book-description {
+    text-align: center;
+  }
+  .is-flat .book-actions {
+    justify-content: center;
   }
 }
