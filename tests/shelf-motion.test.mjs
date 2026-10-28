@@ -1,6 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { shelfProgress, interpolate, SHELF_MOTION_MS, focusedBookRect, awayBookRect } from "../src/lib/shelf-motion.ts";
+import { shelfProgress, interpolate, SHELF_MOTION_MS, focusedBookRect, awayBookRect, bookPointerTilt } from "../src/lib/shelf-motion.ts";
+
+test("pointer tilt is neutral at center and bounded consistently across viewports", () => {
+  for (const [width, height] of [[390, 844], [1280, 720]]) {
+    const center = bookPointerTilt(width / 2, height / 2, width, height);
+    assert.equal(Math.abs(center.yaw) + Math.abs(center.pitch) + Math.abs(center.roll), 0);
+    assert.deepEqual(bookPointerTilt(width, height, width, height), { yaw: 0.14, pitch: 0.09, roll: -0.02 });
+    assert.deepEqual(bookPointerTilt(width * 2, height * 2, width, height), bookPointerTilt(width, height, width, height));
+    assert.deepEqual(bookPointerTilt(0, 0, width, height), { yaw: -0.14, pitch: -0.09, roll: 0.02 });
+  }
+});
 
 test("shelf motion settles exactly and never overshoots at different frame rates", () => {
   assert.equal(shelfProgress(-1), 0);

@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import type { CoverCatalog, Reading } from "../../lib/library";
 import { bookDesign, wrapBookTitle } from "../../lib/book-design";
+import { bookPointerTilt } from "../../lib/shelf-motion";
 
 type Book = {
   group: THREE.Group;
@@ -344,6 +345,8 @@ export function mountBookScene(
   let lastFrame = performance.now();
   const target = new THREE.Quaternion();
   const openRotation = new THREE.Quaternion();
+  let pointerBook: string | null = null;
+  let pointerTilt = { yaw: 0, pitch: 0, roll: 0 };
   const schedule = () => {
     if (alive && !frame && !document.hidden) {
       if (!animating) lastFrame = performance.now();
@@ -384,7 +387,14 @@ export function mountBookScene(
       target.setFromEuler(new THREE.Euler(
         -0.08, 1.34 - (hovered ? 0.12 : 0), Math.PI / 2, "ZXY",
       ));
-      openRotation.setFromEuler(new THREE.Euler(0.07 + pitch, -0.3 + turn, -0.04, "YXZ"));
+      // Pointer tilt is additive: it never changes the user's drag/keyboard pose.
+      const tilt = id === pointerBook && !reduceMotion.matches ? pointerTilt : { yaw: 0, pitch: 0, roll: 0 };
+      openRotation.setFromEuler(new THREE.Euler(
+        0.07 + pitch + tilt.pitch,
+        -0.3 + turn + tilt.yaw,
+        -0.04 + tilt.roll,
+        "YXZ",
+      ));
       target.slerp(openRotation, open);
       if (!book) {
         const reading = byId.get(id)!;
@@ -445,6 +455,33 @@ export function mountBookScene(
     event.preventDefault();
     failed();
   };
+  const resetPointer = () => {
+    if (pointerBook === null) return;
+    pointerBook = null;
+    pointerTilt = { yaw: 0, pitch: 0, roll: 0 };
+    schedule();
+  };
+  const followPointer = (event: PointerEvent) => {
+    // Touch and pen retain direct manipulation; mouse dragging takes precedence.
+    if (event.pointerType !== "mouse" || reduceMotion.matches) {
+      resetPointer();
+      return;
+    }
+    if (event.buttons !== 0) return;
+    const selected = rows.find((row) => row.dataset.expanded === "true");
+    if (!selected) { resetPointer(); return; }
+    // Let the opening choreography finish before adding pointer-driven motion.
+    if (Number(selected.dataset.openAmount) < 1) return;
+    pointerBook = selected.dataset.bookId!;
+    pointerTilt = bookPointerTilt(event.clientX, event.clientY, innerWidth, innerHeight);
+    schedule();
+  };
+  const leaveWindow = (event: PointerEvent) => {
+    if (!event.relatedTarget) resetPointer();
+  };
+  window.addEventListener("pointermove", followPointer, { passive: true });
+  window.addEventListener("pointerout", leaveWindow);
+  window.addEventListener("blur", resetPointer);
   window.addEventListener("scroll", schedule, { passive: true });
   window.addEventListener("resize", schedule);
   document.addEventListener("visibilitychange", schedule);
@@ -469,6 +506,9 @@ export function mountBookScene(
     root.removeEventListener("focusin", schedule);
     root.removeEventListener("focusout", schedule);
     canvasElement.removeEventListener("webglcontextlost", contextLost);
+    window.removeEventListener("pointermove", followPointer);
+    window.removeEventListener("pointerout", leaveWindow);
+    window.removeEventListener("blur", resetPointer);
     books.forEach(disposeBook);
     foilEnvironment.dispose();
     renderer.dispose();
