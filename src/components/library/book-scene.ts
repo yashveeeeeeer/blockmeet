@@ -343,6 +343,7 @@ export function mountBookScene(
   let animating = false;
   let lastFrame = performance.now();
   const target = new THREE.Quaternion();
+  const openRotation = new THREE.Quaternion();
   const schedule = () => {
     if (alive && !frame && !document.hidden) {
       if (!animating) lastFrame = performance.now();
@@ -375,19 +376,16 @@ export function mountBookScene(
         continue;
       }
       const expanded = row.dataset.expanded === "true";
+      const open = Number(row.dataset.openAmount ?? (expanded ? 1 : 0));
+      const transitioning = open > 0 && open < 1;
       const hovered = row.matches(":hover") || row === document.activeElement;
       const turn = Number(row.dataset.turn || 0);
       const pitch = Number(row.dataset.pitch || 0);
-      target.setFromEuler(
-        expanded
-          ? new THREE.Euler(0.07 + pitch, -0.3 + turn, -0.04, "YXZ")
-          : new THREE.Euler(
-              -0.08,
-              1.34 - (hovered ? 0.12 : 0),
-              Math.PI / 2,
-              "ZXY",
-            ),
-      );
+      target.setFromEuler(new THREE.Euler(
+        -0.08, 1.34 - (hovered ? 0.12 : 0), Math.PI / 2, "ZXY",
+      ));
+      openRotation.setFromEuler(new THREE.Euler(0.07 + pitch, -0.3 + turn, -0.04, "YXZ"));
+      target.slerp(openRotation, open);
       if (!book) {
         const reading = byId.get(id)!;
         book = makeBook(
@@ -402,25 +400,26 @@ export function mountBookScene(
         scene.add(book.group);
       }
       book.group.visible = true;
-      if (reduceMotion.matches) book.group.quaternion.copy(target);
+      // Layout, turn, and scale use the same progress. Only direct manipulation
+      // and hover use damping, so they stay responsive after the shelf settles.
+      if (reduceMotion.matches || transitioning) book.group.quaternion.copy(target);
       else if (book.group.quaternion.angleTo(target) > 0.002) {
         book.group.quaternion.slerp(target, blend);
         unsettled = true;
       }
-      const scale = expanded
-        ? Math.min((rect.width - 55) / 285, (rect.height - 36) / 390, 1.32)
-        : Math.min((rect.width - 64) / 364, 1.65);
+      const closedScale = Math.min((rect.width - 64) / 364, 1.65);
+      const openHeight = transitioning ? Number(row.dataset.openHeight || rect.height) : rect.height;
+      const openScale = Math.min((rect.width - 55) / 285, (openHeight - 36) / 390, 1.32);
+      const scale = THREE.MathUtils.lerp(closedScale, openScale, open);
       book.group.scale.setScalar(Math.max(0.3, scale));
-      const offset = expanded
-        ? 0
-        : ((bookDesign(byId.get(id)!).seed % 5) - 2) * 4;
+      const offset = ((bookDesign(byId.get(id)!).seed % 5) - 2) * 4 * (1 - open);
       book.group.position.set(
         rect.left + rect.width / 2 - width / 2 + offset,
         height / 2 -
           rect.top -
           rect.height / 2 +
-          (hovered && !expanded ? 5 : 0),
-        0,
+          (hovered ? 5 * (1 - open) : 0),
+        Math.sin(Math.PI * open) * 80,
       );
     }
     // Bound GPU memory even after browsing a very large sheet.
@@ -439,7 +438,7 @@ export function mountBookScene(
   mutations.observe(root, {
     attributes: true,
     subtree: true,
-    attributeFilter: ["data-expanded", "data-turn", "data-pitch"],
+    attributeFilter: ["data-expanded", "data-open-amount", "data-turn", "data-pitch"],
   });
   const contextLost = (event: Event) => {
     event.preventDefault();

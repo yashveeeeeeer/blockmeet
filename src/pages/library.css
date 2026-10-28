@@ -70,6 +70,7 @@
 .shelf-item {
   position: relative;
   min-width: 0;
+  display: flow-root;
 }
 .shelf-book {
   position: relative;
@@ -628,6 +629,7 @@
 .book-shelf:not(.is-flat) {
   max-width: 900px;
   margin-inline: auto;
+  overflow-anchor: none;
 }
 .is-open .shelf-book,
 .is-flat .shelf-book,

@@ -8,6 +8,7 @@ import {
 import type { CoverCatalog, Reading } from "../../lib/library";
 import { bookDesign } from "../../lib/book-design";
 import TitleCover from "./TitleCover";
+import useShelfMotion from "./useShelfMotion";
 
 function ShelfBook({
   reading,
@@ -39,19 +40,6 @@ function ShelfBook({
   const suppressClick = useRef(false);
   const design = bookDesign(reading);
   const button = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    if (!active) return;
-    const frame = requestAnimationFrame(() =>
-      button.current?.scrollIntoView({
-        block: "start",
-        behavior:
-          flat || matchMedia("(prefers-reduced-motion: reduce)").matches
-            ? "instant"
-            : "smooth",
-      }),
-    );
-    return () => cancelAnimationFrame(frame);
-  }, [active, flat]);
   const startDrag = (event: PointerEvent<HTMLButtonElement>) => {
     if (flat || !active || event.button !== 0) return;
     drag.current = {
@@ -139,6 +127,7 @@ function ShelfBook({
         className="shelf-book"
         data-book-id={reading.id}
         data-expanded={active}
+        data-open-amount={active ? 1 : 0}
         data-turn={turn}
         data-pitch={pitch}
         aria-expanded={active}
@@ -291,6 +280,7 @@ export default function BookShelf({
   const [unavailable, setUnavailable] = useState(false);
   const ready = rendered?.readings === readings && rendered?.covers === covers;
   const useFlat = flat || unavailable;
+  const captureMotion = useShelfMotion(root, active, useFlat, readings);
   const loading = !useFlat && !ready;
   useEffect(() => {
     if (flat || (active && !readings.some((reading) => reading.id === active)))
@@ -350,9 +340,10 @@ export default function BookShelf({
             active={!flat && active === reading.id}
             flat={useFlat}
             directLink={flat}
-            onSelect={() =>
-              setActive((value) => (value === reading.id ? null : reading.id))
-            }
+            onSelect={() => {
+              captureMotion();
+              setActive((value) => (value === reading.id ? null : reading.id));
+            }}
           />
         ))}
       </ol>
