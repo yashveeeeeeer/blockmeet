@@ -41,8 +41,9 @@ function ShelfBook({
   const [turn, setTurn] = useState(0);
   const [pitch, setPitch] = useState(0);
   const [imageFailed, setImageFailed] = useState(false);
-  const [previewLoaded, setPreviewLoaded] = useState(false);
+  const [decodedPreview, setDecodedPreview] = useState<string>();
   const preview = mobile ? shelfPreview(previews, reading, cover) : undefined;
+  const previewLoaded = !!preview && decodedPreview === preview;
   const drag = useRef<{
     x: number;
     y: number;
@@ -189,7 +190,13 @@ function ShelfBook({
           }
         }}
       >
-        {mobile && !flat && preview && <img className="shelf-preview" style={{ visibility: previewLoaded ? undefined : "hidden" }} src={`${import.meta.env.BASE_URL}library/${preview}`} alt="" aria-hidden="true" width="1050" height="315" loading={eager ? "eager" : "lazy"} decoding="async" onLoad={() => setPreviewLoaded(true)} onError={() => setPreviewLoaded(false)} />}
+        {mobile && !flat && preview && <img className="shelf-preview" style={{ visibility: previewLoaded ? undefined : "hidden" }} src={`${import.meta.env.BASE_URL}library/${preview}`} alt="" aria-hidden="true" width="1050" height="315" loading={eager ? "eager" : "lazy"} decoding="async" onLoad={async (event) => {
+          // Loading can finish before async decoding. Keep the immediate spine
+          // visible until the replacement has pixels ready to paint.
+          const image = event.currentTarget;
+          try { await image.decode(); setDecodedPreview(preview); }
+          catch { setDecodedPreview(undefined); }
+        }} onError={() => setDecodedPreview(undefined)} />}
         {!flat && <svg className="shelf-initial-spine" viewBox="0 0 600 142" aria-hidden="true">
           <path d="M30 8H600L570 100H0Z" fill={design.cloth} />
           <path d="M0 100H570V140H0Z" fill={design.cloth} />

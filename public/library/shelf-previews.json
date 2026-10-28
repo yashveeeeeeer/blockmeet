@@ -1,170 +1,212 @@
 {
   "33ubju": {
     "fingerprint": "[\"The Grug Brained Developer\",\"\",\"Essays\",\"\"]",
-    "image": "shelf-previews/33ubju.webp"
+    "image": "shelf-previews/33ubju.webp",
+    "revision": "0bb1743575e8"
   },
   "17huobq": {
     "fingerprint": "[\"Choose Boring Technology\",\"Dan McKinley\",\"Essays\",\"\"]",
-    "image": "shelf-previews/17huobq.webp"
+    "image": "shelf-previews/17huobq.webp",
+    "revision": "1aa90034f793"
   },
   "jadru2": {
     "fingerprint": "[\"The Web’s Grain\",\"Frank Chimero\",\"Essays\",\"\"]",
-    "image": "shelf-previews/jadru2.webp"
+    "image": "shelf-previews/jadru2.webp",
+    "revision": "177e3651b525"
   },
   "oucimv": {
     "fingerprint": "[\"What Screens Want\",\"Frank Chimero\",\"Essays\",\"\"]",
-    "image": "shelf-previews/oucimv.webp"
+    "image": "shelf-previews/oucimv.webp",
+    "revision": "5dde68287504"
   },
   "3z1iul": {
     "fingerprint": "[\"Up and Down the Ladder of Abstraction\",\"Bret Victor\",\"Essays\",\"\"]",
-    "image": "shelf-previews/3z1iul.webp"
+    "image": "shelf-previews/3z1iul.webp",
+    "revision": "5f01a8ff6224"
   },
   "md9ne": {
     "fingerprint": "[\"Leverage Points: Places to Intervene in a System\",\"Donella Meadows\",\"Essays\",\"covers/b60ed81bcf71c6c7013d.png\"]",
-    "image": "shelf-previews/md9ne.webp"
+    "image": "shelf-previews/md9ne.webp",
+    "revision": "f1a6cb34c3d0"
   },
   "130qiei": {
     "fingerprint": "[\"Pace Layering: How Complex Systems Learn and Keep Learning\",\"Stewart Brand\",\"Essays\",\"covers/4f990797c183f2224e5a.jpg\"]",
-    "image": "shelf-previews/130qiei.webp"
+    "image": "shelf-previews/130qiei.webp",
+    "revision": "d5a74f6f5342"
   },
   "1vbqgev": {
     "fingerprint": "[\"How Complex Systems Fail\",\"Richard I. Cook\",\"Essays\",\"\"]",
-    "image": "shelf-previews/1vbqgev.webp"
+    "image": "shelf-previews/1vbqgev.webp",
+    "revision": "9d529f0b3f11"
   },
   "1ecjx5f": {
     "fingerprint": "[\"Programming as Theory Building\",\"Peter Naur\",\"Essays\",\"\"]",
-    "image": "shelf-previews/1ecjx5f.webp"
+    "image": "shelf-previews/1ecjx5f.webp",
+    "revision": "4b37cbd55c20"
   },
   "go898z": {
     "fingerprint": "[\"The Shape of Design\",\"Frank Chimero\",\"Books\",\"covers/6ddf08a8f27503c2aa1b.svg\"]",
-    "image": "shelf-previews/go898z.webp"
+    "image": "shelf-previews/go898z.webp",
+    "revision": "a87503b50fc8"
   },
   "mbd80x": {
     "fingerprint": "[\"Who Could Write Protocol Fiction for Speculative Infrastructure?\",\"Matt Webb\",\"Essays\",\"covers/9c4caf18efae289a7a13.png\"]",
-    "image": "shelf-previews/mbd80x.webp"
+    "image": "shelf-previews/mbd80x.webp",
+    "revision": "46b7a2d621c4"
   },
   "4gn0bi": {
     "fingerprint": "[\"The Hard Work of Imagining\",\"Matt Webb\",\"Essays\",\"covers/c6303e18f54d3c1b48fb.png\"]",
-    "image": "shelf-previews/4gn0bi.webp"
+    "image": "shelf-previews/4gn0bi.webp",
+    "revision": "3cfc0d7001fa"
   },
   "15gb4zq": {
     "fingerprint": "[\"Context Plumbing\",\"Matt Webb\",\"Essays\",\"covers/cf09cd089a0546e1d7ec.png\"]",
-    "image": "shelf-previews/15gb4zq.webp"
+    "image": "shelf-previews/15gb4zq.webp",
+    "revision": "a880c3b31235"
   },
   "c461wb": {
     "fingerprint": "[\"How to Generate Color Palettes for Design Systems\",\"Matthew Ström\",\"Essays\",\"covers/9e8b2d31135b9791d69e.jpg\"]",
-    "image": "shelf-previews/c461wb.webp"
+    "image": "shelf-previews/c461wb.webp",
+    "revision": "7d47bad12863"
   },
   "1iseb7v": {
     "fingerprint": "[\"Color for Design Systems\",\"\",\"Essays\",\"\"]",
-    "image": "shelf-previews/1iseb7v.webp"
+    "image": "shelf-previews/1iseb7v.webp",
+    "revision": "8d101dc815ea"
   },
   "1wizaco": {
     "fingerprint": "[\"Data Organization in Spreadsheets\",\"Karl W. Broman & Kara H. Woo\",\"Essays\",\"\"]",
-    "image": "shelf-previews/1wizaco.webp"
+    "image": "shelf-previews/1wizaco.webp",
+    "revision": "72d0ac0667e9"
   },
   "1apr1nc": {
     "fingerprint": "[\"Tidy Data\",\"Hadley Wickham\",\"Essays\",\"\"]",
-    "image": "shelf-previews/1apr1nc.webp"
+    "image": "shelf-previews/1apr1nc.webp",
+    "revision": "a02cb10540c7"
   },
   "77asry": {
     "fingerprint": "[\"Table Schema 2.0\",\"Data Package Working Group\",\"Essays\",\"\"]",
-    "image": "shelf-previews/77asry.webp"
+    "image": "shelf-previews/77asry.webp",
+    "revision": "3f4a5cea62b7"
   },
   "1kiravb": {
     "fingerprint": "[\"Database Design Book\",\"Alexey Makhotkin\",\"Books\",\"covers/dbadb061d930cf6ea905.jpg\"]",
-    "image": "shelf-previews/1kiravb.webp"
+    "image": "shelf-previews/1kiravb.webp",
+    "revision": "a794ce017a12"
   },
   "1m32kng": {
     "fingerprint": "[\"Temporal Patterns\",\"Martin Fowler\",\"Essays\",\"\"]",
-    "image": "shelf-previews/1m32kng.webp"
+    "image": "shelf-previews/1m32kng.webp",
+    "revision": "4b36f0d9849d"
   },
   "1xbrf2c": {
     "fingerprint": "[\"Developing Time-Oriented Database Applications in SQL\",\"Richard T. Snodgrass\",\"Books\",\"covers/9498253614dcd04b821d.jpg\"]",
-    "image": "shelf-previews/1xbrf2c.webp"
+    "image": "shelf-previews/1xbrf2c.webp",
+    "revision": "b804e6709416"
   },
   "l7h8l9": {
     "fingerprint": "[\"Data and Reality\",\"William Kent\",\"Books\",\"covers/a331ff26098d08a0cb2c.jpg\"]",
-    "image": "shelf-previews/l7h8l9.webp"
+    "image": "shelf-previews/l7h8l9.webp",
+    "revision": "14b55a1e7241"
   },
   "ce0n7c": {
     "fingerprint": "[\"SQL Antipatterns, Volume 1\",\"Bill Karwin\",\"Books\",\"covers/3b9fdd060d7f3a787782.jpg\"]",
-    "image": "shelf-previews/ce0n7c.webp"
+    "image": "shelf-previews/ce0n7c.webp",
+    "revision": "840447976d5f"
   },
   "l5njsl": {
     "fingerprint": "[\"Database Design for Mere Mortals: 25th Anniversary Edition\",\"Michael J. Hernandez\",\"Books\",\"covers/726b5ecc7c7f94bbc245.jpg\"]",
-    "image": "shelf-previews/l5njsl.webp"
+    "image": "shelf-previews/l5njsl.webp",
+    "revision": "8152b0240e6e"
   },
   "1jpx61q": {
     "fingerprint": "[\"The Data Model Resource Book, Volume 1: A Library of Universal Data Models for All Enterprises\",\"Len Silverston & Graeme Simsion\",\"Books\",\"covers/508c476a3eefffad4e92.jpg\"]",
-    "image": "shelf-previews/1jpx61q.webp"
+    "image": "shelf-previews/1jpx61q.webp",
+    "revision": "7cf3969b5513"
   },
   "1ovjjhx": {
     "fingerprint": "[\"The Data Model Resource Book, Volume 3: Universal Patterns for Data Modeling\",\"Len Silverston & Paul Agnew\",\"Books\",\"covers/dd0b79f4160ddbb9ec94.jpg\"]",
-    "image": "shelf-previews/1ovjjhx.webp"
+    "image": "shelf-previews/1ovjjhx.webp",
+    "revision": "aef091df4bc9"
   },
   "8otjk4": {
     "fingerprint": "[\"Joe Celko's Trees and Hierarchies in SQL for Smarties, 2nd Edition\",\"Joe Celko\",\"Books\",\"covers/bf3185d58c2aed005435.jpg\"]",
-    "image": "shelf-previews/8otjk4.webp"
+    "image": "shelf-previews/8otjk4.webp",
+    "revision": "3a505340e230"
   },
   "1pzy7c1": {
     "fingerprint": "[\"PostgreSQL 18 Documentation\",\"PostgreSQL Global Development Group\",\"Essays\",\"covers/ff92fb5d12a7fa6b23c2.png\"]",
-    "image": "shelf-previews/1pzy7c1.webp"
+    "image": "shelf-previews/1pzy7c1.webp",
+    "revision": "2b01d356d068"
   },
   "1pzx908": {
     "fingerprint": "[\"Evolutionary Database Design\",\"Martin Fowler & Pramod Sadalage\",\"Essays\",\"covers/5c31140c7542c4ba3fc7.png\"]",
-    "image": "shelf-previews/1pzx908.webp"
+    "image": "shelf-previews/1pzx908.webp",
+    "revision": "651314c5c27b"
   },
   "11zjjbf": {
     "fingerprint": "[\"Use The Index, Luke!\",\"Markus Winand\",\"Books\",\"covers/16165f08275f4933fd69.png\"]",
-    "image": "shelf-previews/11zjjbf.webp"
+    "image": "shelf-previews/11zjjbf.webp",
+    "revision": "7777dfa876ac"
   },
   "j13onj": {
     "fingerprint": "[\"The Data Warehouse Toolkit: The Definitive Guide to Dimensional Modeling, 3rd Edition\",\"Ralph Kimball & Margy Ross\",\"Books\",\"covers/89a817c476fe40b411ff.jpg\"]",
-    "image": "shelf-previews/j13onj.webp"
+    "image": "shelf-previews/j13onj.webp",
+    "revision": "6aee287acba2"
   },
   "13ocf8r": {
     "fingerprint": "[\"Designing Data-Intensive Applications, 2nd Edition\",\"Martin Kleppmann & Chris Riccomini\",\"Books\",\"covers/4d92efd74a14421e1df0.jpg\"]",
-    "image": "shelf-previews/13ocf8r.webp"
+    "image": "shelf-previews/13ocf8r.webp",
+    "revision": "6ae8b371eaa1"
   },
   "qqswwi": {
     "fingerprint": "[\"Data Pipelines Pocket Reference\",\"James Densmore\",\"Books\",\"covers/49b5a28c1d47f22132a1.jpg\"]",
-    "image": "shelf-previews/qqswwi.webp"
+    "image": "shelf-previews/qqswwi.webp",
+    "revision": "536894f24f93"
   },
   "1mm6gnl": {
     "fingerprint": "[\"Fundamentals of Data Engineering\",\"Joe Reis & Matt Housley\",\"Books\",\"covers/294b8d56b2e689f5b5a9.jpg\"]",
-    "image": "shelf-previews/1mm6gnl.webp"
+    "image": "shelf-previews/1mm6gnl.webp",
+    "revision": "8dc94e637dcd"
   },
   "q47yvh": {
     "fingerprint": "[\"An Engineer's Guide to Data Contracts - Pt. 1\",\"Chad Sanderson & Adrian Kreuziger\",\"Essays\",\"covers/43d4d8dbc17711361e2c.jpg\"]",
-    "image": "shelf-previews/q47yvh.webp"
+    "image": "shelf-previews/q47yvh.webp",
+    "revision": "d333bc687c56"
   },
   "10fezj5": {
     "fingerprint": "[\"Data Modeling Essentials, 3rd Edition\",\"Graeme Simsion & Graham Witt\",\"Books\",\"covers/c3796580c62946b5a8b4.jpg\"]",
-    "image": "shelf-previews/10fezj5.webp"
+    "image": "shelf-previews/10fezj5.webp",
+    "revision": "563517cd81fc"
   },
   "he5gy": {
     "fingerprint": "[\"Database Internals\",\"Alex Petrov\",\"Books\",\"covers/cb14924867cd3a1d0e78.jpg\"]",
-    "image": "shelf-previews/he5gy.webp"
+    "image": "shelf-previews/he5gy.webp",
+    "revision": "b32be2999512"
   },
   "9ejeht": {
     "fingerprint": "[\"CMU 15-445/645: Intro to Database Systems (Fall 2025)\",\"Andy Pavlo\",\"Essays\",\"covers/228adbb7901b7a17638d.jpg\"]",
-    "image": "shelf-previews/9ejeht.webp"
+    "image": "shelf-previews/9ejeht.webp",
+    "revision": "72f672a21321"
   },
   "13cp66o": {
     "fingerprint": "[\"Bitemporal History\",\"Martin Fowler\",\"Essays\",\"covers/f595da8732ddc50dd3a4.png\"]",
-    "image": "shelf-previews/13cp66o.webp"
+    "image": "shelf-previews/13cp66o.webp",
+    "revision": "c67c5c715e0f"
   },
   "16jxmox": {
     "fingerprint": "[\"Ubiquitous Language\",\"Martin Fowler\",\"Essays\",\"\"]",
-    "image": "shelf-previews/16jxmox.webp"
+    "image": "shelf-previews/16jxmox.webp",
+    "revision": "b69cccfb29cb"
   },
   "8pf2zn": {
     "fingerprint": "[\"Bounded Context\",\"Martin Fowler\",\"Essays\",\"covers/b0d0ae95afbbb1cdc893.png\"]",
-    "image": "shelf-previews/8pf2zn.webp"
+    "image": "shelf-previews/8pf2zn.webp",
+    "revision": "90281153e63a"
   },
   "1pitr15": {
     "fingerprint": "[\"Using Data Model Patterns for Rapid Applications Development\",\"David C. Hay\",\"Essays\",\"\"]",
-    "image": "shelf-previews/1pitr15.webp"
+    "image": "shelf-previews/1pitr15.webp",
+    "revision": "06c4ef9f28b4"
   }
 }

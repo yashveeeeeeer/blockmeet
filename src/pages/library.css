@@ -53,10 +53,9 @@
   position: relative;
   z-index: 3;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 20px;
   padding-bottom: 16px;
-  border-bottom: 1px solid var(--library-line);
   font-family: monospace;
   font-size: 11px;
   letter-spacing: 0.04em;
