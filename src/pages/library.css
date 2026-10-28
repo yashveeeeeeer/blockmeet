@@ -780,6 +780,11 @@
   --binding-ink: var(--library-ink) !important;
   min-width: 0;
 }
+.is-flat .shelf-item:not(.is-open) {
+  width: 100%;
+  max-width: 230px;
+  justify-self: center;
+}
 .is-flat .shelf-book,
 .is-flat .is-open .shelf-book {
   width: 100%;
@@ -800,10 +805,9 @@
 }
 .is-flat .binding-cover,
 .is-flat .is-open .binding-cover {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: space-between;
+  display: grid;
+  grid-template-rows: 12px minmax(0, 1fr) 36px 12px;
+  align-items: stretch;
   gap: 12px;
   width: 100%;
   height: 100%;
@@ -818,23 +822,41 @@
   box-shadow: none;
   transform: none;
   text-align: left;
+  overflow: hidden;
 }
-.is-flat .binding-cover:has(img) {
+.is-flat .binding-cover:has(img),
+.is-flat .is-open .binding-cover:has(img) {
+  display: block;
   padding: 0;
   border-left-width: 1px;
 }
 .is-flat .binding-cover img {
+  display: block;
   object-fit: contain;
 }
 .library-eink .binding-cover img {
   filter: grayscale(1);
 }
 .is-flat .binding-cover strong {
-  font-size: clamp(16px, 1.7vw, 23px);
+  display: block;
+  width: 100%;
+  font-size: 16px;
   line-height: 1.2;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 .is-flat .binding-cover em {
+  display: block;
+  width: 100%;
+  line-height: 1.3;
   font-size: 12px;
+}
+.cover-title-slot,
+.cover-author-slot {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  min-height: 0;
 }
 .is-flat .binding-cover small {
   font-size: 8px;
@@ -848,6 +870,7 @@
     serif;
   color: var(--library-ink);
   text-align: left;
+  overflow-wrap: anywhere;
 }
 .is-flat .shelf-item.is-open {
   grid-column: 1 / -1;
@@ -888,8 +911,11 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 24px 16px;
   }
-  .is-flat .binding-cover {
+  .is-flat .binding-cover,
+  .is-flat .is-open .binding-cover {
     padding: 16px 12px;
+    gap: 8px;
+    grid-template-rows: 10px minmax(0, 1fr) 30px 10px;
   }
   .is-flat .binding-cover strong {
     font-size: 16px;
@@ -901,9 +927,6 @@
   .is-flat .is-open .shelf-book {
     max-width: 210px;
     scroll-margin-top: 85px;
-  }
-  .is-flat .is-open .binding-cover strong {
-    font-size: 21px;
   }
   .is-flat .book-details {
     margin-top: 24px;

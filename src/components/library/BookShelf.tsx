@@ -7,6 +7,7 @@ import {
 } from "react";
 import type { CoverCatalog, Reading } from "../../lib/library";
 import { bookDesign } from "../../lib/book-design";
+import TitleCover from "./TitleCover";
 
 function ShelfBook({
   reading,
@@ -145,12 +146,7 @@ function ShelfBook({
                 onError={() => setImageFailed(true)}
               />
             ) : (
-              <>
-                <small>ATHENAEUM</small>
-                <strong>{reading.title}</strong>
-                <em>{reading.author}</em>
-                <small>{reading.type}</small>
-              </>
+              <TitleCover reading={reading} enabled={flat} />
             )}
           </span>
         </span>
