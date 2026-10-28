@@ -10,6 +10,9 @@ import { bookDesign } from "../../lib/book-design";
 import TitleCover from "./TitleCover";
 import useShelfMotion from "./useShelfMotion";
 
+// Start the renderer download with the library module, not after its first effect.
+const sceneModule = import("./book-scene");
+
 function ShelfBook({
   reading,
   index,
@@ -178,6 +181,13 @@ function ShelfBook({
           }
         }}
       >
+        {!flat && <svg className="shelf-initial-spine" viewBox="0 0 600 142" aria-hidden="true">
+          <path d="M30 8H600L570 100H0Z" fill={design.cloth} />
+          <path d="M0 100H570V140H0Z" fill={design.cloth} />
+          <path d="M570 100L600 8V48L570 140Z" fill="#d5d0bf" />
+          <path d="M0 101H570" stroke={design.ink} opacity=".2" />
+          <text x="285" y="127" textAnchor="middle" fill={design.ink} fontFamily="Georgia, serif" fontSize={Math.min(25, 950 / reading.title.length)}>{reading.title}</text>
+        </svg>}
         {coverContent}
       </button>
       <span className="shelf-mobile-title" aria-hidden="true">
@@ -364,7 +374,7 @@ export default function BookShelf({
     let cancelled = false;
     let dispose: (() => void) | undefined;
     let canvas: HTMLCanvasElement | undefined;
-    import("./book-scene")
+    sceneModule
       .then(({ mountBookScene }) => {
         if (cancelled || !root.current || !canvasHost.current) return;
         canvas = document.createElement("canvas");
@@ -373,9 +383,8 @@ export default function BookShelf({
         try {
           dispose = mountBookScene(root.current, canvas, readings, covers, () =>
             setUnavailable(true),
+            () => { if (!cancelled) setRendered({ readings, covers }); },
           );
-          // mountBookScene has drawn the first frame in its final orientation.
-          setRendered({ readings, covers });
         } catch {
           canvas.remove();
           setUnavailable(true);
@@ -428,12 +437,7 @@ export default function BookShelf({
           </div>
         </nav>
       )}
-      {loading && (
-        <p className="shelf-loading" role="status">
-          Preparing the bookshelf…
-        </p>
-      )}
-      <ol className="shelf-stack" aria-hidden={loading || undefined}>
+      <ol className="shelf-stack">
         {readings.map((reading, index) => (
           <ShelfBook
             key={reading.id}

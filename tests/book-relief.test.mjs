@@ -21,9 +21,20 @@ test('raised lettering preserves counters, has shallow relief, and faces outward
     const z = positions.getZ(i);
     assert.ok(z >= 0 && z < .651);
     if (z > .6) raised++;
-    assert.ok(Number.isFinite(normal.getZ(i)) && normal.getZ(i) > 0);
+    assert.ok(Number.isFinite(normal.getZ(i)));
+    assert.ok(Math.abs(Math.hypot(normal.getX(i), normal.getY(i), normal.getZ(i)) - 1) < .001);
+    if (z > .6) assert.ok(normal.getZ(i) > 0);
   }
   assert.ok(raised > 0);
+  assert.ok(geometry.index.count / 3 < 200, "a simple ring must not be tessellated per pixel");
+  for (let i = 0; i < geometry.index.count; i += 3) {
+    const ids = [0,1,2].map(offset => geometry.index.array[i+offset]);
+    if (ids.every(id => positions.getZ(id) > .6)) {
+      const x = ids.reduce((sum,id) => sum + (positions.getX(id)+16)*4, 0)/3;
+      const y = ids.reduce((sum,id) => sum + (16-positions.getY(id))*4, 0)/3;
+      assert.ok(!(x > 38 && x < 82 && y > 38 && y < 82), "front triangles must not fill the counter");
+    }
+  }
   for (const index of geometry.index.array) assert.ok(index < positions.count);
   geometry.dispose();
   const blank = raisedLettering(mask(() => false), 32, 32);

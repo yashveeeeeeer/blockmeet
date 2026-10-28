@@ -350,19 +350,18 @@
 .has-webgl .shelf-canvas {
   visibility: visible;
 }
-.is-loading .shelf-stack {
-  visibility: hidden;
-}
-.shelf-loading {
+.shelf-initial-spine {
   position: absolute;
-  top: 42px;
-  width: 100%;
-  text-align: center;
-  font:
-    14px Georgia,
-    serif;
-  color: var(--library-muted);
+  width: min(calc(100% - 64px), 600px);
+  height: auto;
+  max-height: 142px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
 }
+.has-webgl .shelf-book[data-scene-ready] .shelf-initial-spine,
+.is-flat .shelf-initial-spine { visibility: hidden; }
 .book-actions {
   flex-wrap: wrap;
 }

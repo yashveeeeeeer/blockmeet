@@ -1,8 +1,18 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { bookDesign, wrapBookTitle } from "../src/lib/book-design.ts";
+import { bookDesign, wrapBookTitle, largestFittingSize } from "../src/lib/book-design.ts";
 import { readingsFromCSV, mergeReadings } from "../src/lib/library.ts";
+
+test("font fitting finds the same size with bounded measurements", () => {
+  for (let limit = 10; limit <= 65; limit++) {
+    let calls = 0;
+    const size = largestFittingSize(17, 60, 1, (value) => { calls++; return value <= limit; });
+    assert.equal(size, Math.max(17, Math.min(60, limit)));
+    assert.ok(calls <= 7);
+  }
+  assert.equal(largestFittingSize(16,56,2,size => size <= 37),36);
+});
 
 test("book bindings are stable when the sheet is filtered or reordered", async () => {
   const root = new URL("../public/library/", import.meta.url);

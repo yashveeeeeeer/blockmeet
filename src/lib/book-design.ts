@@ -11,6 +11,16 @@ const bindings = [
   ["#d9d4c5", "#3c4540"],
 ];
 
+export function largestFittingSize(min: number, max: number, step: number, fits: (size: number) => boolean) {
+  if (fits(max)) return max;
+  let low = 0, high = Math.floor((max - min) / step) - 1, best = min;
+  while (low <= high) {
+    const mid = Math.floor((low + high) / 2), size = min + mid * step;
+    if (fits(size)) { best = size; low = mid + 1; } else high = mid - 1;
+  }
+  return best;
+}
+
 export function bookDesign(reading: Reading) {
   const seed = parseInt(reading.id, 36) || 0;
   const [cloth, ink] = bindings[seed % bindings.length];

@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
-import WorldPage from "./pages/WorldPage";
+const WorldPage = lazy(() => import("./pages/WorldPage"));
 
 const WritingsPage = lazy(() => import("./pages/WritingsPage"));
 const LibraryPage = lazy(() => import("./pages/LibraryPage"));
