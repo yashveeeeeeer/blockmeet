@@ -314,9 +314,13 @@
   "l5njsl": {
     "title": "Database Design for Mere Mortals: 25th Anniversary Edition",
     "images": [
-      "covers/45bf2ffb610a8f23b207.jpg"
+      "covers/726b5ecc7c7f94bbc245.jpg"
     ],
     "attempts": [
+      {
+        "source": "Verified cover",
+        "result": "Higher resolution: https://www.informit.com/ShowCover.aspx?isbn=9780136788041&type=l"
+      },
       {
         "source": "Verified cover",
         "result": "Found: https://www.informit.com/ShowCover.aspx?isbn=9780136788041&type=f"
@@ -350,9 +354,13 @@
   "8otjk4": {
     "title": "Joe Celko's Trees and Hierarchies in SQL for Smarties, 2nd Edition",
     "images": [
-      "covers/9459e6163f249ce79b6c.jpg"
+      "covers/bf3185d58c2aed005435.jpg"
     ],
     "attempts": [
+      {
+        "source": "Verified cover",
+        "result": "Higher resolution: https://learning.oreilly.com/library/cover/9780123877338/1000w/"
+      },
       {
         "source": "Verified cover",
         "result": "Found: https://learning.oreilly.com/library/cover/9780123877338/"
@@ -410,9 +418,13 @@
   "13ocf8r": {
     "title": "Designing Data-Intensive Applications, 2nd Edition",
     "images": [
-      "covers/7bbdc21820560c94b6a3.jpg"
+      "covers/4d92efd74a14421e1df0.jpg"
     ],
     "attempts": [
+      {
+        "source": "Verified cover",
+        "result": "Higher resolution: https://learning.oreilly.com/library/cover/9781098119058/1000w/"
+      },
       {
         "source": "Verified cover",
         "result": "Found: https://learning.oreilly.com/library/cover/9781098119058/"

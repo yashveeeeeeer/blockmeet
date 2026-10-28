@@ -97,7 +97,7 @@ async function findCover(reading) {
   if (override?.images.length) found = await attempt("Verified cover", async () => override.images);
   // Use the exact edition's ISBN when the publisher includes it in the URL.
   const oreillyISBN = reading.url.match(/oreilly\.com\/library\/view\/[^/]+\/(\d{13})/)?.[1];
-  if (!found && oreillyISBN) found = await attempt("Publisher ISBN cover", async () => [`https://learning.oreilly.com/library/cover/${oreillyISBN}/`]);
+  if (!found && oreillyISBN) found = await attempt("Publisher ISBN cover", async () => [`https://learning.oreilly.com/library/cover/${oreillyISBN}/1000w/`]);
   let sourceHTML = "";
   if (!found && reading.url) found = await attempt("Source page metadata", async () => {
     const response = await request(reading.url);
