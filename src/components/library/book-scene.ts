@@ -39,11 +39,38 @@ function cloth(
   for (let y = 0; y < height; y += 3) ctx.fillRect(0, y, width, 1);
 }
 
+// A small, locally generated studio reflection shared by all foil accents.
+// Keeping it off the printed surfaces protects their colors and typography.
+function foilStudio(renderer: THREE.WebGLRenderer) {
+  const studio = canvas(512, 256);
+  studio.ctx.fillStyle = "#696c73";
+  studio.ctx.fillRect(0, 0, 512, 256);
+  for (const [x, width] of [
+    [60, 100],
+    [310, 45],
+  ]) {
+    const light = studio.ctx.createLinearGradient(x, 0, x + width, 0);
+    light.addColorStop(0, "#696c73");
+    light.addColorStop(0.5, "#ffffff");
+    light.addColorStop(1, "#696c73");
+    studio.ctx.fillStyle = light;
+    studio.ctx.fillRect(x, 0, width, 256);
+  }
+  const map = texture(studio.element);
+  map.mapping = THREE.EquirectangularReflectionMapping;
+  const generator = new THREE.PMREMGenerator(renderer);
+  const environment = generator.fromEquirectangular(map);
+  generator.dispose();
+  map.dispose();
+  return environment;
+}
+
 function makeBook(
   reading: Reading,
   cover: string | undefined,
   invalidate: () => void,
   isAlive: () => boolean,
+  foilEnvironment: THREE.Texture,
 ): Book {
   const design = bookDesign(reading);
   const front = canvas(512, 768);
@@ -78,13 +105,6 @@ function makeBook(
     (text) => front.ctx.measureText(text).width,
     410,
   ).forEach((line, i) => front.ctx.fillText(line, 46, 556 + i * 27));
-  front.ctx.globalAlpha = 0.5;
-  for (let i = 0; i < 6; i++) {
-    front.ctx.beginPath();
-    front.ctx.arc(390, 657, 24 + i * 10, Math.PI, Math.PI * 2);
-    front.ctx.stroke();
-  }
-  front.ctx.globalAlpha = 1;
   front.ctx.fillRect(46, 704, 420, 1);
   front.ctx.font = "15px sans-serif";
   front.ctx.fillText(reading.type.toUpperCase(), 46, 737);
@@ -118,23 +138,45 @@ function makeBook(
     map: pageMap,
     roughness: 0.95,
   });
-  // A clear varnish sits above the printed color, so reflections move with the
-  // book without baking glare into the cover artwork. Paper stays matte.
-  const coating = { clearcoat: 0.85, clearcoatRoughness: 0.28, metalness: 0 };
+  // Satin printed surfaces keep the ink readable even at the specular angle.
+  // Reflective finishes live on separate, raised accents, not over the title.
+  const coating = {
+    clearcoat: 0.08,
+    clearcoatRoughness: 0.6,
+    specularIntensity: 0.2,
+    metalness: 0,
+  };
   const binding = new THREE.MeshPhysicalMaterial({
     ...coating,
     color: design.cloth,
-    roughness: 0.55,
+    roughness: 0.8,
   });
   const face = new THREE.MeshPhysicalMaterial({
     ...coating,
     map: frontMap,
-    roughness: 0.45,
+    roughness: 0.82,
   });
+  if (!(cover && reading.type === "Books")) {
+    // A restrained, angle-dependent tint on the lower cloth and hinge. This
+    // multiplies the printed color rather than adding white over the ink.
+    face.onBeforeCompile = (shader) => {
+      shader.fragmentShader = shader.fragmentShader.replace(
+        "#include <normal_fragment_maps>",
+        `#include <normal_fragment_maps>
+        float phase = vMapUv.x * 9.0 + vMapUv.y * 5.0 + normal.x * 5.0 + normal.y * 3.0;
+        vec3 filmTint = ${design.finish === "iridescent"
+          ? "0.77 + 0.23 * cos(phase + vec3(0.0, 2.1, 4.2))"
+          : "mix(vec3(0.76, 0.55, 0.25), vec3(1.0, 0.92, 0.68), 0.5 + 0.5 * cos(phase))"};
+        float filmArea = max(1.0 - smoothstep(0.22, 0.43, vMapUv.y), 1.0 - smoothstep(0.05, 0.18, vMapUv.x));
+        diffuseColor.rgb *= mix(vec3(1.0), filmTint, filmArea * 0.7);`,
+      );
+    };
+    face.customProgramCacheKey = () => `cloth-film-${design.finish}`;
+  }
   const spineMat = new THREE.MeshPhysicalMaterial({
     ...coating,
     map: spineMap,
-    roughness: 0.55,
+    roughness: 0.8,
   });
   const blockGeo = new THREE.BoxGeometry(238, 356, design.thickness - 5);
   const boardGeo = new THREE.BoxGeometry(246, 364, 3);
@@ -164,11 +206,73 @@ function makeBook(
   ]);
   bindingMesh.position.x = -122;
   group.add(bindingMesh);
+  const film = canvas(32, 256);
+  const filmGradient = film.ctx.createLinearGradient(0, 0, 32, 256);
+  filmGradient.addColorStop(0, "#181818");
+  filmGradient.addColorStop(0.45, "#cccccc");
+  filmGradient.addColorStop(1, "#444444");
+  film.ctx.fillStyle = filmGradient;
+  film.ctx.fillRect(0, 0, 32, 256);
+  const filmMap = new THREE.CanvasTexture(film.element); // thickness data, not sRGB
+  const rainbow = design.finish === "iridescent";
+  const foilColor = canvas(32, 256);
+  const foilGradient = foilColor.ctx.createLinearGradient(0, 0, 32, 256);
+  const foilColors = rainbow
+    ? ["#82dcd5", "#e2acd5", "#b7b4ee", "#f1d795", "#87d5d2"]
+    : ["#936229", "#ead28a", "#b98535", "#f2dc9a", "#a77831"];
+  foilColors.forEach((color, i) => foilGradient.addColorStop(i / 4, color));
+  foilColor.ctx.fillStyle = foilGradient;
+  foilColor.ctx.fillRect(0, 0, 32, 256);
+  const foilMap = texture(foilColor.element);
+  const foil = new THREE.MeshPhysicalMaterial({
+    map: foilMap,
+    metalness: 0.72,
+    roughness: 0.3,
+    clearcoat: 0.12,
+    clearcoatRoughness: 0.4,
+    iridescence: rainbow ? 1 : 0,
+    iridescenceIOR: 1.45,
+    iridescenceThicknessRange: [180, 650],
+    iridescenceThicknessMap: filmMap,
+    envMap: foilEnvironment,
+    envMapIntensity: 1.1,
+  });
+  // Rounded raised ribs along the hinge catch narrow glints as the book turns.
+  const ribGeo = new THREE.CylinderGeometry(1.5, 1.5, 348, 8);
+  const ribbonGeo = new THREE.BoxGeometry(7, 348, 0.7);
+  const frontZ = design.thickness / 2 + 1.5;
+  for (const x of [-118, -109]) {
+    const rib = new THREE.Mesh(ribGeo, foil);
+    rib.position.set(x, 0, frontZ);
+    group.add(rib);
+  }
+  const ribbon = new THREE.Mesh(ribbonGeo, foil);
+  ribbon.position.set(-113.5, 0, frontZ + 0.2);
+  group.add(ribbon);
+  const ornamentGeometries: THREE.BufferGeometry[] = [];
+  // Embossed semicircles sit below the text on our generated title bindings.
+  // Publisher artwork retains only the narrow hinge trim at its outer margin.
+  if (!(cover && reading.type === "Books")) {
+    for (let i = 0; i < 6; i++) {
+      const arcGeo = new THREE.TorusGeometry(12 + i * 5, 1.2, 6, 40, Math.PI);
+      const arc = new THREE.Mesh(arcGeo, foil);
+      arc.position.set(64, -129, frontZ + 0.2);
+      group.add(arc);
+      ornamentGeometries.push(arcGeo);
+    }
+  }
   const book: Book = {
     group,
-    textures: [frontMap, spineMap, pageMap],
-    materials: [paper, binding, face, spineMat],
-    geometries: [blockGeo, boardGeo, spineGeo],
+    textures: [frontMap, spineMap, pageMap, filmMap, foilMap],
+    materials: [paper, binding, face, spineMat, foil],
+    geometries: [
+      blockGeo,
+      boardGeo,
+      spineGeo,
+      ribGeo,
+      ribbonGeo,
+      ...ornamentGeometries,
+    ],
   };
 
   // Only actual book covers are used. Essay previews become consistent title bindings.
@@ -212,6 +316,7 @@ export function mountBookScene(
   renderer.toneMapping = THREE.NeutralToneMapping;
   renderer.toneMappingExposure = 0.9;
   renderer.setClearColor(0x000000, 0);
+  const foilEnvironment = foilStudio(renderer);
   const scene = new THREE.Scene();
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 1, 3000);
   camera.position.z = 1600;
@@ -224,7 +329,7 @@ export function mountBookScene(
   scene.add(fill);
   // A nearby studio light produces a broad, moving highlight across the flat
   // boards. Directional light alone gives an almost uniform reflection.
-  const gloss = new THREE.PointLight(0xfff6e8, 160000, 0, 2);
+  const gloss = new THREE.PointLight(0xfff6e8, 35000, 0, 2);
   gloss.position.set(-120, -30, 480);
   scene.add(gloss);
   const books = new Map<string, Book>();
@@ -285,7 +390,13 @@ export function mountBookScene(
       );
       if (!book) {
         const reading = byId.get(id)!;
-        book = makeBook(reading, covers[id]?.images[0], schedule, () => alive);
+        book = makeBook(
+          reading,
+          covers[id]?.images[0],
+          schedule,
+          () => alive,
+          foilEnvironment.texture,
+        );
         book.group.quaternion.copy(target);
         books.set(id, book);
         scene.add(book.group);
@@ -359,6 +470,7 @@ export function mountBookScene(
     root.removeEventListener("focusout", schedule);
     canvasElement.removeEventListener("webglcontextlost", contextLost);
     books.forEach(disposeBook);
+    foilEnvironment.dispose();
     renderer.dispose();
     renderer.forceContextLoss();
   };

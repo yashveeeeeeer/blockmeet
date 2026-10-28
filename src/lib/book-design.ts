@@ -18,6 +18,7 @@ export function bookDesign(reading: Reading) {
     cloth,
     ink,
     seed,
+    finish: seed % 2 === 0 ? ("iridescent" as const) : ("gold" as const),
     thickness: reading.type === "Books" ? 35 + (seed % 14) : 27 + (seed % 9),
   };
 }
