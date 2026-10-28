@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { shelfProgress, interpolate, SHELF_MOTION_MS } from "../src/lib/shelf-motion.ts";
+import { shelfProgress, interpolate, SHELF_MOTION_MS, focusedBookRect, awayBookRect } from "../src/lib/shelf-motion.ts";
 
 test("shelf motion settles exactly and never overshoots at different frame rates", () => {
   assert.equal(shelfProgress(-1), 0);
@@ -12,6 +12,27 @@ test("shelf motion settles exactly and never overshoots at different frame rates
       const progress = shelfProgress(ms);
       assert.ok(progress >= previous && progress <= 1);
       previous = progress;
+    }
+  }
+});
+
+test("focused covers stay horizontally centered on desktop and mobile", () => {
+  for (const [width, height] of [[390, 844], [1280, 720], [1440, 1000]]) {
+    const rect = focusedBookRect(width, height);
+    assert.equal(rect.left + rect.width / 2, width / 2);
+    assert.ok(rect.left >= 36);
+    assert.ok(rect.top > 0 && rect.top + rect.height < height - 100);
+  }
+});
+
+test("every other book leaves the viewport in sheet order, including end selections", () => {
+  const home = { left: 100, top: 200, width: 900, height: 142 };
+  for (const selected of [0, 20, 41]) {
+    for (let index = 0; index < 42; index++) {
+      if (index === selected) continue;
+      const rect = awayBookRect(home, index, selected, 844);
+      assert.ok(index < selected ? rect.top + rect.height < -400 : rect.top > 1244);
+      assert.deepEqual({ ...rect, top: home.top }, home);
     }
   }
 });

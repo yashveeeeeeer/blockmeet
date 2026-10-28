@@ -1,124 +1,147 @@
 import { useLayoutEffect, useRef, type RefObject } from "react";
 import type { Reading } from "../../lib/library";
-import { interpolate, shelfProgress, SHELF_MOTION_MS } from "../../lib/shelf-motion";
+import { awayBookRect, focusedBookRect, interpolate, shelfProgress, type ShelfRect } from "../../lib/shelf-motion";
 
-type Snapshot = { height: number; bookHeight: number; open: number };
+type Snapshot = { rect: ShelfRect; open: number };
+const positionProperties = ["position", "left", "top", "width", "height"];
 
-// Animate the actual layout, so the canvas, hit targets, and neighboring books
-// follow the same geometry. Capture the current frame before React changes it;
-// this also makes a second selection mid-animation start without a jump.
+// Keep the shelf's document layout while its covers travel in viewport space.
+// Closing returns to the same slots without moving the reader's scroll.
 export default function useShelfMotion(
   root: RefObject<HTMLDivElement>,
   active: string | null,
   flat: boolean,
   readings: Reading[],
 ) {
+  const home = useRef(new Map<string, ShelfRect>());
+  const slots = useRef(new Map<string, number>());
   const pending = useRef<Map<string, Snapshot> | null>(null);
-  const returnScroll = useRef(0);
   const frame = useRef(0);
-
-  const capture = () => {
-    if (flat || !root.current) return;
+  const unlock = useRef<(() => void) | null>(null);
+  const rows = () => [...(root.current?.querySelectorAll<HTMLButtonElement>(".shelf-book") || [])];
+  const clearPositions = () => rows().forEach((book) => {
+    positionProperties.forEach((property) => book.style.removeProperty(property));
+    book.parentElement!.style.removeProperty("height");
+  });
+  const reset = () => {
     cancelAnimationFrame(frame.current);
-    if (!active) returnScroll.current = window.scrollY;
-    pending.current = new Map(
-      [...root.current.querySelectorAll<HTMLElement>(".shelf-book")].map((book) => [
-        book.dataset.bookId!,
-        {
-          height: book.parentElement!.getBoundingClientRect().height,
-          bookHeight: book.getBoundingClientRect().height,
-          open: Number(book.dataset.openAmount || 0),
-        },
-      ]),
-    );
+    clearPositions();
+    rows().forEach((book) => {
+      book.parentElement!.inert = false;
+      book.parentElement!.querySelector<HTMLElement>(".book-details")?.style.removeProperty("opacity");
+    });
+    root.current?.removeAttribute("data-focus-view");
+    root.current?.style.removeProperty("--focus-progress");
+    home.current.clear();
+    slots.current.clear();
+    unlock.current?.();
+    unlock.current = null;
+  };
+  const capture = () => {
+    if (flat) return;
+    cancelAnimationFrame(frame.current);
+    const books = rows();
+    pending.current = new Map(books.map((book) => [book.dataset.bookId!, {
+      rect: book.getBoundingClientRect(),
+      open: Number(book.dataset.openAmount || 0),
+    }]));
+    if (!home.current.size)
+      books.forEach((book) => {
+        home.current.set(book.dataset.bookId!, book.getBoundingClientRect());
+        slots.current.set(book.dataset.bookId!, book.parentElement!.getBoundingClientRect().height);
+      });
   };
 
   useLayoutEffect(() => {
+    if (flat || (!active && !pending.current)) {
+      reset();
+      return;
+    }
+    const books = rows();
     const snapshots = pending.current;
     pending.current = null;
-    const rows = [...(root.current?.querySelectorAll<HTMLElement>(".shelf-book") || [])];
-    for (const book of rows) {
-      book.style.removeProperty("height");
-      book.parentElement!.style.removeProperty("height");
+    if (!snapshots) {
+      // A refreshed collection must never inherit stale viewport coordinates.
+      clearPositions();
+      books.forEach((book) => {
+        home.current.set(book.dataset.bookId!, book.getBoundingClientRect());
+        slots.current.set(book.dataset.bookId!, book.parentElement!.getBoundingClientRect().height);
+      });
     }
-    if (flat || !snapshots) return;
+    const selectedIndex = readings.findIndex((reading) => reading.id === active);
     const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
-    const startScroll = window.scrollY;
-    const selected = rows.find((book) => book.dataset.bookId === active);
-    const targetScroll = Math.max(0, Math.min(
-      selected ? selected.getBoundingClientRect().top + startScroll - 24 : returnScroll.current,
-      document.documentElement.scrollHeight - innerHeight,
-    ));
-    const targets = rows.map((book) => {
-      const item = book.parentElement!;
-      const open = book.dataset.bookId === active ? 1 : 0;
-      const bookHeight = book.getBoundingClientRect().height;
-      if (open) book.dataset.openHeight = String(bookHeight);
-      return {
-        book, item, open, bookHeight,
-        height: item.getBoundingClientRect().height,
-        from: snapshots.get(book.dataset.bookId!),
-        details: item.querySelector<HTMLElement>(".book-details"),
+    if (!unlock.current) {
+      const overflow = document.body.style.overflow;
+      const gutter = document.documentElement.style.scrollbarGutter;
+      const surroundings = [...(root.current?.closest("main")?.querySelectorAll<HTMLElement>(".library-masthead, .library-collection-heading") || [])];
+      const previousInert = surroundings.map((element) => element.inert);
+      document.documentElement.style.scrollbarGutter = "stable";
+      document.body.style.overflow = "hidden";
+      surroundings.forEach((element) => { element.inert = true; });
+      unlock.current = () => {
+        document.body.style.overflow = overflow;
+        document.documentElement.style.scrollbarGutter = gutter;
+        surroundings.forEach((element, i) => { element.inert = previousInert[i]; });
       };
-    }).filter(({ from, height, bookHeight, open }) => from && (
-      from.height !== height || from.bookHeight !== bookHeight || from.open !== open
-    ));
-    for (const { details, open, from } of targets) {
-      if (details && !open && from?.open) {
-        // Keep the outgoing description visible just long enough to fade, but
-        // remove its links from keyboard and accessibility navigation at once.
-        details.hidden = false;
-        details.inert = true;
-        details.setAttribute("aria-hidden", "true");
-      }
     }
-    let scroll = true;
-    const stopScroll = () => { scroll = false; };
-    const onKey = (event: KeyboardEvent) => {
-      if (["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "].includes(event.key)) stopScroll();
+    root.current!.dataset.focusView = "true";
+    const fromFocus = Number(root.current!.style.getPropertyValue("--focus-progress") || 0);
+    const targets = () => books.map((book, index) => {
+      const id = book.dataset.bookId!;
+      const original = home.current.get(id) || book.getBoundingClientRect();
+      const open = id === active ? 1 : 0;
+      const rect = open ? focusedBookRect(innerWidth, innerHeight)
+        : active ? awayBookRect(original, index, selectedIndex, innerHeight) : original;
+      if (open) book.dataset.openHeight = String(rect.height);
+      book.parentElement!.inert = id !== active;
+      book.parentElement!.style.height = String(slots.current.get(id) || original.height) + "px";
+      return { book, open, rect, from: snapshots?.get(id) || { rect, open } };
+    });
+    let destinations = targets();
+    const returnBook = books.find((book) => (snapshots?.get(book.dataset.bookId!)?.open || 0) > 0);
+    const apply = (progress: number) => {
+      root.current!.style.setProperty("--focus-progress", String(interpolate(fromFocus, active ? 1 : 0, progress)));
+      for (const { book, rect, open, from } of destinations) {
+        book.style.position = "fixed";
+        for (const property of ["left", "top", "width", "height"] as const)
+          book.style[property] = String(interpolate(from.rect[property], rect[property], progress)) + "px";
+        book.dataset.openAmount = String(interpolate(from.open, open, progress));
+        const details = book.parentElement!.querySelector<HTMLElement>(".book-details");
+        if (details) details.style.opacity = String(open ? Math.max(0, (progress - 0.65) / 0.35) : 0);
+      }
     };
-    window.addEventListener("wheel", stopScroll, { passive: true });
-    window.addEventListener("touchstart", stopScroll, { passive: true });
-    window.addEventListener("keydown", onKey);
     const start = performance.now();
     const tick = (now: number) => {
-      const progress = reduceMotion.matches ? 1 : shelfProgress(now - start);
-      for (const target of targets) {
-        const { book, item, from, details } = target;
-        if (!from) continue;
-        book.dataset.openAmount = String(interpolate(from.open, target.open, progress));
-        if (progress < 1) {
-          item.style.height = `${interpolate(from.height, target.height, progress)}px`;
-          book.style.height = `${interpolate(from.bookHeight, target.bookHeight, progress)}px`;
-          if (details && target.open && from.open < 1)
-            details.style.opacity = String(Math.max(0, (progress - 0.8) / 0.2));
-          else if (details && !target.open)
-            details.style.opacity = String(Math.max(0, 1 - progress * 4));
-        } else {
-          item.style.removeProperty("height");
-          book.style.removeProperty("height");
-          details?.style.removeProperty("opacity");
-          if (details && !target.open) details.hidden = true;
-        }
+      const progress = reduceMotion.matches || !snapshots ? 1 : shelfProgress(now - start);
+      apply(progress);
+      if (progress < 1) frame.current = requestAnimationFrame(tick);
+      else if (!active) {
+        reset();
+        returnBook?.focus({ preventScroll: true });
       }
-      if (scroll) window.scrollTo({ top: interpolate(startScroll, targetScroll, progress), behavior: "instant" });
-      if (now - start < SHELF_MOTION_MS && progress < 1) frame.current = requestAnimationFrame(tick);
     };
+    const resize = () => {
+      cancelAnimationFrame(frame.current);
+      clearPositions();
+      books.forEach((book) => {
+        home.current.set(book.dataset.bookId!, book.getBoundingClientRect());
+        slots.current.set(book.dataset.bookId!, book.parentElement!.getBoundingClientRect().height);
+      });
+      destinations = targets();
+      apply(1);
+      if (!active) {
+        reset();
+        returnBook?.focus({ preventScroll: true });
+      }
+    };
+    window.addEventListener("resize", resize);
     tick(start);
     return () => {
       cancelAnimationFrame(frame.current);
-      window.removeEventListener("wheel", stopScroll);
-      window.removeEventListener("touchstart", stopScroll);
-      window.removeEventListener("keydown", onKey);
-      targets.forEach(({ book, details }) => {
-        if (!details) return;
-        details.style.removeProperty("opacity");
-        details.hidden = book.dataset.expanded !== "true";
-        details.inert = false;
-        details.removeAttribute("aria-hidden");
-      });
+      window.removeEventListener("resize", resize);
     };
   }, [active, flat, readings, root]);
 
+  useLayoutEffect(() => () => reset(), []);
   return capture;
 }

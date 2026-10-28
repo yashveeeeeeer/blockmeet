@@ -40,6 +40,9 @@ function ShelfBook({
   const suppressClick = useRef(false);
   const design = bookDesign(reading);
   const button = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (active) { setTurn(0); setPitch(0); }
+  }, [active]);
   const startDrag = (event: PointerEvent<HTMLButtonElement>) => {
     if (flat || !active || event.button !== 0) return;
     drag.current = {
@@ -161,6 +164,7 @@ function ShelfBook({
           if (active && event.key === "Escape") {
             onSelect();
             event.preventDefault();
+            event.stopPropagation();
           }
           if (
             !flat &&
@@ -176,11 +180,9 @@ function ShelfBook({
       >
         {coverContent}
       </button>
-      {!active && (
-        <span className="shelf-mobile-title" aria-hidden="true">
-          {reading.title}
-        </span>
-      )}
+      <span className="shelf-mobile-title" aria-hidden="true">
+        {reading.title}
+      </span>
       <span className="shelf-indicator" aria-hidden="true">
         {active ? "−" : "+"}
       </span>
@@ -273,6 +275,7 @@ export default function BookShelf({
   const root = useRef<HTMLDivElement>(null);
   const canvasHost = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState<string | null>(null);
+  const [visibleId, setVisibleId] = useState<string | null>(null);
   const [rendered, setRendered] = useState<{
     readings: Reading[];
     covers: CoverCatalog;
@@ -282,6 +285,75 @@ export default function BookShelf({
   const useFlat = flat || unavailable;
   const captureMotion = useShelfMotion(root, active, useFlat, readings);
   const loading = !useFlat && !ready;
+  const focused = !!active && !useFlat;
+  const railCurrent = active || visibleId || readings[0]?.id;
+  const previousActive = useRef<string | null>(null);
+  const select = (id: string | null) => {
+    if (id === active) return;
+    captureMotion();
+    setActive(id);
+  };
+  useEffect(() => {
+    if (active || useFlat || !ready) return;
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      if (root.current?.hasAttribute("data-focus-view")) {
+        frame = requestAnimationFrame(update);
+        return;
+      }
+      const books = [...(root.current?.querySelectorAll<HTMLElement>(".shelf-book") || [])];
+      let closest: HTMLElement | undefined;
+      let distance = Infinity;
+      for (const book of books) {
+        const rect = book.getBoundingClientRect();
+        const next = Math.abs(rect.top + rect.height / 2 - innerHeight / 2);
+        if (next < distance) { closest = book; distance = next; }
+      }
+      setVisibleId(closest?.dataset.bookId || null);
+    };
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
+    schedule();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+    };
+  }, [active, useFlat, ready, readings]);
+  useEffect(() => {
+    const ticks = root.current?.querySelector<HTMLElement>(".shelf-rail-ticks");
+    const current = ticks?.querySelector<HTMLElement>("[aria-current]");
+    if (!ticks || !current) return;
+    if (current.offsetTop < ticks.scrollTop) ticks.scrollTop = current.offsetTop;
+    else if (current.offsetTop + current.offsetHeight > ticks.scrollTop + ticks.clientHeight)
+      ticks.scrollTop = current.offsetTop + current.offsetHeight - ticks.clientHeight;
+  }, [railCurrent]);
+  useEffect(() => {
+    const books = [...(root.current?.querySelectorAll<HTMLButtonElement>(".shelf-book") || [])];
+    const selected = books.find((book) => book.dataset.bookId === (active || previousActive.current));
+    if (!document.activeElement?.closest(".shelf-rail") || !active)
+      selected?.focus({ preventScroll: true });
+    previousActive.current = active;
+    if (!focused) return;
+    const keyboard = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        select(null);
+      }
+      if (event.key !== "Tab") return;
+      const controls = [...(root.current?.querySelectorAll<HTMLElement>("button, a[href]") || [])]
+        .filter((element) => element.tabIndex >= 0 && !element.closest("[inert], [hidden]") && element.getBoundingClientRect().width > 0);
+      const index = controls.indexOf(document.activeElement as HTMLElement);
+      if (event.shiftKey ? index <= 0 : index === controls.length - 1) {
+        event.preventDefault();
+        controls[event.shiftKey ? controls.length - 1 : 0]?.focus({ preventScroll: true });
+      }
+    };
+    document.addEventListener("keydown", keyboard);
+    return () => document.removeEventListener("keydown", keyboard);
+  }, [active, focused]);
   useEffect(() => {
     if (flat || (active && !readings.some((reading) => reading.id === active)))
       setActive(null);
@@ -323,8 +395,39 @@ export default function BookShelf({
       ref={root}
       className={`book-shelf${useFlat ? " is-flat" : ready ? " has-webgl" : " is-loading"}`}
       aria-busy={loading}
+      role={focused ? "dialog" : undefined}
+      aria-modal={focused ? true : undefined}
+      aria-label={focused ? readings.find((reading) => reading.id === active)?.title : undefined}
     >
+      <div className="shelf-focus-backdrop" aria-hidden="true" />
       <div ref={canvasHost} aria-hidden="true" />
+      {!useFlat && ready && (
+        <nav className="shelf-rail" aria-label="Reading navigation">
+          <button className="shelf-rail-back" type="button" aria-label="Back to bookshelf" hidden={!active} onClick={() => select(null)}>←</button>
+          <div className="shelf-rail-ticks">
+            {readings.map((reading, index) => (
+              <button
+                key={reading.id}
+                type="button"
+                className="shelf-rail-tick"
+                aria-label={`Open ${reading.title}`}
+                aria-current={reading.id === railCurrent ? "true" : undefined}
+                tabIndex={reading.id === railCurrent ? 0 : -1}
+                onClick={() => select(reading.id)}
+                onKeyDown={(event) => {
+                  const next = event.key === "ArrowDown" ? Math.min(index + 1, readings.length - 1)
+                    : event.key === "ArrowUp" ? Math.max(index - 1, 0)
+                    : event.key === "Home" ? 0 : event.key === "End" ? readings.length - 1 : null;
+                  if (next === null) return;
+                  event.preventDefault();
+                  select(readings[next].id);
+                  (event.currentTarget.parentElement!.children[next] as HTMLElement).focus({ preventScroll: true });
+                }}
+              ><span className="shelf-rail-mark" /><span className="shelf-rail-label">{reading.title}</span></button>
+            ))}
+          </div>
+        </nav>
+      )}
       {loading && (
         <p className="shelf-loading" role="status">
           Preparing the bookshelf…
@@ -340,10 +443,7 @@ export default function BookShelf({
             active={!flat && active === reading.id}
             flat={useFlat}
             directLink={flat}
-            onSelect={() => {
-              captureMotion();
-              setActive((value) => (value === reading.id ? null : reading.id));
-            }}
+            onSelect={() => select(active === reading.id ? null : reading.id)}
           />
         ))}
       </ol>

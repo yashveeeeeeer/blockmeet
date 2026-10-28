@@ -409,7 +409,7 @@ export function mountBookScene(
       }
       const closedScale = Math.min((rect.width - 64) / 364, 1.65);
       const openHeight = transitioning ? Number(row.dataset.openHeight || rect.height) : rect.height;
-      const openScale = Math.min((rect.width - 55) / 285, (openHeight - 36) / 390, 1.32);
+      const openScale = Math.min((rect.width - 24) / 285, (openHeight - 16) / 390, 1.65);
       const scale = THREE.MathUtils.lerp(closedScale, openScale, open);
       book.group.scale.setScalar(Math.max(0.3, scale));
       const offset = ((bookDesign(byId.get(id)!).seed % 5) - 2) * 4 * (1 - open);
