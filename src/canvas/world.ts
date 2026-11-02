@@ -565,10 +565,11 @@ function createTrees(width: number): TreeData[] {
 
 function createShops(width: number): ShopData[] {
   const shops: ShopData[] = [];
-  const count = Math.min(4, Math.max(2, Math.floor(width / 400)));
+  // Keep Bakery, Potion, and Athenaeum available on narrow screens too.
+  const count = Math.min(4, Math.max(3, Math.floor(width / 400)));
   const spacing = width / (count + 1);
   for (let i = 0; i < count; i++) {
-    const sc = 1.7 + Math.random() * 0.4;
+    const sc = width < 500 ? 1.2 + Math.random() * 0.12 : 1.7 + Math.random() * 0.4;
     const shopW = 14 * 4 * sc;
     const sx =
       spacing * (i + 1) - shopW / 2 + (Math.random() - 0.5) * 40;
@@ -2116,7 +2117,7 @@ function updateInteractionCursor(state: WorldState) {
     ) ||
     state.horses.some((horse) => Math.abs(x - horse.x) < 58 && Math.abs(y - state.groundY) < 72);
   const nearShop = state.shops.some((shop) => {
-    if (shop.variant !== 3 && shop.variant !== 0) return false;
+    if (shop.variant !== 3 && shop.variant !== 0 && shop.variant !== 1) return false;
     const s = Math.floor(4 * shop.scale);
     return x >= shop.x && x <= shop.x + s * 14 && y >= state.groundY - s * 12 && y <= state.groundY;
   });
@@ -3017,7 +3018,7 @@ export function renderFrame(state: WorldState, time: number, dt: number) {
     const cy = state.input.lastClickY;
     let handled = false;
     for (const shop of state.shops) {
-      if (shop.variant !== 3 && shop.variant !== 0) continue;
+      if (shop.variant !== 3 && shop.variant !== 0 && shop.variant !== 1) continue;
       const s = Math.floor(4 * shop.scale);
       const shopW = s * 14;
       const shopH = s * 12;

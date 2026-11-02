@@ -35,6 +35,7 @@ const KONAMI = [
 ];
 
 const ATHENAEUM_VARIANT = 3;
+const POTION_VARIANT = 1;
 
 function getTimeOfDayXp(): number {
   const now = new Date();
@@ -68,6 +69,7 @@ export default function WorldPage() {
     (variant: number) => {
       if (variant === ATHENAEUM_VARIANT) navigate("/athenaeum");
       if (variant === 0) navigate("/bakery");
+      if (variant === POTION_VARIANT) navigate("/potion");
     },
     [navigate],
   );
@@ -195,6 +197,7 @@ export default function WorldPage() {
       </a>
       <Link className="skip-link" to="/athenaeum">Visit Athenaeum</Link>
       <Link className="skip-link" to="/bakery">Visit Bakery House</Link>
+      <Link className="skip-link" to="/potion">Visit Potion House</Link>
 
       <canvas
         ref={canvasRef}

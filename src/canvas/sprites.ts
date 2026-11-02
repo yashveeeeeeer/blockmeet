@@ -1138,7 +1138,7 @@ export function drawShop(
   ctx.fillRect(signX + s, signY - s * 1.5, 2, s * 1.5);
   ctx.fillRect(signX + signW - s - 2, signY - s * 1.5, 2, s * 1.5);
 
-  const labels = ["BAKERY", "POTIONS", "TOOLS", "ATHENAEUM"];
+  const labels = ["BAKERY", "POTION", "TOOLS", "ATHENAEUM"];
   const fontSize = Math.max(8, Math.floor(s * 1.6));
   ctx.fillStyle = "#ffffff";
   ctx.font = `${fontSize}px "Press Start 2P", monospace`;

@@ -6,8 +6,11 @@ An ultra-interactive Minecraft-inspired 8-bit pixel world landing page that redi
 
 - `/blockmeet/athenaeum`: a Three.js reading shelf, with interactive book spines, covers, a category dropdown in the collection header. No dates or reading-status labels.
 - `/blockmeet/bakery`: the original writings page, including its articles, reading animations and display controls. Published article URLs under `/blockmeet/writings/` are unchanged.
+- `/blockmeet/potion`: a small collection of things Yashveer uses to focus, starting with a Music selector and a custom MP3 player. The village sound switch still controls its separate local ambience.
 
-Both houses are clickable. Keyboard users can reach each destination through skip links that appear only on focus. Bakery and Athenaeum remain visible when the village draws fewer buildings.
+All three houses are clickable. Keyboard users can reach each destination through skip links that appear only on focus. Bakery, Potion, and Athenaeum remain visible on narrow screens.
+
+The Potion recording is `public/music/potion.mp3`, a 64 kb/s mono copy of the MP3 supplied for this page. The original remains outside this repository. The player preloads metadata only, so the full track is requested when a visitor presses play.
 
 ## Reading library
 
